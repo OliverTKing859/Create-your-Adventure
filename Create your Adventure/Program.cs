@@ -1,6 +1,7 @@
 ﻿using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Silk.NET.Maths;
+using Silk.NET.Core.Native;
 
 namespace Create_your_Adventure
 {
@@ -16,6 +17,7 @@ namespace Create_your_Adventure
             options.API = new GraphicsAPI(
                 ContextAPI.OpenGL,
                 ContextProfile.Core,
+                ContextFlags.Debug |
                 ContextFlags.ForwardCompatible,
                 new APIVersion(4, 6)
                 );
@@ -31,11 +33,17 @@ namespace Create_your_Adventure
 
         }
 
-        private static void OnLoad()
+        private static unsafe void OnLoad()
         {
             // OpenGL loading
 
             gl = GL.GetApi(window);
+
+            gl.Enable(EnableCap.DebugOutput);
+            gl.Enable(EnableCap.DebugOutputSynchronous);
+
+            gl.DebugMessageCallback(DebugCallback, null);
+
             CenterWindow(window);
 
             // OpenGL State
@@ -59,6 +67,20 @@ namespace Create_your_Adventure
         private static void OnClose()
         {
             // Cleanup (Buffer, Shader, etc.)
+        }
+         static void DebugCallback(
+            GLEnum source,
+            GLEnum type,
+            int id,
+            GLEnum severity,
+            int length,
+            nint message,
+            nint userParam)
+        {
+            if (severity == GLEnum.DebugSeverityNotification)
+                return;
+
+            Console.WriteLine($"[GL] {severity}: {SilkMarshal.PtrToString(message)}");
         }
 
         public static void CenterWindow(IWindow window)
