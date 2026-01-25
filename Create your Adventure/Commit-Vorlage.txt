@@ -1,4 +1,4 @@
-Date:		YYYY - DD - MM
+- TITEL --- YYYY - DD - MM
 
 Features:
 

@@ -9,6 +9,27 @@ namespace Create_your_Adventure
     {
         private static IWindow window;
         private static GL gl;
+
+        private static uint vao;
+        private static uint vbo;
+        private static uint ebo;
+        private static uint graphicsProgram;
+
+        private static readonly float[] vertices =
+        {
+            // Position             // Color
+            0.0f,   0.5f,   0.0f,   0.0f, 0.0f, 2.0f,   // Blue
+            0.5f,  -0.5f,   0.0f,   0.0f, 2.0f, 0.0f,   // Green
+           -0.5f,  -0.5f,   0.0f,   2.0f, 0.0f, 0.0f    // Red
+        };
+
+        private static readonly uint[] indices =
+        {
+            0, 1, 2
+        };
+
+        private static readonly uint stride = 6 * sizeof(float);
+
         static void Main()
         {
             var options = WindowOptions.Default;
@@ -35,7 +56,7 @@ namespace Create_your_Adventure
 
         private static unsafe void OnLoad()
         {
-            // OpenGL loading
+            // -------- OpenGL loading --------
 
             gl = GL.GetApi(window);
 
@@ -46,10 +67,61 @@ namespace Create_your_Adventure
 
             CenterWindow(window);
 
-            // OpenGL State
+            // -------- OpenGL State --------
 
             gl.ClearColor(0.05f, 0.05f, 0.05f, 1.0f);
             gl.Enable(EnableCap.DepthTest);
+
+            // -------- VAO --------
+            vao = gl.GenVertexArray();
+            gl.BindVertexArray(vao);
+
+            // -------- VBO --------
+
+            vbo = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
+            gl.BufferData(
+                BufferTargetARB.ArrayBuffer,
+                vertices,
+                BufferUsageARB.StaticDraw
+                );
+
+            // -------- EBO --------
+
+            ebo = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, ebo);
+            gl.BufferData(
+                BufferTargetARB.ElementArrayBuffer,
+                indices,
+                BufferUsageARB.StaticDraw
+                );
+
+            // -------- Vertex Attribute --------
+
+            gl.VertexAttribPointer(
+                0,
+                3,
+                VertexAttribPointerType.Float,
+                false,
+                stride,
+                0
+                );
+            gl.EnableVertexAttribArray(0);
+
+            gl.VertexAttribPointer(
+                1,
+                3,
+                VertexAttribPointerType.Float,
+                false,
+                stride,
+                3 * sizeof(float)
+                );
+
+            gl.EnableVertexAttribArray(1);
+
+            // -------- Shader --------
+            graphicsProgram = CreateGraphicsProgram();
+
         }
 
         private static void OnUpdate(double deltaTime)
@@ -57,30 +129,30 @@ namespace Create_your_Adventure
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
         }
 
-        private static void OnRender(double deltaTime)
+        private static unsafe void OnRender(double deltaTime)
         {
             gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            gl.UseProgram(graphicsProgram);
+            gl.BindVertexArray(vao);
+
+            gl.DrawElements(
+                PrimitiveType.Triangles,
+                3,
+                DrawElementsType.UnsignedInt,
+                null
+                );
 
             // Render Code (IKingsRenderer,OpenGL, Vulkan🌋)
         }
 
         private static void OnClose()
         {
+            gl.DeleteBuffer(ebo);
+            gl.DeleteBuffer(vbo);
+            gl.DeleteVertexArray(vao);
+            gl.DeleteProgram(graphicsProgram);
             // Cleanup (Buffer, Shader, etc.)
-        }
-         static void DebugCallback(
-            GLEnum source,
-            GLEnum type,
-            int id,
-            GLEnum severity,
-            int length,
-            nint message,
-            nint userParam)
-        {
-            if (severity == GLEnum.DebugSeverityNotification)
-                return;
-
-            Console.WriteLine($"[GL] {severity}: {SilkMarshal.PtrToString(message)}");
         }
 
         public static void CenterWindow(IWindow window)
@@ -99,6 +171,68 @@ namespace Create_your_Adventure
                 (bounds.X - size.X) / 2,
                 (bounds.Y - size.Y) / 2
                 );
+        }
+        private static void DebugCallback(
+            GLEnum source,
+            GLEnum type,
+            int id,
+            GLEnum severity,
+            int length,
+            nint message,
+            nint userParam)
+        {
+            if (severity == GLEnum.DebugSeverityNotification)
+                return;
+
+            Console.WriteLine($"[GL] {severity}: {SilkMarshal.PtrToString(message)}");
+        }
+
+        private const string VertexShaderSource = @"
+        #version 460 core
+
+        layout (location = 0) in vec3 aPosition;
+        layout (location = 1) in vec3 aColor;
+
+        out vec3 vColor;
+
+        void main()
+        {
+            gl_Position = vec4(aPosition, 0.75);
+            vColor = aColor;
+        }
+        ";
+
+        private const string FragmentShaderSource = @"
+        #version 460 core
+
+        in vec3 vColor;
+        out vec4 FragColor;
+
+        void main()
+        {
+            FragColor = vec4(vColor, 1.0);
+        }
+        ";
+
+        private static uint CreateGraphicsProgram()
+        {
+            uint vertex = gl.CreateShader(ShaderType.VertexShader);
+            gl.ShaderSource(vertex, VertexShaderSource);
+            gl.CompileShader(vertex);
+
+            uint fragment = gl.CreateShader(ShaderType.FragmentShader);
+            gl.ShaderSource(fragment, FragmentShaderSource);
+            gl.CompileShader(fragment);
+
+            uint createProgram = gl.CreateProgram();
+            gl.AttachShader(createProgram, vertex);
+            gl.AttachShader(createProgram, fragment);
+            gl.LinkProgram(createProgram);
+
+            gl.DeleteShader(vertex);
+            gl.DeleteShader(fragment);
+
+            return createProgram;
         }
     }
 }
