@@ -2,6 +2,7 @@
 using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Core.Native;
+using System.Numerics;
 
 namespace Create_your_Adventure
 {
@@ -62,6 +63,21 @@ namespace Create_your_Adventure
         };
 
         private static readonly uint stride = 6 * sizeof(float);
+
+        // -------- Camera --------
+
+        private static Vector3D<float> cameraPosition = new(0f, 0f, 3f);
+        private static float yaw = -90f;
+        private static float pitch = 0f;
+
+        private static Matrix4X4<float> view;
+        private static Matrix4X4<float> projection;
+
+        private static int uModel;
+        private static int uView;
+        private static int uProjection;
+
+        private static float DegreesToRadians(float degrees) => degrees * (MathF.PI / 180.0f);
 
         static void Main()
         {
@@ -154,6 +170,17 @@ namespace Create_your_Adventure
 
             // -------- Shader --------
             graphicsProgram = CreateGraphicsProgram();
+            gl.UseProgram(graphicsProgram);
+
+            uModel = gl.GetUniformLocation(graphicsProgram, "uModel");
+            uView = gl.GetUniformLocation(graphicsProgram, "uView");
+            uProjection = gl.GetUniformLocation(graphicsProgram, "uProjection");
+
+            projection = CreatePerspective(window.Size.X, window.Size.Y, 60f, 0.1f, 100f);
+            fixed (Matrix4X4<float>* pointerProjection = &projection)
+            {
+                gl.UniformMatrix4(uProjection, 1, false, (float*)pointerProjection);
+            }
 
         }
 
@@ -168,6 +195,19 @@ namespace Create_your_Adventure
 
             gl.UseProgram(graphicsProgram);
             gl.BindVertexArray(vao);
+
+            UpdateViewMatrix();
+
+            var model = Matrix4X4<float>.Identity;
+
+            gl.UniformMatrix4(uModel, 1, false, (float*)&model);
+
+            fixed (Matrix4X4<float>* pointerView = &view)
+            fixed (Matrix4X4<float>* pointerProjection = &projection)
+            {
+                gl.UniformMatrix4(uView, 1, false, (float*)pointerView);
+                gl.UniformMatrix4(uProjection, 1, false, (float*)pointerProjection);
+            }
 
             gl.DrawElements(
                 PrimitiveType.Triangles,
@@ -188,6 +228,8 @@ namespace Create_your_Adventure
             // Cleanup (Buffer, Shader, etc.)
         }
 
+        // Window ----------------------------------------------------------------
+
         public static void CenterWindow(IWindow window)
 
         {
@@ -205,6 +247,9 @@ namespace Create_your_Adventure
                 (bounds.Y - size.Y) / 2
                 );
         }
+
+        // DEBUG ----------------------------------------------------------------
+
         private static void DebugCallback(
             GLEnum source,
             GLEnum type,
@@ -220,6 +265,8 @@ namespace Create_your_Adventure
             Console.WriteLine($"[GL] {severity}: {SilkMarshal.PtrToString(message)}");
         }
 
+        // SHADER ----------------------------------------------------------------
+
         private const string VertexShaderSource = @"
         #version 460 core
 
@@ -228,9 +275,13 @@ namespace Create_your_Adventure
 
         out vec3 vColor;
 
+        uniform mat4 uModel;
+        uniform mat4 uView;
+        uniform mat4 uProjection;
+
         void main()
         {
-            gl_Position = vec4(aPosition, 1.0);
+            gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
             vColor = aColor;
         }
         ";
@@ -266,6 +317,36 @@ namespace Create_your_Adventure
             gl.DeleteShader(fragment);
 
             return createProgram;
+        }
+
+        // CAMERA ----------------------------------------------------------------
+
+        private static Vector3D<float> YawPitchToDirection(float yawDegrees, float pitchDegrees)
+        {
+            float yaw = DegreesToRadians(yawDegrees);
+            float pitch = DegreesToRadians(pitchDegrees);
+
+            var direction = new Vector3D<float>(
+                x: MathF.Cos(yaw) * MathF.Cos(pitch),
+                y: MathF.Sin(pitch),
+                z: MathF.Sin(yaw) * MathF.Cos(pitch)
+                );
+
+            return Vector3D.Normalize(direction);
+        }
+
+        private static void UpdateViewMatrix()
+        {
+            Vector3D<float> cameraFront = YawPitchToDirection(yaw, pitch);
+            view = Matrix4X4.CreateLookAt(cameraPosition, cameraPosition + cameraFront, Vector3D<float>.UnitY);
+        }
+
+        private static Matrix4X4<float> CreatePerspective(int width, int height, float fovDegrees, float near, float far)
+        {
+            float aspect = width <= 0 || height <= 0 ? 1.0f : (float)width / height;
+            float fov = DegreesToRadians(fovDegrees);
+
+            return Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, near, far);
         }
     }
 }
