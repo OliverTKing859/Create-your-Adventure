@@ -10,6 +10,8 @@ namespace Create_your_Adventure
         private static IWindow window;
         private static GL gl;
 
+        // -------- OpenGL pipeline --------
+
         private static uint vao;
         private static uint vbo;
         private static uint ebo;
@@ -18,14 +20,45 @@ namespace Create_your_Adventure
         private static readonly float[] vertices =
         {
             // Position             // Color
-            0.0f,   0.5f,   0.0f,   0.0f, 0.0f, 2.0f,   // Blue
-            0.5f,  -0.5f,   0.0f,   0.0f, 2.0f, 0.0f,   // Green
-           -0.5f,  -0.5f,   0.0f,   2.0f, 0.0f, 0.0f    // Red
+
+            // Front face
+           -0.5f, -0.5f,  0.5f,     2.0f, 0.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,     0.0f, 2.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 2.0f,
+           -0.5f,  0.5f,  0.5f,     2.0f, 2.0f, 0.0f,
+
+            // Back face
+           -0.5f, -0.5f, -0.5f,     2.0f, 0.0f, 2.0f,
+            0.5f, -0.5f, -0.5f,     0.0f, 2.0f, 2.0f,
+            0.5f,  0.5f, -0.5f,     2.0f, 2.0f, 2.0f,
+           -0.5f,  0.5f, -0.5f,     2.0f, 0.0f, 0.0f
         };
 
         private static readonly uint[] indices =
         {
-            0, 1, 2
+            // North
+            0, 1, 2,
+            2, 3, 0,
+
+            // East
+            1, 5, 6,
+            6, 2, 1,
+
+            // South
+            5, 4, 7,
+            7, 6, 5,
+
+            // West
+            4, 0, 3,
+            3, 7, 4,
+
+            // Top
+            3, 2, 6,
+            6, 7, 3,
+
+            // Bottom
+            4, 5, 1,
+            1, 0, 4
         };
 
         private static readonly uint stride = 6 * sizeof(float);
@@ -138,7 +171,7 @@ namespace Create_your_Adventure
 
             gl.DrawElements(
                 PrimitiveType.Triangles,
-                3,
+                36,
                 DrawElementsType.UnsignedInt,
                 null
                 );
@@ -197,7 +230,7 @@ namespace Create_your_Adventure
 
         void main()
         {
-            gl_Position = vec4(aPosition, 0.75);
+            gl_Position = vec4(aPosition, 1.0);
             vColor = aColor;
         }
         ";
