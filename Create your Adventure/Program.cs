@@ -3,6 +3,7 @@ using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Core.Native;
 using System.Numerics;
+using Silk.NET.Input;
 
 namespace Create_your_Adventure
 {
@@ -10,6 +11,21 @@ namespace Create_your_Adventure
     {
         private static IWindow window;
         private static GL gl;
+
+        // -------- Input --------
+
+        private static IInputContext input;
+        private static IKeyboard keyboard;
+        private static IMouse mouse;
+
+        private static bool firstMouse = true;
+        private static Vector2 lastMousePosition;
+
+        // Tuning ---
+
+        private static float cameraSpeed = 5.0f;
+        private static float mouseSensitivity = 0.12f;
+
 
         // -------- OpenGL pipeline --------
 
@@ -79,6 +95,8 @@ namespace Create_your_Adventure
 
         private static float DegreesToRadians(float degrees) => degrees * (MathF.PI / 180.0f);
 
+        // Main ----------------------------------------------------------------
+
         static void Main()
         {
             var options = WindowOptions.Default;
@@ -102,6 +120,8 @@ namespace Create_your_Adventure
             window.Run();
 
         }
+
+        // OnLoad ----------------------------------------------------------------
 
         private static unsafe void OnLoad()
         {
@@ -172,10 +192,25 @@ namespace Create_your_Adventure
             graphicsProgram = CreateGraphicsProgram();
             gl.UseProgram(graphicsProgram);
 
+            // -------- Camera --------
             uModel = gl.GetUniformLocation(graphicsProgram, "uModel");
             uView = gl.GetUniformLocation(graphicsProgram, "uView");
             uProjection = gl.GetUniformLocation(graphicsProgram, "uProjection");
 
+            // --------Input Initialation --------
+
+            input = window.CreateInput();
+
+            keyboard = input.Keyboards.Count > 0 ? input.Keyboards[0] : null;
+            mouse = input.Mice.Count > 0 ? input.Mice[0] : null;
+
+            if (mouse != null)
+            {
+                mouse.Cursor.CursorMode = CursorMode.Disabled;
+                mouse.MouseMove += OnMouseMove;
+            }
+
+            // -------- Initial Projection --------
             projection = CreatePerspective(window.Size.X, window.Size.Y, 60f, 0.1f, 100f);
             fixed (Matrix4X4<float>* pointerProjection = &projection)
             {
@@ -187,6 +222,47 @@ namespace Create_your_Adventure
         private static void OnUpdate(double deltaTime)
         {
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
+
+            float dt = (float)deltaTime;
+
+            Vector3D<float> cameraFront = GetViewDirection(yaw, pitch);
+            Vector3D<float> cameraRight = Vector3D.Normalize(Vector3D.Cross(cameraFront, Vector3D<float>.UnitY));
+
+            // viewForward
+            // viewRight
+            // viewUp
+
+            float velocity = cameraSpeed * dt;
+            // -------- WASD Input --------
+
+            if (keyboard.IsKeyPressed(Key.W))
+            {
+                cameraPosition += cameraFront * velocity;
+            }
+            if (keyboard.IsKeyPressed(Key.S))
+            {
+                cameraPosition -= cameraFront * velocity;
+            }
+            if (keyboard.IsKeyPressed(Key.A ))
+            {
+                cameraPosition -= cameraRight * velocity;
+            }
+            if (keyboard.IsKeyPressed(Key.D))
+            {
+                cameraPosition += cameraRight * velocity;
+            }
+
+            // -------- Up & Down Input --------
+
+            if (keyboard.IsKeyPressed(Key.Space))
+            {
+                cameraPosition += Vector3D<float>.UnitY * velocity;
+            }
+            if (keyboard.IsKeyPressed(Key.ShiftLeft))
+            {
+                cameraPosition -= Vector3D<float>.UnitY * velocity;
+            }
+
         }
 
         private static unsafe void OnRender(double deltaTime)
@@ -196,7 +272,7 @@ namespace Create_your_Adventure
             gl.UseProgram(graphicsProgram);
             gl.BindVertexArray(vao);
 
-            UpdateViewMatrix();
+            BuildViewMatrix();
 
             var model = Matrix4X4<float>.Identity;
 
@@ -221,6 +297,11 @@ namespace Create_your_Adventure
 
         private static void OnClose()
         {
+            if (mouse != null)
+            {
+                mouse.MouseMove -= OnMouseMove;
+            }
+
             gl.DeleteBuffer(ebo);
             gl.DeleteBuffer(vbo);
             gl.DeleteVertexArray(vao);
@@ -321,7 +402,7 @@ namespace Create_your_Adventure
 
         // CAMERA ----------------------------------------------------------------
 
-        private static Vector3D<float> YawPitchToDirection(float yawDegrees, float pitchDegrees)
+        private static Vector3D<float> GetViewDirection(float yawDegrees, float pitchDegrees)
         {
             float yaw = DegreesToRadians(yawDegrees);
             float pitch = DegreesToRadians(pitchDegrees);
@@ -335,9 +416,9 @@ namespace Create_your_Adventure
             return Vector3D.Normalize(direction);
         }
 
-        private static void UpdateViewMatrix()
+        private static void BuildViewMatrix()
         {
-            Vector3D<float> cameraFront = YawPitchToDirection(yaw, pitch);
+            Vector3D<float> cameraFront = GetViewDirection(yaw, pitch);
             view = Matrix4X4.CreateLookAt(cameraPosition, cameraPosition + cameraFront, Vector3D<float>.UnitY);
         }
 
@@ -347,6 +428,33 @@ namespace Create_your_Adventure
             float fov = DegreesToRadians(fovDegrees);
 
             return Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, near, far);
+        }
+
+        // Mouse
+
+        private static void OnMouseMove(IMouse mouse, Vector2 mousePosition)
+        {
+            if (firstMouse)
+            {
+                lastMousePosition = mousePosition;
+                firstMouse = false;
+                return;
+            }
+
+            var delta = mousePosition - lastMousePosition;
+            lastMousePosition = mousePosition;
+
+            yaw += delta.X * mouseSensitivity;
+            pitch -= delta.Y * mouseSensitivity;
+
+            if (pitch > 89.0f)
+            {
+                pitch = 89.0f;
+            }
+            if (pitch < -89.0f)
+            {
+                pitch = -89.0f;
+            }
         }
     }
 }
