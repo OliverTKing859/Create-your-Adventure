@@ -26,13 +26,13 @@ namespace Create_your_Adventure
         private static Vector3D<float> viewVelocity = Vector3D<float>.Zero;
         private static Vector2 smoothedMouseDelta = Vector2.Zero;
 
-        private static float mouseSensitivity = 0.12f;
+        private static float mouseSensitivity = 0.08f;
+        private static float mouseSmoothFactor = 0.75f;
 
         private static float cameraSpeed = 5.0f;
         private static float maxCameraSpeed = 7.77f;
-        private static float acceleration = 15.0f;
-        private static float deceleration = 10.0f;
-        private static float mouseSmoothFactor = 0.03f;
+        private static float acceleration = 35.0f;
+        private static float deceleration = 25.0f;
 
 
 
@@ -240,6 +240,8 @@ namespace Create_your_Adventure
             Vector3D<float> viewRight = Vector3D.Normalize(Vector3D.Cross(viewForward, Vector3D<float>.UnitY));
             Vector3D<float> viewUp = Vector3D<float>.UnitY;
 
+            Vector3D<float> viewForwardHorizontal = Vector3D.Normalize(new Vector3D<float>(viewForward.X, 0, viewForward.Z));
+
             Vector3D<float> inputDirection = Vector3D<float>.Zero;
 
             float velocity = cameraSpeed * dt;
@@ -247,11 +249,11 @@ namespace Create_your_Adventure
 
             if (keyboard.IsKeyPressed(Key.W))
             {
-                inputDirection += viewForward;
+                inputDirection += viewForwardHorizontal;
             }
             if (keyboard.IsKeyPressed(Key.S))
             {
-                inputDirection -= viewForward;
+                inputDirection -= viewForwardHorizontal;
             }
             if (keyboard.IsKeyPressed(Key.A ))
             {
@@ -265,12 +267,13 @@ namespace Create_your_Adventure
             {
                 inputDirection += viewUp;
             }
-            if (keyboard.IsKeyPressed(Key.ShiftLeft))
+            if (keyboard.IsKeyPressed(Key.ControlLeft))
             {
                 inputDirection -= viewUp;
             }
 
             // Acceleration & Deceleration
+
 
             if (inputDirection.LengthSquared > 0)
             {
@@ -479,7 +482,7 @@ namespace Create_your_Adventure
             lastMousePosition = mousePosition;
 
             // Smoothing
-            smoothedMouseDelta = Vector2.Lerp(smoothedMouseDelta, rawDelta, mouseSmoothFactor);
+            smoothedMouseDelta = Vector2.Lerp(Vector2.Zero , rawDelta, mouseSmoothFactor);
 
             yaw += smoothedMouseDelta.X * mouseSensitivity;
             pitch -= smoothedMouseDelta.Y * mouseSensitivity;
