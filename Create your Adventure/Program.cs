@@ -21,10 +21,19 @@ namespace Create_your_Adventure
         private static bool firstMouse = true;
         private static Vector2 lastMousePosition;
 
-        // Tuning ---
+        // Camera ---
+
+        private static Vector3D<float> viewVelocity = Vector3D<float>.Zero;
+        private static Vector2 smoothedMouseDelta = Vector2.Zero;
+
+        private static float mouseSensitivity = 0.12f;
 
         private static float cameraSpeed = 5.0f;
-        private static float mouseSensitivity = 0.12f;
+        private static float maxCameraSpeed = 7.77f;
+        private static float acceleration = 15.0f;
+        private static float deceleration = 10.0f;
+        private static float mouseSmoothFactor = 0.03f;
+
 
 
         // -------- OpenGL pipeline --------
@@ -219,51 +228,76 @@ namespace Create_your_Adventure
 
         }
 
+        // ONUPDATE ----------------------------------------------------------------
+
         private static void OnUpdate(double deltaTime)
         {
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
             float dt = (float)deltaTime;
 
-            Vector3D<float> cameraFront = GetViewDirection(yaw, pitch);
-            Vector3D<float> cameraRight = Vector3D.Normalize(Vector3D.Cross(cameraFront, Vector3D<float>.UnitY));
+            Vector3D<float> viewForward = GetViewDirection(yaw, pitch);
+            Vector3D<float> viewRight = Vector3D.Normalize(Vector3D.Cross(viewForward, Vector3D<float>.UnitY));
+            Vector3D<float> viewUp = Vector3D<float>.UnitY;
 
-            // viewForward
-            // viewRight
-            // viewUp
+            Vector3D<float> inputDirection = Vector3D<float>.Zero;
 
             float velocity = cameraSpeed * dt;
-            // -------- WASD Input --------
+            // -------- WASD/Space/Shift Input --------
 
             if (keyboard.IsKeyPressed(Key.W))
             {
-                cameraPosition += cameraFront * velocity;
+                inputDirection += viewForward;
             }
             if (keyboard.IsKeyPressed(Key.S))
             {
-                cameraPosition -= cameraFront * velocity;
+                inputDirection -= viewForward;
             }
             if (keyboard.IsKeyPressed(Key.A ))
             {
-                cameraPosition -= cameraRight * velocity;
+                inputDirection -= viewRight;
             }
             if (keyboard.IsKeyPressed(Key.D))
             {
-                cameraPosition += cameraRight * velocity;
+                inputDirection += viewRight;
             }
-
-            // -------- Up & Down Input --------
-
             if (keyboard.IsKeyPressed(Key.Space))
             {
-                cameraPosition += Vector3D<float>.UnitY * velocity;
+                inputDirection += viewUp;
             }
             if (keyboard.IsKeyPressed(Key.ShiftLeft))
             {
-                cameraPosition -= Vector3D<float>.UnitY * velocity;
+                inputDirection -= viewUp;
             }
 
+            // Acceleration & Deceleration
+
+            if (inputDirection.LengthSquared > 0)
+            {
+                inputDirection = Vector3D.Normalize(inputDirection);
+                viewVelocity += inputDirection * acceleration * dt;
+
+                if (viewVelocity.Length > maxCameraSpeed)
+                    viewVelocity = Vector3D.Normalize(viewVelocity) * maxCameraSpeed;
+            }
+
+            if (inputDirection.LengthSquared == 0 && viewVelocity.LengthSquared > 0)
+            {
+                Vector3D<float> decel = Vector3D.Normalize(viewVelocity) * deceleration * dt;
+                if (decel.LengthSquared > viewVelocity.LengthSquared)
+                {
+                    viewVelocity = Vector3D<float>.Zero;
+                }
+                else
+                {
+                    viewVelocity -= decel;
+                }
+            }
+
+            cameraPosition += viewVelocity * dt;
         }
+
+        // ONRENDER ----------------------------------------------------------------
 
         private static unsafe void OnRender(double deltaTime)
         {
@@ -441,12 +475,16 @@ namespace Create_your_Adventure
                 return;
             }
 
-            var delta = mousePosition - lastMousePosition;
+            Vector2 rawDelta = mousePosition - lastMousePosition;
             lastMousePosition = mousePosition;
 
-            yaw += delta.X * mouseSensitivity;
-            pitch -= delta.Y * mouseSensitivity;
+            // Smoothing
+            smoothedMouseDelta = Vector2.Lerp(smoothedMouseDelta, rawDelta, mouseSmoothFactor);
 
+            yaw += smoothedMouseDelta.X * mouseSensitivity;
+            pitch -= smoothedMouseDelta.Y * mouseSensitivity;
+
+            // Clamp Pitch
             if (pitch > 89.0f)
             {
                 pitch = 89.0f;
