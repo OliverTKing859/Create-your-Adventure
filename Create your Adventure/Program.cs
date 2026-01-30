@@ -28,7 +28,7 @@ namespace Create_your_Adventure
 
         // --- Mouse
         private static float mouseSensitivity = 50.0f;
-        private static float mouseSmoothingFactor = 0.6f;
+        private static float mouseSmoothingFactor = 60.0f;
         private static Vector2 mouseDeltaSmoothed = Vector2.Zero;
         private static Vector2 rawMouseDelta = Vector2.Zero;
 
@@ -325,10 +325,11 @@ namespace Create_your_Adventure
             cameraPosition.Y += velocityVertical * dt;
 
             // Smoothing
-            mouseDeltaSmoothed = Vector2.Lerp(Vector2.Zero, rawMouseDelta, 1 - MathF.Exp(-mouseSmoothingFactor * dt));
+            float smoothFactor = 1.0f - MathF.Exp(-mouseSmoothingFactor * dt);
+            mouseDeltaSmoothed = Vector2.Lerp(mouseDeltaSmoothed, rawMouseDelta, smoothFactor);
 
-            yaw += mouseDeltaSmoothed.X * mouseSensitivity;
-            pitch -= mouseDeltaSmoothed.Y * mouseSensitivity;
+            yaw += mouseDeltaSmoothed.X * mouseSensitivity * dt;
+            pitch -= mouseDeltaSmoothed.Y * mouseSensitivity * dt;
 
             // Clamp Pitch
             pitch = Math.Clamp(pitch, -89f, 89f);
