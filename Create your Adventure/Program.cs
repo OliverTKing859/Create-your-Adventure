@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Numerics;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
@@ -24,29 +26,27 @@ namespace Create_your_Adventure
 
         // -------- Camera --------
 
-        private static Vector2 smoothedMouseDelta = Vector2.Zero;
+        // --- Mouse
+        private static float mouseSensitivity = 50.0f;
+        private static float mouseSmoothingFactor = 0.6f;
+        private static Vector2 mouseDeltaSmoothed = Vector2.Zero;
+        private static Vector2 rawMouseDelta = Vector2.Zero;
 
-        private static float mouseSensitivity = 0.1f;
-        private static float mouseSmoothFactor = 0.75f;
+        // --- Camera Movement
+        private static float movementSpeed = 6.0f;
+        private static float movementVerticalSpeed = 5.0f;
+        private static float sprintMovementSpeedMultiplier = 2.5f;
 
-        private static float baseMoveSpeed = 6.0f;
-        private static float sprintMultiplier = 2.5f;
-        private static float verticalSpeed = 5.0f;
-
-        private static float accelerationRate = 4.0f;
-        private static float decelerationRate = 2.0f;
-
+        // --- Acceleration & Deceleration
+        private static float accelerationHorizontalRate = 4.0f;
+        private static float decelerationHorizontalRate = 2.0f;
         private static float accelerationVerticalRate = 12.0f;
         private static float decelerationVerticalRate = 8.0f;
 
-        private static Vector2 mouseVelocity;
-        private static float mouseSmoothTime = 0.01f;
-        private static float lastDeltaTime = 0.016f;
-
         // ---- Velocity ----
 
-        private static Vector3D<float> horizontalVelocity = Vector3D<float>.Zero;
-        private static float verticalVelocity = 0.0f;
+        private static float velocityVertical = 0.0f;
+        private static Vector3D<float> velocityHorizontal = Vector3D<float>.Zero;
 
         // -------- OpenGL pipeline --------
 
@@ -244,7 +244,6 @@ namespace Create_your_Adventure
 
         private static void OnUpdate(double deltaTime)
         {
-            lastDeltaTime = (float)deltaTime;
 
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
@@ -285,19 +284,19 @@ namespace Create_your_Adventure
 
             // -------- Sprint Input --------
 
-            float speed = baseMoveSpeed;
+            float speed = movementSpeed;
             if (keyboard.IsKeyPressed(Key.ShiftLeft))
             {
-                speed *= sprintMultiplier;
+                speed *= sprintMovementSpeedMultiplier;
             }
 
             Vector3D<float> targetVelocity = inputDirection * speed;
 
             // -------- Horizontal smoothing --------
 
-            float rate = (inputDirection.LengthSquared > 0) ? accelerationRate : decelerationRate;
-            horizontalVelocity = Vector3D.Lerp(
-                horizontalVelocity,
+            float rate = (inputDirection.LengthSquared > 0) ? accelerationHorizontalRate : decelerationHorizontalRate;
+            velocityHorizontal = Vector3D.Lerp(
+                velocityHorizontal,
                 targetVelocity,
                 1.0f - MathF.Exp(-rate * dt)
                 );
@@ -308,11 +307,11 @@ namespace Create_your_Adventure
 
             if (keyboard.IsKeyPressed(Key.Space))
             {
-                targetVertical += verticalSpeed;
+                targetVertical += movementVerticalSpeed;
             }
             if (keyboard.IsKeyPressed(Key.ControlLeft))
             {
-                targetVertical -= verticalSpeed;
+                targetVertical -= movementVerticalSpeed;
             }
 
             float verticalRate = (MathF.Abs(targetVertical) > 0.001f)
@@ -320,10 +319,21 @@ namespace Create_your_Adventure
                 : decelerationVerticalRate;
 
             float verticalLerpFactor = 1.0f - MathF.Exp(-verticalRate * dt);
-            verticalVelocity = verticalVelocity + (targetVertical - verticalVelocity) * verticalLerpFactor;
+            velocityVertical = velocityVertical + (targetVertical - velocityVertical) * verticalLerpFactor;
 
-            cameraPosition += horizontalVelocity * dt;
-            cameraPosition.Y += verticalVelocity * dt;
+            cameraPosition += velocityHorizontal * dt;
+            cameraPosition.Y += velocityVertical * dt;
+
+            // Smoothing
+            mouseDeltaSmoothed = Vector2.Lerp(Vector2.Zero, rawMouseDelta, 1 - MathF.Exp(-mouseSmoothingFactor * dt));
+
+            yaw += mouseDeltaSmoothed.X * mouseSensitivity;
+            pitch -= mouseDeltaSmoothed.Y * mouseSensitivity;
+
+            // Clamp Pitch
+            pitch = Math.Clamp(pitch, -89f, 89f);
+            rawMouseDelta = Vector2.Zero;
+
         }
 
         // ONRENDER ----------------------------------------------------------------
@@ -470,19 +480,26 @@ namespace Create_your_Adventure
             float yaw = DegreesToRadians(yawDegrees);
             float pitch = DegreesToRadians(pitchDegrees);
 
-            var direction = new Vector3D<float>(
-                x: MathF.Cos(yaw) * MathF.Cos(pitch),
-                y: MathF.Sin(pitch),
-                z: MathF.Sin(yaw) * MathF.Cos(pitch)
-                );
+            float sinPitch = MathF.Sin(pitch);
+            float cosPitch = MathF.Cos(pitch);
+            float sinYaw = MathF.Sin(yaw);
+            float cosYaw = MathF.Cos(yaw);
 
-            return Vector3D.Normalize(direction);
+
+            return Vector3D.Normalize(new Vector3D<float>(
+                x: cosYaw * cosPitch,
+                y: sinPitch,
+                z: sinYaw * cosPitch
+                )
+                );
         }
 
         private static void BuildViewMatrix()
         {
             Vector3D<float> cameraFront = GetViewDirection(yaw, pitch);
-            view = Matrix4X4.CreateLookAt(cameraPosition, cameraPosition + cameraFront, Vector3D<float>.UnitY);
+            Vector3D<float> cameraRight = Vector3D.Normalize(Vector3D.Cross(cameraFront, Vector3D<float>.UnitY));
+            Vector3D<float> cameraUp = Vector3D.Cross(cameraRight, cameraFront);
+            view = Matrix4X4.CreateLookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
         }
 
         private static Matrix4X4<float> CreatePerspective(int width, int height, float fovDegrees, float near, float far)
@@ -504,24 +521,9 @@ namespace Create_your_Adventure
                 return;
             }
 
-            Vector2 rawDelta = mousePosition - lastMousePosition;
+            rawMouseDelta = mousePosition - lastMousePosition;
             lastMousePosition = mousePosition;
 
-            // Smoothing
-            smoothedMouseDelta = Vector2.Lerp(Vector2.Zero , rawDelta, mouseSmoothFactor);
-
-            yaw += smoothedMouseDelta.X * mouseSensitivity;
-            pitch -= smoothedMouseDelta.Y * mouseSensitivity;
-
-            // Clamp Pitch
-            if (pitch > 89.0f)
-            {
-                pitch = 89.0f;
-            }
-            if (pitch < -89.0f)
-            {
-                pitch = -89.0f;
-            }
         }
     }
 }
