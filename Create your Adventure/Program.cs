@@ -1,8 +1,9 @@
-﻿using Silk.NET.OpenGL;
+﻿using System;
+using System.Numerics;
+using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Core.Native;
-using System.Numerics;
 using Silk.NET.Input;
 
 namespace Create_your_Adventure
@@ -21,20 +22,31 @@ namespace Create_your_Adventure
         private static bool firstMouse = true;
         private static Vector2 lastMousePosition;
 
-        // Camera ---
+        // -------- Camera --------
 
-        private static Vector3D<float> viewVelocity = Vector3D<float>.Zero;
         private static Vector2 smoothedMouseDelta = Vector2.Zero;
 
-        private static float mouseSensitivity = 0.08f;
+        private static float mouseSensitivity = 0.1f;
         private static float mouseSmoothFactor = 0.75f;
 
-        private static float cameraSpeed = 5.0f;
-        private static float maxCameraSpeed = 7.77f;
-        private static float acceleration = 35.0f;
-        private static float deceleration = 25.0f;
+        private static float baseMoveSpeed = 6.0f;
+        private static float sprintMultiplier = 2.5f;
+        private static float verticalSpeed = 5.0f;
 
+        private static float accelerationRate = 4.0f;
+        private static float decelerationRate = 2.0f;
 
+        private static float accelerationVerticalRate = 12.0f;
+        private static float decelerationVerticalRate = 8.0f;
+
+        private static Vector2 mouseVelocity;
+        private static float mouseSmoothTime = 0.01f;
+        private static float lastDeltaTime = 0.016f;
+
+        // ---- Velocity ----
+
+        private static Vector3D<float> horizontalVelocity = Vector3D<float>.Zero;
+        private static float verticalVelocity = 0.0f;
 
         // -------- OpenGL pipeline --------
 
@@ -232,19 +244,21 @@ namespace Create_your_Adventure
 
         private static void OnUpdate(double deltaTime)
         {
+            lastDeltaTime = (float)deltaTime;
+
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
             float dt = (float)deltaTime;
 
             Vector3D<float> viewForward = GetViewDirection(yaw, pitch);
             Vector3D<float> viewRight = Vector3D.Normalize(Vector3D.Cross(viewForward, Vector3D<float>.UnitY));
-            Vector3D<float> viewUp = Vector3D<float>.UnitY;
+
+            //Vector3D<float> viewUp = Vector3D<float>.UnitY;
 
             Vector3D<float> viewForwardHorizontal = Vector3D.Normalize(new Vector3D<float>(viewForward.X, 0, viewForward.Z));
 
             Vector3D<float> inputDirection = Vector3D<float>.Zero;
 
-            float velocity = cameraSpeed * dt;
             // -------- WASD/Space/Shift Input --------
 
             if (keyboard.IsKeyPressed(Key.W))
@@ -263,41 +277,53 @@ namespace Create_your_Adventure
             {
                 inputDirection += viewRight;
             }
-            if (keyboard.IsKeyPressed(Key.Space))
-            {
-                inputDirection += viewUp;
-            }
-            if (keyboard.IsKeyPressed(Key.ControlLeft))
-            {
-                inputDirection -= viewUp;
-            }
-
-            // Acceleration & Deceleration
-
 
             if (inputDirection.LengthSquared > 0)
             {
                 inputDirection = Vector3D.Normalize(inputDirection);
-                viewVelocity += inputDirection * acceleration * dt;
-
-                if (viewVelocity.Length > maxCameraSpeed)
-                    viewVelocity = Vector3D.Normalize(viewVelocity) * maxCameraSpeed;
             }
 
-            if (inputDirection.LengthSquared == 0 && viewVelocity.LengthSquared > 0)
+            // -------- Sprint Input --------
+
+            float speed = baseMoveSpeed;
+            if (keyboard.IsKeyPressed(Key.ShiftLeft))
             {
-                Vector3D<float> decel = Vector3D.Normalize(viewVelocity) * deceleration * dt;
-                if (decel.LengthSquared > viewVelocity.LengthSquared)
-                {
-                    viewVelocity = Vector3D<float>.Zero;
-                }
-                else
-                {
-                    viewVelocity -= decel;
-                }
+                speed *= sprintMultiplier;
             }
 
-            cameraPosition += viewVelocity * dt;
+            Vector3D<float> targetVelocity = inputDirection * speed;
+
+            // -------- Horizontal smoothing --------
+
+            float rate = (inputDirection.LengthSquared > 0) ? accelerationRate : decelerationRate;
+            horizontalVelocity = Vector3D.Lerp(
+                horizontalVelocity,
+                targetVelocity,
+                1.0f - MathF.Exp(-rate * dt)
+                );
+
+            // -------- Space/Shift Input --------
+
+            float targetVertical = 0f;
+
+            if (keyboard.IsKeyPressed(Key.Space))
+            {
+                targetVertical += verticalSpeed;
+            }
+            if (keyboard.IsKeyPressed(Key.ControlLeft))
+            {
+                targetVertical -= verticalSpeed;
+            }
+
+            float verticalRate = (MathF.Abs(targetVertical) > 0.001f)
+                ? accelerationVerticalRate
+                : decelerationVerticalRate;
+
+            float verticalLerpFactor = 1.0f - MathF.Exp(-verticalRate * dt);
+            verticalVelocity = verticalVelocity + (targetVertical - verticalVelocity) * verticalLerpFactor;
+
+            cameraPosition += horizontalVelocity * dt;
+            cameraPosition.Y += verticalVelocity * dt;
         }
 
         // ONRENDER ----------------------------------------------------------------
