@@ -190,25 +190,32 @@ namespace Create_your_Adventure
                 );
         }
 
+        // VIEW & PROJECTION MATRICES ---------------------------------------------------
         public Matrix4X4<float> GetViewMatrix()
         {
+            // -------- Calculate camera axes --------
             Vector3D<float> cameraFront = GetViewDirection(yaw, pitch);
             Vector3D<float> cameraRight = Vector3D.Normalize(Vector3D.Cross(cameraFront, Vector3D<float>.UnitY));
             Vector3D<float> cameraUp = Vector3D.Cross(cameraRight, cameraFront);
             return Matrix4X4.CreateLookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
         }
-         
+
+        // PROJECTION MATRIX ---------------------------------------------------
         public Matrix4X4<float> CreatePerspective(int width, int height, float fovDegrees, float near, float far)
         {
+            // -------- Aspect Ratio --------
             float aspect = width <= 0 || height <= 0 ? 1.0f : (float)width / height;
             float fov = DegreesToRadians(fovDegrees);
-
             return Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, near, far);
         }
+
+        // HELPER METHODS ---------------------------------------------------
         private static float DegreesToRadians(float degrees) => degrees * (MathF.PI / 180.0f);
 
+        // MOUSE INPUT ---------------------------------------------------
         public void OnMouseMove(Vector2 currentPosition)
         {
+            // -------- (First) Mouse movement initialization --------
             if (firstMouse)
             {
                 lastMousePosition = currentPosition;
@@ -216,6 +223,7 @@ namespace Create_your_Adventure
                 return;
             }
 
+            // -------- Calculate raw delta --------
             rawMouseDelta = currentPosition - lastMousePosition;
             lastMousePosition = currentPosition;
         }
