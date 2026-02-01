@@ -13,4 +13,9 @@
     <PackageReference Include="Silk.NET" Version="2.23.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="assets\modded\" />
+    <Folder Include="Source\Engine\" />
+  </ItemGroup>
+
 </Project>

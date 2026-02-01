@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Maths;
 using System.Numerics;
 
-namespace Create_your_Adventure
+namespace Create_your_Adventure.source.Gamelogic.Camera
 {
     // Future me: When you do first-person and third-person later, you'll do it with an ->interface<- "ICamera".
     public class Camera

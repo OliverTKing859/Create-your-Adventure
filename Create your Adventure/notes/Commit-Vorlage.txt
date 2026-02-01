@@ -1,0 +1,17 @@
+- YYYY - DD - MM
+
+Added:
+
++ [text]
+
+Changes:
+
+~ [text]
+
+Fixed:
+
+* [text]
+
+Removed:
+
+- [text]

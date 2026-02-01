@@ -4,6 +4,7 @@ using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Core.Native;
 using Silk.NET.Input;
+using Create_your_Adventure.source.Gamelogic.Camera;
 
 namespace Create_your_Adventure
 {
