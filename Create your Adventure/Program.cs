@@ -86,8 +86,6 @@ namespace Create_your_Adventure
 
         private static readonly uint stride = 6 * sizeof(float);
 
-
-
         // MAIN ----------------------------------------------------------------
         static void Main()
         {
