@@ -40,8 +40,13 @@ namespace Create_your_Adventure
         private static uint vao;
         private static uint vbo;
         private static uint ebo;
+        private static uint instanceVBO;
         private static uint graphicsProgram;
         private static uint texture;
+
+        // -------- Instancing --------
+        private static Matrix4X4<float>[] instanceMatrices;
+        private static int instanceCount;
 
         private static readonly float[] vertices =
         {
@@ -161,6 +166,41 @@ namespace Create_your_Adventure
             vao = gl.GenVertexArray();
             gl.BindVertexArray(vao);
 
+            // -------- Instancing Setup --------
+            CreateInstanceData();
+
+            // -------- Instance VBO --------
+            instanceVBO = gl.GenBuffer();
+            gl.BindBuffer(BufferTargetARB.ArrayBuffer, instanceVBO);
+
+            fixed (Matrix4X4<float>* ptr = instanceMatrices)
+            {
+                gl.BufferData(
+                    BufferTargetARB.ArrayBuffer,
+                    (nuint)(instanceCount * sizeof(Matrix4X4<float>)),
+                    ptr,
+                    BufferUsageARB.StaticDraw
+                    );
+            }
+
+            // -------- Instance Attributes (Matrix 4x4 = 4x vec4) --------
+
+            uint mat4Size = (uint)sizeof(Matrix4X4<float>);
+
+            for (uint i = 0; i < 4; i++)
+            {
+                gl.EnableVertexAttribArray(2 + i);
+                gl.VertexAttribPointer(
+                    2 + i,
+                    4,
+                    VertexAttribPointerType.Float,
+                    false,
+                    mat4Size,
+                    (void*)(i * sizeof(Vector4))
+                    );
+                gl.VertexAttribDivisor(2 + i, 1);
+            }
+
             // -------- VBO --------
             vbo = gl.GenBuffer();
             gl.BindBuffer(BufferTargetARB.ArrayBuffer, vbo);
@@ -206,6 +246,7 @@ namespace Create_your_Adventure
             texture = LoadTexture("dirt.png");
 
 
+
             // -------- Shader --------
             graphicsProgram = CreateGraphicsProgram();
             gl.UseProgram(graphicsProgram);
@@ -241,6 +282,34 @@ namespace Create_your_Adventure
             }
         }
 
+        // CREATE INSTANCE DATA ----------------------------------------------------------------
+
+        private static void CreateInstanceData()
+        {
+            // -------- Create 16x16x16 Grid of Cubes --------
+            int gridSize = 16;
+            instanceCount = gridSize * gridSize * gridSize;
+            instanceMatrices = new Matrix4X4<float>[instanceCount];
+
+            int index = 0;
+            for (int x = 0; x < gridSize; x++)
+            {
+                for (int y = 0; y < gridSize; y++)
+                {
+                    for (int z = 0; z < gridSize; z++)
+                    {
+                        // --- Create Modell-Matrix for a Cube
+                        instanceMatrices[index] = Matrix4X4.CreateTranslation(
+                            x * 1.5f - gridSize * 0.75f,
+                            y * 1.5f - gridSize * 0.75f,
+                            z * 1.5f - gridSize * 0.75f
+                            );
+                        index++;
+                    }
+                }
+            }
+        }
+
         // ONUPDATE ----------------------------------------------------------------
         private static void OnUpdate(double deltaTime)
         {
@@ -272,24 +341,24 @@ namespace Create_your_Adventure
             gl.ActiveTexture(TextureUnit.Texture0);
             gl.BindTexture(TextureTarget.Texture2D, texture);
 
-            // --- Matrices
+            // --- View Matrix
             var view = camera.GetViewMatrix();
-            var model = Matrix4X4<float>.Identity;
 
             // --- Update Uniforms
-            gl.UniformMatrix4(uModel, 1, false, (float*)&model);
             gl.UniformMatrix4(uView, 1, false, (float*)&view);
+
             fixed (Matrix4X4<float>* pointerProjection = &projection)
             {
                 gl.UniformMatrix4(uProjection, 1, false, (float*)pointerProjection);
             }
 
-            // --- Draw Call
-            gl.DrawElements(
+            // --- Instanced Draw Call (1 Call for all Cubes)
+            gl.DrawElementsInstanced(
                 PrimitiveType.Triangles,
                 36,
                 DrawElementsType.UnsignedInt,
-                null
+                null,
+                (uint)instanceCount
                 );
         }
 
@@ -301,6 +370,7 @@ namespace Create_your_Adventure
                 mouse.MouseMove -= OnMouseMove;
             }
 
+            gl.DeleteBuffer(instanceVBO);
             gl.DeleteTexture(texture);
             gl.DeleteBuffer(ebo);
             gl.DeleteBuffer(vbo);
@@ -352,16 +422,26 @@ namespace Create_your_Adventure
 
         layout (location = 0) in vec3 aPosition;
         layout (location = 1) in vec2 aTextureCoordinates;
+        layout (location = 2) in vec4 aInstanceMatrix0;
+        layout (location = 3) in vec4 aInstanceMatrix1;
+        layout (location = 4) in vec4 aInstanceMatrix2;
+        layout (location = 5) in vec4 aInstanceMatrix3;
 
         out vec2 vTextureCoordinates;
 
-        uniform mat4 uModel;
         uniform mat4 uView;
         uniform mat4 uProjection;
 
         void main()
         {
-            gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
+            mat4 instanceMatrix = mat4(
+                aInstanceMatrix0,
+                aInstanceMatrix1,
+                aInstanceMatrix2,
+                aInstanceMatrix3
+            );
+
+            gl_Position = uProjection * uView * instanceMatrix * vec4(aPosition, 1.0);
             vTextureCoordinates = aTextureCoordinates;
         }
         ";
@@ -380,21 +460,47 @@ namespace Create_your_Adventure
         }
         ";
 
+        // SHADER ERROR CHECKING ----------------------------------------------------------------
+        private static void CheckShaderCompileErrors(uint shader, string type)
+        {
+            gl.GetShader(shader, ShaderParameterName.CompileStatus, out int success);
+            if (success == 0)
+            {
+                string infoLog = gl.GetShaderInfoLog(shader);
+                Console.WriteLine($"[ERROR] Shader Compilation Failed ({type}):\n{infoLog}");
+                throw new Exception($"Shader compilation error: {type}");
+            }
+        }
+
+        private static void CheckProgramLinkErrors(uint program)
+        {
+            gl.GetProgram(program, ProgramPropertyARB.LinkStatus, out int success);
+            if (success == 0)
+            {
+                string infoLog = gl.GetProgramInfoLog(program);
+                Console.WriteLine($"[ERROR] Shader Linking Failed:\n{infoLog}");
+                throw new Exception("Shader linking error");
+            }
+        }
+
         // CREATE GRAPHICS PROGRAM ----------------------------------------------------------------
         private static uint CreateGraphicsProgram()
         {
             uint vertex = gl.CreateShader(ShaderType.VertexShader);
             gl.ShaderSource(vertex, VertexShaderSource);
             gl.CompileShader(vertex);
+            CheckShaderCompileErrors(vertex, "VERTEX");
 
             uint fragment = gl.CreateShader(ShaderType.FragmentShader);
             gl.ShaderSource(fragment, FragmentShaderSource);
             gl.CompileShader(fragment);
+            CheckShaderCompileErrors(fragment, "FRAGMENT");
 
             uint createProgram = gl.CreateProgram();
             gl.AttachShader(createProgram, vertex);
             gl.AttachShader(createProgram, fragment);
             gl.LinkProgram(createProgram);
+            CheckProgramLinkErrors(createProgram);
 
             gl.DeleteShader(vertex);
             gl.DeleteShader(fragment);

@@ -80,3 +80,32 @@ ChangeLogs
 - Abstraktion der Kamera in eine eigene Kamera Klasse
 
 ## 0.0.5.1 Alpha | Added Commentary Improvements - 01.02.2026
+
+- Hinzugefügt Kommentare zur Kamera Klasse
+
+## 0.0.6.0 Alpha | Texture Support - 02.02.2026
+
+- Integriert StbImageSharp für Textur-Dekodierung
+- Erstellt Textur-Loader mit dirt.png
+    - Nutzt RGBA Format
+    - Nutzt Mipmaps für bessere Darstellung
+    - Nutzt Nearest Filtering für pixeliges Minecraft-Feeling
+- Shader überarbeitet für Texturen
+    - Vertex Shader: vec2 aTexCoord
+    - Fragment Shader: uniform sampler2D uTexture
+- Vertex-Layout korrigiert: 24 Vertices (4 pro Seite) für korrektes UV-Mapping
+
+## 0.0.7.0 Alpha | GPU Instancing - 02.02.2026
+
+- Implementiert GPU-Instancing für performantes Rendern vieler Blöcke
+    - 1 Draw Call für 4096 Blöcke (16×16×16 Grid)
+    - Instance VBO mit Model-Matrizen (Matrix4X4[])
+    - Vertex Attribute Divisor für per-instance Daten
+- Shader-Verbesserungen
+    - Vertex Shader: Explizite vec4-Attribute (aInstanceMatrix0-3) für Treiber-Kompatibilität
+    - Fragment Shader: Konsistente vec2 vTexCoord
+    - Shader-Fehlerprüfung mit CheckShaderCompileErrors() und CheckProgramLinkErrors()
+- Neue Methode CreateInstanceData() generiert Instanz-Matrizen
+    - Erstellt 16×16×16 Grid mit Positions-Offsets
+    - Abstimmung für zentrierte Renderierung
+- Entfernt uModel Uniform (jetzt per-instance aus aInstanceMatrix)
