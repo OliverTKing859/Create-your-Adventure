@@ -5,6 +5,7 @@ using Silk.NET.Maths;
 using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Create_your_Adventure.source.Gamelogic.Camera;
+using StbImageSharp;
 
 namespace Create_your_Adventure
 {
@@ -40,52 +41,76 @@ namespace Create_your_Adventure
         private static uint vbo;
         private static uint ebo;
         private static uint graphicsProgram;
+        private static uint texture;
 
         private static readonly float[] vertices =
         {
-            // Position             // Color
+            // Position             Texture Coordinates
+            // Front Face (0-3)
+           -0.5f, -0.5f,  0.5f,     0.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,     1.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,     1.0f, 1.0f,
+           -0.5f,  0.5f,  0.5f,     0.0f, 1.0f,
 
-            // Front face
-           -0.5f, -0.5f,  0.5f,     2.0f, 0.0f, 0.0f,
-            0.5f, -0.5f,  0.5f,     0.0f, 2.0f, 0.0f,
-            0.5f,  0.5f,  0.5f,     0.0f, 0.0f, 2.0f,
-           -0.5f,  0.5f,  0.5f,     2.0f, 2.0f, 0.0f,
+            // Right Face (4-7)
+            0.5f, -0.5f,  0.5f,     0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,     0.0f, 1.0f,
 
-            // Back face
-           -0.5f, -0.5f, -0.5f,     2.0f, 0.0f, 2.0f,
-            0.5f, -0.5f, -0.5f,     0.0f, 2.0f, 2.0f,
-            0.5f,  0.5f, -0.5f,     2.0f, 2.0f, 2.0f,
-           -0.5f,  0.5f, -0.5f,     2.0f, 0.0f, 0.0f
+            // Back Face (8-11)
+            0.5f, -0.5f, -0.5f,     0.0f, 0.0f,
+           -0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
+           -0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
+            0.5f,  0.5f, -0.5f,     0.0f, 1.0f,
+
+            // Left Face (12-15)
+           -0.5f, -0.5f, -0.5f,     0.0f, 0.0f,
+           -0.5f, -0.5f,  0.5f,     1.0f, 0.0f,
+           -0.5f,  0.5f,  0.5f,     1.0f, 1.0f,
+           -0.5f,  0.5f, -0.5f,     0.0f, 1.0f,
+
+           // Top Face (16-19)
+           -0.5f,  0.5f,  0.5f,     0.0f, 0.0f,
+            0.5f,  0.5f,  0.5f,     1.0f, 0.0f,
+            0.5f,  0.5f, -0.5f,     1.0f, 1.0f,
+           -0.5f,  0.5f, -0.5f,     0.0f, 1.0f,
+
+           // Bottom Face (20-23)
+           -0.5f, -0.5f, -0.5f,     0.0f, 0.0f,
+            0.5f, -0.5f, -0.5f,     1.0f, 0.0f,
+            0.5f, -0.5f,  0.5f,     1.0f, 1.0f,
+           -0.5f, -0.5f,  0.5f,     0.0f, 1.0f
         };
 
         private static readonly uint[] indices =
         {
-            // North
+            // North (Front Face)
             0, 1, 2,
             2, 3, 0,
 
-            // East
-            1, 5, 6,
-            6, 2, 1,
+            // East (Right Face)
+            4, 5, 6,
+            6, 7, 4,
 
-            // South
-            5, 4, 7,
-            7, 6, 5,
+            // South (Back Face)
+            8, 9, 10,
+            10, 11, 8,
 
-            // West
-            4, 0, 3,
-            3, 7, 4,
+            // West (Left Face)
+            12, 13, 14,
+            14, 15, 12,
 
-            // Top
-            3, 2, 6,
-            6, 7, 3,
+            // Top (Top Face)
+            16, 17, 18,
+            18, 19, 16,
 
-            // Bottom
-            4, 5, 1,
-            1, 0, 4
+            // Bottom (Bottom Face)
+            20, 21, 22,
+            22, 23, 20
         };
 
-        private static readonly uint stride = 6 * sizeof(float);
+        private static readonly uint stride = 5 * sizeof(float);
 
         // MAIN ----------------------------------------------------------------
         static void Main()
@@ -155,6 +180,7 @@ namespace Create_your_Adventure
                 );
 
             // -------- Vertex Attribute --------
+            // --- Position Attribute
             gl.VertexAttribPointer(
                 0,
                 3,
@@ -165,16 +191,20 @@ namespace Create_your_Adventure
                 );
             gl.EnableVertexAttribArray(0);
 
+            // --- Texture Coordinate Attribute
             gl.VertexAttribPointer(
                 1,
-                3,
+                2,
                 VertexAttribPointerType.Float,
                 false,
                 stride,
                 3 * sizeof(float)
                 );
-
             gl.EnableVertexAttribArray(1);
+
+            // -------- Texture --------
+            texture = LoadTexture("dirt.png");
+
 
             // -------- Shader --------
             graphicsProgram = CreateGraphicsProgram();
@@ -182,6 +212,10 @@ namespace Create_your_Adventure
             uModel = gl.GetUniformLocation(graphicsProgram, "uModel");
             uView = gl.GetUniformLocation(graphicsProgram, "uView");
             uProjection = gl.GetUniformLocation(graphicsProgram, "uProjection");
+
+            // -------- Texture Uniform --------
+            int uTexture = gl.GetUniformLocation(graphicsProgram, "uTexture");
+            gl.Uniform1(uTexture, 0);
 
             // -------- Camera --------
             camera = new Camera();
@@ -234,6 +268,10 @@ namespace Create_your_Adventure
             gl.UseProgram(graphicsProgram);
             gl.BindVertexArray(vao);
 
+            // --- Bind Texture
+            gl.ActiveTexture(TextureUnit.Texture0);
+            gl.BindTexture(TextureTarget.Texture2D, texture);
+
             // --- Matrices
             var view = camera.GetViewMatrix();
             var model = Matrix4X4<float>.Identity;
@@ -263,6 +301,7 @@ namespace Create_your_Adventure
                 mouse.MouseMove -= OnMouseMove;
             }
 
+            gl.DeleteTexture(texture);
             gl.DeleteBuffer(ebo);
             gl.DeleteBuffer(vbo);
             gl.DeleteVertexArray(vao);
@@ -312,9 +351,9 @@ namespace Create_your_Adventure
         #version 460 core
 
         layout (location = 0) in vec3 aPosition;
-        layout (location = 1) in vec3 aColor;
+        layout (location = 1) in vec2 aTextureCoordinates;
 
-        out vec3 vColor;
+        out vec2 vTextureCoordinates;
 
         uniform mat4 uModel;
         uniform mat4 uView;
@@ -323,19 +362,21 @@ namespace Create_your_Adventure
         void main()
         {
             gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
-            vColor = aColor;
+            vTextureCoordinates = aTextureCoordinates;
         }
         ";
 
         private const string FragmentShaderSource = @"
         #version 460 core
 
-        in vec3 vColor;
+        in vec2 vTextureCoordinates;
         out vec4 FragColor;
-
+        
+        uniform sampler2D uTexture;
+        
         void main()
         {
-            FragColor = vec4(vColor, 1.0);
+            FragColor = texture(uTexture, vTextureCoordinates);
         }
         ";
 
@@ -359,6 +400,58 @@ namespace Create_your_Adventure
             gl.DeleteShader(fragment);
 
             return createProgram;
+        }
+
+        // LOAD TEXTURE ----------------------------------------------------------------
+        private static unsafe uint LoadTexture(string path)
+        {
+            // -------- StbImageSharp Configuration --------
+            StbImage.stbi_set_flip_vertically_on_load(1);
+
+            // -------- Load Image --------
+            ImageResult image;
+            try
+            {
+                using var stream = File.OpenRead(path);
+                image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Error] Texture loading failed: {path}");
+                Console.WriteLine($"[Error] {ex.Message}");
+                return 0;
+            }
+
+            // -------- OpenGL Texture Creation --------
+            uint textureId = gl.GenTexture();
+            gl.BindTexture(TextureTarget.Texture2D, textureId);
+
+            // --------- Pixel-Daten hochladen --------
+            fixed (byte* ptr = image.Data)
+            {
+                gl.TexImage2D(
+                    TextureTarget.Texture2D,
+                    0,
+                    InternalFormat.Rgba,
+                    (uint)image.Width,
+                    (uint)image.Height,
+                    0,
+                    PixelFormat.Rgba,
+                    PixelType.UnsignedByte,
+                    ptr
+                    );
+            }
+
+            // --------- Texture Parameter --------
+            gl.GenerateMipmap(TextureTarget.Texture2D);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.Repeat);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.Repeat);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.NearestMipmapLinear);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
+
+            Console.WriteLine($"[INFO] Textur geladen: {path} ({image.Width}x{image.Height})");
+
+            return textureId;
         }
 
         // MOUSE MOVE EVENT ----------------------------------------------------------------
