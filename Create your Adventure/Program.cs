@@ -282,34 +282,6 @@ namespace Create_your_Adventure
             }
         }
 
-        // CREATE INSTANCE DATA ----------------------------------------------------------------
-
-        private static void CreateInstanceData()
-        {
-            // -------- Create 16x16x16 Grid of Cubes --------
-            int gridSize = 16;
-            instanceCount = gridSize * gridSize * gridSize;
-            instanceMatrices = new Matrix4X4<float>[instanceCount];
-
-            int index = 0;
-            for (int x = 0; x < gridSize; x++)
-            {
-                for (int y = 0; y < gridSize; y++)
-                {
-                    for (int z = 0; z < gridSize; z++)
-                    {
-                        // --- Create Modell-Matrix for a Cube
-                        instanceMatrices[index] = Matrix4X4.CreateTranslation(
-                            x * 1.5f - gridSize * 0.75f,
-                            y * 1.5f - gridSize * 0.75f,
-                            z * 1.5f - gridSize * 0.75f
-                            );
-                        index++;
-                    }
-                }
-            }
-        }
-
         // ONUPDATE ----------------------------------------------------------------
         private static void OnUpdate(double deltaTime)
         {
@@ -482,6 +454,35 @@ namespace Create_your_Adventure
                 throw new Exception("Shader linking error");
             }
         }
+
+        // CREATE INSTANCE DATA ----------------------------------------------------------------
+
+        private static void CreateInstanceData()
+        {
+            // -------- Create 16x16x16 Grid of Cubes --------
+            int gridSize = 16;
+            instanceCount = gridSize * gridSize * gridSize;
+            instanceMatrices = new Matrix4X4<float>[instanceCount];
+
+            int index = 0;
+            for (int x = 0; x < gridSize; x++)
+            {
+                for (int y = 0; y < gridSize; y++)
+                {
+                    for (int z = 0; z < gridSize; z++)
+                    {
+                        // --- Create Modell-Matrix for a Cube
+                        instanceMatrices[index] = Matrix4X4.CreateTranslation(
+                            x * 1.0f - gridSize * 0.75f,
+                            y * 1.0f - gridSize * 0.75f,
+                            z * 1.0f - gridSize * 0.75f
+                            );
+                        index++;
+                    }
+                }
+            }
+        }
+
 
         // CREATE GRAPHICS PROGRAM ----------------------------------------------------------------
         private static uint CreateGraphicsProgram()
