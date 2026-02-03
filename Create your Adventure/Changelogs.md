@@ -109,3 +109,16 @@ ChangeLogs
     - Erstellt 16×16×16 Grid mit Positions-Offsets
     - Abstimmung für zentrierte Renderierung
 - Entfernt uModel Uniform (jetzt per-instance aus aInstanceMatrix)
+
+## 0.0.8.0 Alpha | Chunk Coordinate System - 03.02.2026
+
+- Implementiert Chunk-basiertes Koordinaten-System
+    - ChunkPosition (Chunk-Koordinaten in 3D)
+    - LocalPosition (relative Koordinaten 0-15 innerhalb eines Chunks)
+    - WorldPosition (absolute Welt-Koordinaten)
+- Konvertierungs-Funktionen
+    - LocalToWorld(): lokale → Welt-Koordinaten
+    - WorldToChunkPosition(): Welt → Chunk-Koordinaten
+    - WorldToLocal(): Welt → lokale Koordinaten
+- Vorbereitung für dynamisches Chunk-Loading
+- Instance-Daten basierend auf Chunk-Position berechnet

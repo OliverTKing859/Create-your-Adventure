@@ -48,6 +48,12 @@ namespace Create_your_Adventure
         private static Matrix4X4<float>[] instanceMatrices;
         private static int instanceCount;
 
+        // -------- Chunk Constants --------
+        private const int Chunksize = 16;
+
+        // -------- Chunk Position --------
+        private static Vector3D<int> currentChunkPosition;
+
         private static readonly float[] vertices =
         {
             // Position             Texture Coordinates
@@ -167,7 +173,7 @@ namespace Create_your_Adventure
             gl.BindVertexArray(vao);
 
             // -------- Instancing Setup --------
-            CreateInstanceData();
+            CreateInstanceData(new Vector3D<int>(0,0,0));
 
             // -------- Instance VBO --------
             instanceVBO = gl.GenBuffer();
@@ -457,31 +463,68 @@ namespace Create_your_Adventure
 
         // CREATE INSTANCE DATA ----------------------------------------------------------------
 
-        private static void CreateInstanceData()
+        private static void CreateInstanceData(Vector3D<int> chunkPosition)
         {
+            // -------- Chunk Position save --------
+            currentChunkPosition = chunkPosition;
+
             // -------- Create 16x16x16 Grid of Cubes --------
-            int gridSize = 16;
-            instanceCount = gridSize * gridSize * gridSize;
+            instanceCount = Chunksize * Chunksize * Chunksize;
             instanceMatrices = new Matrix4X4<float>[instanceCount];
 
             int index = 0;
-            for (int x = 0; x < gridSize; x++)
+            for (int x = 0; x < Chunksize; x++)
             {
-                for (int y = 0; y < gridSize; y++)
+                for (int y = 0; y < Chunksize; y++)
                 {
-                    for (int z = 0; z < gridSize; z++)
+                    for (int z = 0; z < Chunksize; z++)
                     {
-                        // --- Create Modell-Matrix for a Cube
-                        instanceMatrices[index] = Matrix4X4.CreateTranslation(
-                            x * 1.0f - gridSize * 0.75f,
-                            y * 1.0f - gridSize * 0.75f,
-                            z * 1.0f - gridSize * 0.75f
-                            );
+                        // --- Local BlockPosition on Chunks
+                        Vector3D<int> localPosition = new(x, y, z);
+
+                        // --- World Position als float
+                        Vector3D<float> worldPosition = LocalToWorld(chunkPosition, localPosition);
+
+                        instanceMatrices[index] = Matrix4X4.CreateTranslation<float>(worldPosition);
                         index++;
                     }
                 }
             }
+            Console.WriteLine($"[INFO] Chunk erstellt bei ChunkPos: {chunkPosition}");
+            Console.WriteLine($"[INFO] World-Bereich: ({chunkPosition.X * Chunksize}, {chunkPosition.Y * Chunksize}, {chunkPosition.Z * Chunksize}) bis ({(chunkPosition.X + 1) * Chunksize - 1}, {(chunkPosition.Y + 1) * Chunksize - 1}, {(chunkPosition.Z + 1) * Chunksize - 1})");
         }
+
+        // COORDINATE CONVERSION METHODS ----------------------------------------------------------------
+        // --- Convert local Chunk-Coordination to World-Coordination
+        private static Vector3D<float> LocalToWorld(Vector3D<int> chunkPosition, Vector3D<int> localPosition)
+        {
+            return new Vector3D<float>(
+                chunkPosition.X * Chunksize + localPosition.X,
+                chunkPosition.Y * Chunksize + localPosition.Y,
+                chunkPosition.Z * Chunksize + localPosition.Z
+            );
+        }
+
+        // --- Convert World-Coordination to Chunk-Position
+        private static Vector3D<int> WorldToChunkPosition(Vector3D<float> worldPosition)
+        {
+            return new Vector3D<int>(
+                (int)MathF.Floor(worldPosition.X / Chunksize),
+                (int)MathF.Floor(worldPosition.Y / Chunksize),
+                (int)MathF.Floor(worldPosition.Z / Chunksize)
+            );
+        }
+
+        // --- Convert World-Coordination to local Chunk-Coordination
+        private static Vector3D<int> WorldTolocal(Vector3D<float> worldPosition)
+        {
+            return new Vector3D<int>(
+                ((int)MathF.Floor(worldPosition.X) % Chunksize + Chunksize) % Chunksize,
+                ((int)MathF.Floor(worldPosition.Y) % Chunksize + Chunksize) % Chunksize,
+                ((int)MathF.Floor(worldPosition.Z) % Chunksize + Chunksize) % Chunksize
+            );
+        }
+
 
 
         // CREATE GRAPHICS PROGRAM ----------------------------------------------------------------
