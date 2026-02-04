@@ -138,3 +138,18 @@ ChangeLogs
     - Liest `chunk.InstanceMatrices` und `chunk.InstanceCount` für Rendering
     - Trennung von Logik (Chunk) und Rendering (Program)
 - Typo behoben: `RebuildInsanceData()` → `RebuildInstanceData()`
+
+## 0.0.8.2 Alpha | XML Documentation & AssetLoader - 04.02.2026
+
+- Implementiert XML-Dokumentation (Summaries) für alle Public-Methoden
+    - Chunk.cs: Klassen-Summary, Properties und Methoden dokumentiert
+    - Camera.cs: Klassen-Summary mit Interface-Hinweis, alle Public-Methoden dokumentiert
+    - AssetLoader.cs: Klassen-Summary mit Suchreihenfolge, Asset-Retrieval-Methoden dokumentiert
+- AssetLoader-Klasse verbessert
+    - Sucht Assets in `assets/base/` und `assets/modded/`
+    - Caching für schnelle wiederholte Lookups
+    - Methoden: GetAudioPath, GetModelPath, GetShaderPath, GetTexturePath
+- Typos behoben
+    - `RebuildInsanceData()` → `RebuildInstanceData()`
+    - `WorldTolocal()` → `WorldToLocal()`
+- Code-Stil vereinheitlicht (Englische Summaries, Deutsche Inline-Kommentare)

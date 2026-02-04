@@ -1,9 +1,18 @@
 ﻿using Silk.NET.Maths;
 using System.Numerics;
 
-namespace Create_your_Adventure.source.Gamelogic.Camera
+namespace Create_your_Adventure.Source.Gamelogic.Camera
 {
     // Future me: When you do first-person and third-person later, you'll do it with an ->interface<- "ICamera".
+
+
+    /// <summary>
+    /// A free-flying debug camera with smooth WASD movement and mouse look.
+    /// Supports sprinting, vertical movement (Space/Ctrl), and configurable acceleration.
+    /// </summary>
+    /// <remarks>
+    /// Future: Implement <c>ICamera</c> interface for first-person and third-person variants.
+    /// </remarks>
     public class Camera
     {
         // -------- Configurations --------
@@ -26,49 +35,44 @@ namespace Create_your_Adventure.source.Gamelogic.Camera
         private float velocityVertical = 0.0f;
         private Vector3D<float> velocityHorizontal = Vector3D<float>.Zero;
 
-        // -------- Camera --------
+        // -------- Camera State --------
         private Vector3D<float> cameraPosition = new(0f, 0f, 3f);
         private float yaw = -90f;
         private float pitch = 0f;
 
+        // -------- Mouse State ---------
         private Vector2 mouseDeltaSmoothed = Vector2.Zero;
         private Vector2 rawMouseDelta = Vector2.Zero;
-
         private bool firstMouse = true;
         private Vector2 lastMousePosition;
 
+        // -------- Cache Matrices --------
         private Matrix4X4<float> view;
         private Matrix4X4<float> projection;
 
         // CONSTRUCTION ----------------------------------------------------------------
 
         /// <summary>
-        /// 
-        /// Constructor für die Camera-Klasse.
-        /// 
-        /// Aktuell leer, da alle Felder bereits bei der Deklaration initialisiert werden
-        /// (z.B. yaw = -90f, pitch = 0f, cameraPosition = new(0f, 0f, 3f)).
-        /// 
-        /// ZUKÜNFTIGE ERWEITERUNGEN:
-        /// - Parameter für Start-Position: Camera(Vector3D<float> startPos)
-        /// - Parameter für Start-Rotation: Camera(float startYaw, float startPitch)
-        /// - Initialisierungs-Logik die Berechnungen benötigt
-        /// - Setup-Code der nur einmal beim Erstellen ausgeführt werden soll
-        /// 
-        /// Beispiel für späteren erweiterten Constructor:
-        /// public Camera(Vector3D<float> startPos, float startYaw = -90f, float startPitch = 0f)
-        /// {
-        ///     this.cameraPosition = startPos;
-        ///     this.yaw = startYaw;
-        ///     this.pitch = startPitch;
-        ///     Console.WriteLine($"Camera erstellt an Position {startPos}");
-        /// }
+        /// Initializes a new camera with default position (0, 0, 3) and rotation (yaw: -90°, pitch: 0°).
         /// </summary>
         public Camera()
         {
         }
 
         // UPDATE ----------------------------------------------------------------------
+
+        /// <summary>
+        /// Updates the camera position and rotation based on input and delta time.
+        /// Applies smooth acceleration/deceleration for fluid movement.
+        /// </summary>
+        /// <param name="deltaTime">Time elapsed since last frame in seconds.</param>
+        /// <param name="keyW">Forward movement input.</param>
+        /// <param name="keyA">Left strafe input.</param>
+        /// <param name="keyS">Backward movement input.</param>
+        /// <param name="keyD">Right strafe input.</param>
+        /// <param name="keySpace">Upward movement input.</param>
+        /// <param name="keyLeftCtrl">Downward movement input.</param>
+        /// <param name="keyLeftShift">Sprint modifier input.</param>
         public void Update(
             double deltaTime,
             bool keyW,
@@ -123,10 +127,8 @@ namespace Create_your_Adventure.source.Gamelogic.Camera
                 speed *= sprintMovementSpeedMultiplier;
             }
 
-            // -------- Target Velocity --------
+            // -------- Horizontal Velocity --------
             Vector3D<float> targetVelocity = inputDirection * speed;
-
-            // -------- Horizontal smoothing --------
             float rate = (inputDirection.LengthSquared > 0) ? accelerationHorizontalRate : decelerationHorizontalRate;
             velocityHorizontal = Vector3D.Lerp(
                 velocityHorizontal,
@@ -134,7 +136,7 @@ namespace Create_your_Adventure.source.Gamelogic.Camera
                 1.0f - MathF.Exp(-rate * dt)
                 );
 
-            // -------- Space/Shift Input --------
+            // -------- Vertical Input (Space/Ctrl) --------
             float targetVertical = 0f;
 
             if (keySpace)
@@ -146,51 +148,38 @@ namespace Create_your_Adventure.source.Gamelogic.Camera
                 targetVertical -= movementVerticalSpeed;
             }
 
-            // -------- Acceleration & Deleceration ---------
+            // -------- Vertical Velocity --------
             float verticalRate = (MathF.Abs(targetVertical) > 0.001f)
                 ? accelerationVerticalRate
                 : decelerationVerticalRate;
 
-            // -------- Vertical smoothing --------
             float verticalLerpFactor = 1.0f - MathF.Exp(-verticalRate * dt);
             velocityVertical = velocityVertical + (targetVertical - velocityVertical) * verticalLerpFactor;
+
+            // -------- Apply Movement --------
             cameraPosition += velocityHorizontal * dt;
             cameraPosition.Y += velocityVertical * dt;
 
-            // -------- Smoothing --------
+            // -------- Mouse Smoothing --------
             float smoothFactor = 1.0f - MathF.Exp(-mouseSmoothingFactor * dt);
             mouseDeltaSmoothed = Vector2.Lerp(mouseDeltaSmoothed, rawMouseDelta, smoothFactor);
 
-            // -------- Yaw & Pitch --------
+            // -------- Apply Rotation --------
             yaw += mouseDeltaSmoothed.X * mouseSensitivity * dt;
             pitch -= mouseDeltaSmoothed.Y * mouseSensitivity * dt;
             // --- Clamp Pitch
             pitch = Math.Clamp(pitch, -89f, 89f);
+
+            // --- Reset raw delta for next frame
             rawMouseDelta = Vector2.Zero;
         }
 
-        // VIEW & PROJECTION MATRICES ---------------------------------------------------
-        private static Vector3D<float> GetViewDirection(float yawDegrees, float pitchDegrees)
-        {
-            // -------- Degrees to Radians --------
-            float yaw = DegreesToRadians(yawDegrees);
-            float pitch = DegreesToRadians(pitchDegrees);
+        // VIEW MAXTRIX ---------------------------------------------------
 
-            // -------- Spherical to Cartesian --------
-            // Calculate view direction from yaw and pitch
-            float sinPitch = MathF.Sin(pitch);
-            float cosPitch = MathF.Cos(pitch);
-            float sinYaw = MathF.Sin(yaw);
-            float cosYaw = MathF.Cos(yaw);
-            return Vector3D.Normalize(new Vector3D<float>(
-                x: cosYaw * cosPitch,
-                y: sinPitch,
-                z: sinYaw * cosPitch
-                )
-                );
-        }
-
-        // VIEW & PROJECTION MATRICES ---------------------------------------------------
+        /// <summary>
+        /// Computes the view matrix based on current camera position and orientation.
+        /// </summary>
+        /// <returns>A look-at view matrix for rendering.</returns>
         public Matrix4X4<float> GetViewMatrix()
         {
             // -------- Calculate camera axes --------
@@ -201,21 +190,33 @@ namespace Create_your_Adventure.source.Gamelogic.Camera
         }
 
         // PROJECTION MATRIX ---------------------------------------------------
+
+        /// <summary>
+        /// Creates a perspective projection matrix for the given viewport dimensions.
+        /// </summary>
+        /// <param name="width">Viewport width in pixels.</param>
+        /// <param name="height">Viewport height in pixels.</param>
+        /// <param name="fovDegrees">Vertical field of view in degrees.</param>
+        /// <param name="near">Near clipping plane distance.</param>
+        /// <param name="far">Far clipping plane distance.</param>
+        /// <returns>A perspective projection matrix.</returns>
         public Matrix4X4<float> CreatePerspective(int width, int height, float fovDegrees, float near, float far)
         {
-            // -------- Aspect Ratio --------
             float aspect = width <= 0 || height <= 0 ? 1.0f : (float)width / height;
             float fov = DegreesToRadians(fovDegrees);
             return Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, near, far);
         }
 
-        // HELPER METHODS ---------------------------------------------------
-        private static float DegreesToRadians(float degrees) => degrees * (MathF.PI / 180.0f);
-
         // MOUSE INPUT ---------------------------------------------------
+
+        /// <summary>
+        /// Processes mouse movement input for camera rotation.
+        /// Call this from your mouse move event handler.
+        /// </summary>
+        /// <param name="currentPosition">Current mouse position in screen coordinates.</param>
         public void OnMouseMove(Vector2 currentPosition)
         {
-            // -------- (First) Mouse movement initialization --------
+            // -------- First Mouse Initialization --------
             if (firstMouse)
             {
                 lastMousePosition = currentPosition;
@@ -223,9 +224,31 @@ namespace Create_your_Adventure.source.Gamelogic.Camera
                 return;
             }
 
-            // -------- Calculate raw delta --------
+            // -------- Calculate Delta --------
             rawMouseDelta = currentPosition - lastMousePosition;
             lastMousePosition = currentPosition;
         }
+
+        // HELPER METHODS ---------------------------------------------------
+        private static Vector3D<float> GetViewDirection(float yawDegrees, float pitchDegrees)
+        {
+            // -------- Degrees to Radians --------
+            float yaw = DegreesToRadians(yawDegrees);
+            float pitch = DegreesToRadians(pitchDegrees);
+
+            // -------- Spherical to Cartesian --------
+            float sinPitch = MathF.Sin(pitch);
+            float cosPitch = MathF.Cos(pitch);
+            float sinYaw = MathF.Sin(yaw);
+            float cosYaw = MathF.Cos(yaw);
+
+            return Vector3D.Normalize(new Vector3D<float>(
+                x: cosYaw * cosPitch,
+                y: sinPitch,
+                z: sinYaw * cosPitch
+                )
+                );
+        }
+        private static float DegreesToRadians(float degrees) => degrees * (MathF.PI / 180.0f);
     }
 }

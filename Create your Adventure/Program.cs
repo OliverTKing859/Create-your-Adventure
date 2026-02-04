@@ -4,9 +4,10 @@ using Silk.NET.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Core.Native;
 using Silk.NET.Input;
-using Create_your_Adventure.source.Gamelogic.Camera;
 using StbImageSharp;
+using Create_your_Adventure.Source.Gamelogic.Camera;
 using Create_your_Adventure.Source.GameLogic.Chunk;
+using Create_your_Adventure.Source.Engine.AssetLoader;
 
 namespace Create_your_Adventure
 {
@@ -243,7 +244,7 @@ namespace Create_your_Adventure
             gl.EnableVertexAttribArray(1);
 
             // -------- Texture --------
-            texture = LoadTexture("dirt.png");
+            texture = LoadTexture(AssetLoader.GetTexturePath("dirt.png"));
 
 
 

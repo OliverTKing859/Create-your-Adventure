@@ -14,10 +14,21 @@
     <PackageReference Include="StbImageSharp" Version="2.30.15" />
   </ItemGroup>
 
+	<ItemGroup>
+		<None Update="assets\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
   <ItemGroup>
+    <Folder Include="assets\base\models\" />
+    <Folder Include="assets\base\audio\musics\" />
+    <Folder Include="assets\base\audio\" />
+    <Folder Include="assets\base\audio\sounds\" />
+    <Folder Include="assets\base\shaders\" />
     <Folder Include="assets\modded\" />
     <Folder Include="docs\" />
-    <Folder Include="Source\Engine\" />
+    <Folder Include="Source\Rendering\" />
   </ItemGroup>
 
 </Project>
