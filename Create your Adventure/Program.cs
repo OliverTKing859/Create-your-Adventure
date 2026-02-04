@@ -6,6 +6,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Create_your_Adventure.source.Gamelogic.Camera;
 using StbImageSharp;
+using Create_your_Adventure.Source.GameLogic.Chunk;
 
 namespace Create_your_Adventure
 {
@@ -44,15 +45,8 @@ namespace Create_your_Adventure
         private static uint graphicsProgram;
         private static uint texture;
 
-        // -------- Instancing --------
-        private static Matrix4X4<float>[] instanceMatrices;
-        private static int instanceCount;
-
-        // -------- Chunk Constants --------
-        private const int Chunksize = 16;
-
-        // -------- Chunk Position --------
-        private static Vector3D<int> currentChunkPosition;
+        // -------- Chunk --------
+        private static Chunk chunk;
 
         private static readonly float[] vertices =
         {
@@ -173,17 +167,17 @@ namespace Create_your_Adventure
             gl.BindVertexArray(vao);
 
             // -------- Instancing Setup --------
-            CreateInstanceData(new Vector3D<int>(0,0,0));
+            chunk = new Chunk(new Vector3D<int>(0, 0, 0));
 
             // -------- Instance VBO --------
             instanceVBO = gl.GenBuffer();
             gl.BindBuffer(BufferTargetARB.ArrayBuffer, instanceVBO);
 
-            fixed (Matrix4X4<float>* ptr = instanceMatrices)
+            fixed (Matrix4X4<float>* ptr = chunk.InstanceMatrices)
             {
                 gl.BufferData(
                     BufferTargetARB.ArrayBuffer,
-                    (nuint)(instanceCount * sizeof(Matrix4X4<float>)),
+                    (nuint)(chunk.InstanceCount * sizeof(Matrix4X4<float>)),
                     ptr,
                     BufferUsageARB.StaticDraw
                     );
@@ -336,7 +330,7 @@ namespace Create_your_Adventure
                 36,
                 DrawElementsType.UnsignedInt,
                 null,
-                (uint)instanceCount
+                (uint)chunk.InstanceCount
                 );
         }
 
@@ -461,72 +455,6 @@ namespace Create_your_Adventure
             }
         }
 
-        // CREATE INSTANCE DATA ----------------------------------------------------------------
-
-        private static void CreateInstanceData(Vector3D<int> chunkPosition)
-        {
-            // -------- Chunk Position save --------
-            currentChunkPosition = chunkPosition;
-
-            // -------- Create 16x16x16 Grid of Cubes --------
-            instanceCount = Chunksize * Chunksize * Chunksize;
-            instanceMatrices = new Matrix4X4<float>[instanceCount];
-
-            int index = 0;
-            for (int x = 0; x < Chunksize; x++)
-            {
-                for (int y = 0; y < Chunksize; y++)
-                {
-                    for (int z = 0; z < Chunksize; z++)
-                    {
-                        // --- Local BlockPosition on Chunks
-                        Vector3D<int> localPosition = new(x, y, z);
-
-                        // --- World Position als float
-                        Vector3D<float> worldPosition = LocalToWorld(chunkPosition, localPosition);
-
-                        instanceMatrices[index] = Matrix4X4.CreateTranslation<float>(worldPosition);
-                        index++;
-                    }
-                }
-            }
-            Console.WriteLine($"[INFO] Chunk erstellt bei ChunkPos: {chunkPosition}");
-            Console.WriteLine($"[INFO] World-Bereich: ({chunkPosition.X * Chunksize}, {chunkPosition.Y * Chunksize}, {chunkPosition.Z * Chunksize}) bis ({(chunkPosition.X + 1) * Chunksize - 1}, {(chunkPosition.Y + 1) * Chunksize - 1}, {(chunkPosition.Z + 1) * Chunksize - 1})");
-        }
-
-        // COORDINATE CONVERSION METHODS ----------------------------------------------------------------
-        // --- Convert local Chunk-Coordination to World-Coordination
-        private static Vector3D<float> LocalToWorld(Vector3D<int> chunkPosition, Vector3D<int> localPosition)
-        {
-            return new Vector3D<float>(
-                chunkPosition.X * Chunksize + localPosition.X,
-                chunkPosition.Y * Chunksize + localPosition.Y,
-                chunkPosition.Z * Chunksize + localPosition.Z
-            );
-        }
-
-        // --- Convert World-Coordination to Chunk-Position
-        private static Vector3D<int> WorldToChunkPosition(Vector3D<float> worldPosition)
-        {
-            return new Vector3D<int>(
-                (int)MathF.Floor(worldPosition.X / Chunksize),
-                (int)MathF.Floor(worldPosition.Y / Chunksize),
-                (int)MathF.Floor(worldPosition.Z / Chunksize)
-            );
-        }
-
-        // --- Convert World-Coordination to local Chunk-Coordination
-        private static Vector3D<int> WorldTolocal(Vector3D<float> worldPosition)
-        {
-            return new Vector3D<int>(
-                ((int)MathF.Floor(worldPosition.X) % Chunksize + Chunksize) % Chunksize,
-                ((int)MathF.Floor(worldPosition.Y) % Chunksize + Chunksize) % Chunksize,
-                ((int)MathF.Floor(worldPosition.Z) % Chunksize + Chunksize) % Chunksize
-            );
-        }
-
-
-
         // CREATE GRAPHICS PROGRAM ----------------------------------------------------------------
         private static uint CreateGraphicsProgram()
         {
@@ -599,7 +527,7 @@ namespace Create_your_Adventure
             gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.NearestMipmapLinear);
             gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
 
-            Console.WriteLine($"[INFO] Textur geladen: {path} ({image.Width}x{image.Height})");
+            Console.WriteLine($"[INFO] Textur load: {path} ({image.Width}x{image.Height})");
 
             return textureId;
         }

@@ -17,6 +17,7 @@
   <ItemGroup>
     <Folder Include="assets\modded\" />
     <Folder Include="docs\" />
+    <Folder Include="Source\Engine\" />
   </ItemGroup>
 
 </Project>

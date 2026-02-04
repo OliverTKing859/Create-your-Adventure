@@ -122,3 +122,19 @@ ChangeLogs
     - WorldToLocal(): Welt → lokale Koordinaten
 - Vorbereitung für dynamisches Chunk-Loading
 - Instance-Daten basierend auf Chunk-Position berechnet
+
+## 0.0.8.1 Alpha | Chunk Class Abstraction & Naming Conventions - 04.02.2026
+
+- Abstrahiert Instance-Daten in Chunk-Klasse
+    - `InstanceMatrices` und `InstanceCount` sind nun Properties der Chunk-Klasse
+    - `RebuildInstanceData()` ist öffentliche Methode für dynamische Updates
+- Implementiert C# Naming Conventions
+    - Constants: `ChunkSize` (PascalCase)
+    - Properties: `ChunkPosition` (PascalCase)
+    - Parameter: `chunkPosition` (camelCase)
+- Constructor korrekt dokumentiert
+    - Chunk wird automatisch initialisiert beim `new Chunk()`
+- Program.cs angepasst
+    - Liest `chunk.InstanceMatrices` und `chunk.InstanceCount` für Rendering
+    - Trennung von Logik (Chunk) und Rendering (Program)
+- Typo behoben: `RebuildInsanceData()` → `RebuildInstanceData()`
