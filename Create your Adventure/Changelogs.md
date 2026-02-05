@@ -152,4 +152,26 @@ ChangeLogs
 - Typos behoben
     - `RebuildInsanceData()` → `RebuildInstanceData()`
     - `WorldTolocal()` → `WorldToLocal()`
-- Code-Stil vereinheitlicht (Englische Summaries, Deutsche Inline-Kommentare)
+- Code-Stil vereinheitlicht (Englische Summaries, Inline-Kommentare)
+
+## 0.0.8.3 Alpha | Logger System Implementation - 05.02.2026
+
+- Implementiert Logger-System für strukturierte Debug-Ausgaben
+    - Logger-Klasse mit Info, Warn, Error und Debug Methoden
+    - Farbcodierte Konsolen-Ausgabe (Weiß, Gelb, Rot, Grau)
+    - EnableDebug Toggle zur Kontrolle von Debug-Nachrichten
+    - XML-Dokumentation für alle Logger-Methoden
+- Kategorisierte Log-Nachrichten in allen Hauptklassen
+    - [ENGINE]: Anwendungs-Start/-Shutdown
+    - [OPENGL]: GL-Kontext, VAO, VBO, EBO, Depth Testing
+    - [SHADER]: Vertex/Fragment Compilation, Linking, Uniform-Locations
+    - [TEXTURE]: Asset-Loading, Dimensionen, Fehlerbehandlung
+    - [CHUNK]: Chunk-Erstellung, Instance-Daten, World-Area
+    - [ASSETLOADER]: Asset-Suche, Cache, Modded-Assets
+    - [CAMERA]: Initialisierung, Projection-Matrix, Mouse-Input
+    - [INPUT]: Keyboard/Mouse-Geräte-Erkennung
+- Verbesserte Fehlerbehandlung
+    - OpenGL Debug Callback kategorisiert nach Severity (High/Medium/Low)
+    - Warnungen bei fehlenden Input-Geräten oder ungültigen Viewport-Dimensionen
+    - Error-Logs für fehlgeschlagene Texture-/Shader-Loads
+- Console.WriteLine() durch Logger-Aufrufe ersetzt für konsistente Ausgaben

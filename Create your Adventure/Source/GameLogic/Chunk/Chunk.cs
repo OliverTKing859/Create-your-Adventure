@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using Create_your_Adventure.Source.Engine.Debug;
+using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -72,11 +73,25 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
         public Chunk(Vector3D<int> chunkPosition)
         {
             ChunkPosition = chunkPosition;
+
+            Logger.Info($"[CHUNK] Creating chunk at position: {chunkPosition}");
+
             RebuildInsanceData();
 
+            var worldMin = new Vector3D<int>(
+                chunkPosition.X * ChunkSize,
+                chunkPosition.Y * ChunkSize,
+                chunkPosition.Z * ChunkSize
+            );
 
-            Console.WriteLine($"[INFO] Create Chunk on ChunkPos: {chunkPosition}");
-            Console.WriteLine($"[INFO] World-Area: ({chunkPosition.X * ChunkSize}, {chunkPosition.Y * ChunkSize}, {chunkPosition.Z * ChunkSize}) bis ({(chunkPosition.X + 1) * ChunkSize - 1}, {(chunkPosition.Y + 1) * ChunkSize - 1}, {(chunkPosition.Z + 1) * ChunkSize - 1})");
+            var worldMax = new Vector3D<int>(
+                (chunkPosition.X + 1) * ChunkSize - 1,
+                (chunkPosition.Y + 1) * ChunkSize - 1,
+                (chunkPosition.Z + 1) * ChunkSize - 1
+            );
+
+            Logger.Info($"[CHUNK] World area: ({worldMin.X}, {worldMin.Y}, {worldMin.Z}) to ({worldMax.X}, {worldMax.Y}, {worldMax.Z})");
+            Logger.Info($"[CHUNK] Generated {InstanceCount} block instances");
 
         }
 
@@ -92,6 +107,8 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
         /// </remarks>
         public void RebuildInsanceData()
         {
+            Logger.Info($"[CHUNK] Rebuilding instance data for chunk at {ChunkPosition}");
+
             InstanceCount = BlockCount;
             InstanceMatrices = new Matrix4X4<float>[InstanceCount];
 
@@ -110,6 +127,8 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
                     }
                 }
             }
+
+            Logger.Info($"[CHUNK] Instance data rebuilt successfully ({InstanceCount} instances)");
         }
 
         // COORDINATE CONVERSION ----------------------------------------------------------------

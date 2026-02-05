@@ -15,3 +15,5 @@ Fixed:
 Removed:
 
 - [text]
+
+(All of English)

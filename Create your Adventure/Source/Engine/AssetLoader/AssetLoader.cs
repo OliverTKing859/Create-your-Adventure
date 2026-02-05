@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Create_your_Adventure.Source.Engine.Debug;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -73,7 +74,11 @@ namespace Create_your_Adventure.Source.Engine.AssetLoader
         /// <remarks>
         /// Call this after adding or removing asset files at runtime.
         /// </remarks>
-        public static void ClearCache() => PathCache.Clear();
+        public static void ClearCache()
+        {
+            PathCache.Clear();
+            Logger.Info("[ASSETLOADER] Cache cleared");
+        }
 
         // FIND ASSETS ----------------------------------------------------------------
         private static string FindAsset(string subfolder ,string filename)
@@ -82,7 +87,9 @@ namespace Create_your_Adventure.Source.Engine.AssetLoader
             // --- Check
             string cacheKey = $"{subfolder}/{filename}";
             if (PathCache.TryGetValue(cacheKey, out string? cachedPath))
+            {
                 return cachedPath;
+            }
 
             // -------- First in the base --------
             string searchRoot = Path.Combine(AssetsRoot, BaseFolder, subfolder);
@@ -94,18 +101,23 @@ namespace Create_your_Adventure.Source.Engine.AssetLoader
             {
                 searchRoot = Path.Combine(AssetsRoot, "modded", subfolder);
                 result = SearchInFolder(searchRoot, filename);
+
+                if (result is not null)
+                {
+                    Logger.Info($"[ASSETLOADER] Found modded asset: {subfolder}/{filename}");
+                }
             }
 
             // --- If is null
             if (result is null)
             {
-                Console.WriteLine($"[AssetLoader] Not found: {filename}");
+                Logger.Error($"[ASSETLOADER] Asset not found: {subfolder}/{filename}");
                 return string.Empty;
             }
 
             // -------- Save on Cache --------
             PathCache[cacheKey] = result;
-            Console.WriteLine($"[AssetLoader] Found: {result}");
+            Logger.Info($"[ASSETLOADER] Asset located: {result}");
 
             return result;
         }

@@ -1,13 +1,14 @@
-﻿using System.Numerics;
-using Silk.NET.OpenGL;
-using Silk.NET.Windowing;
-using Silk.NET.Maths;
-using Silk.NET.Core.Native;
-using Silk.NET.Input;
-using StbImageSharp;
+﻿using Create_your_Adventure.Source.Engine.AssetLoader;
+using Create_your_Adventure.Source.Engine.Debug;
 using Create_your_Adventure.Source.Gamelogic.Camera;
 using Create_your_Adventure.Source.GameLogic.Chunk;
-using Create_your_Adventure.Source.Engine.AssetLoader;
+using Silk.NET.Core.Native;
+using Silk.NET.Input;
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
+using StbImageSharp;
+using System.Numerics;
 
 namespace Create_your_Adventure
 {
@@ -121,6 +122,8 @@ namespace Create_your_Adventure
         // MAIN ----------------------------------------------------------------
         static void Main()
         {
+            Logger.Info("[ENGINE] Initializing application...");
+
             // -------- Window Creation --------
             var options = WindowOptions.Default;
             options.Title = "Create your Adventure";
@@ -134,6 +137,7 @@ namespace Create_your_Adventure
                 );
 
             window = Window.Create(options);
+            Logger.Info("[WINDOW] Window created (1920x1080, OpenGL 4.6 Core)");
 
             // -------- Event Subscription --------
             window.Load += OnLoad;
@@ -142,6 +146,7 @@ namespace Create_your_Adventure
             window.Closing += OnClose;
 
             // -------- Run Application --------
+            Logger.Info("[ENGINE] Starting main loop...");
             window.Run();
 
         }
@@ -149,23 +154,29 @@ namespace Create_your_Adventure
         // ONLOAD ----------------------------------------------------------------
         private static unsafe void OnLoad()
         {
+            Logger.Info("[ENGINE] Loading resources...");
+
             // -------- OpenGL loading --------
             gl = GL.GetApi(window);
+            Logger.Info("[OPENGL] GL context initialized");
 
             gl.Enable(EnableCap.DebugOutput);
             gl.Enable(EnableCap.DebugOutputSynchronous);
 
             gl.DebugMessageCallback(DebugCallback, null);
+            Logger.Info("[OPENGL] Debug output enabled");
 
             CenterWindow(window);
 
             // -------- OpenGL State --------
             gl.ClearColor(0.05f, 0.05f, 0.05f, 1.0f);
             gl.Enable(EnableCap.DepthTest);
+            Logger.Info("[OPENGL] Depth testing enabled");
 
             // -------- VAO --------
             vao = gl.GenVertexArray();
             gl.BindVertexArray(vao);
+            Logger.Info("[OPENGL] Vertex Array Object created");
 
             // -------- Instancing Setup --------
             chunk = new Chunk(new Vector3D<int>(0, 0, 0));
@@ -183,6 +194,7 @@ namespace Create_your_Adventure
                     BufferUsageARB.StaticDraw
                     );
             }
+            Logger.Info($"[OPENGL] Instance VBO created ({chunk.InstanceCount} instances)");
 
             // -------- Instance Attributes (Matrix 4x4 = 4x vec4) --------
 
@@ -201,6 +213,7 @@ namespace Create_your_Adventure
                     );
                 gl.VertexAttribDivisor(2 + i, 1);
             }
+            Logger.Info("[OPENGL] Instance attributes configured");
 
             // -------- VBO --------
             vbo = gl.GenBuffer();
@@ -210,6 +223,7 @@ namespace Create_your_Adventure
                 vertices,
                 BufferUsageARB.StaticDraw
                 );
+            Logger.Info("[OPENGL] Vertex Buffer Object created");
 
             // -------- EBO --------
             ebo = gl.GenBuffer();
@@ -219,6 +233,7 @@ namespace Create_your_Adventure
                 indices,
                 BufferUsageARB.StaticDraw
                 );
+            Logger.Info("[OPENGL] Element Buffer Object created");
 
             // -------- Vertex Attribute --------
             // --- Position Attribute
@@ -242,11 +257,15 @@ namespace Create_your_Adventure
                 3 * sizeof(float)
                 );
             gl.EnableVertexAttribArray(1);
+            Logger.Info("[OPENGL] Vertex attributes configured");
 
             // -------- Texture --------
             texture = LoadTexture(AssetLoader.GetTexturePath("dirt.png"));
 
-
+            if (texture == 0)
+            {
+                Logger.Error("[TEXTURE] Failed to load dirt.png - rendering may fail");
+            }
 
             // -------- Shader --------
             graphicsProgram = CreateGraphicsProgram();
@@ -254,6 +273,7 @@ namespace Create_your_Adventure
             uModel = gl.GetUniformLocation(graphicsProgram, "uModel");
             uView = gl.GetUniformLocation(graphicsProgram, "uView");
             uProjection = gl.GetUniformLocation(graphicsProgram, "uProjection");
+            Logger.Info("[SHADER] Graphics program created and uniforms located");
 
             // -------- Texture Uniform --------
             int uTexture = gl.GetUniformLocation(graphicsProgram, "uTexture");
@@ -268,11 +288,25 @@ namespace Create_your_Adventure
             keyboard = input.Keyboards.Count > 0 ? input.Keyboards[0] : null;
             mouse = input.Mice.Count > 0 ? input.Mice[0] : null;
 
+            if (keyboard == null)
+            {
+                Logger.Warn("[INPUT] No keyboard detected");
+            }
+            else
+            {
+                Logger.Info("[INPUT] Keyboard initialized");
+            }
+
             // -------- Mouse Setup --------
             if (mouse != null)
             {
                 mouse.Cursor.CursorMode = CursorMode.Disabled;
                 mouse.MouseMove += OnMouseMove;
+                Logger.Info("[INPUT] Mouse initialized (cursor locked)");
+            }
+            else
+            {
+                Logger.Warn("[INPUT] No mouse detected");
             }
 
             // -------- Initial Projection --------
@@ -281,6 +315,8 @@ namespace Create_your_Adventure
             {
                 gl.UniformMatrix4(uProjection, 1, false, (float*)pointerProjection);
             }
+
+            Logger.Info("[ENGINE] All resources loaded successfully");
         }
 
         // ONUPDATE ----------------------------------------------------------------
@@ -338,6 +374,8 @@ namespace Create_your_Adventure
         // ONCLOSE ----------------------------------------------------------------
         private static void OnClose()
         {
+            Logger.Info("[ENGINE] Shutting down...");
+
             if (mouse != null)
             {
                 mouse.MouseMove -= OnMouseMove;
@@ -349,7 +387,9 @@ namespace Create_your_Adventure
             gl.DeleteBuffer(vbo);
             gl.DeleteVertexArray(vao);
             gl.DeleteProgram(graphicsProgram);
-            // Cleanup (Buffer, Shader, etc.)
+
+            Logger.Info("[OPENGL] Resources cleaned up");
+            Logger.Info("[ENGINE] Application closed");
         }
 
         // WINDOW ----------------------------------------------------------------
@@ -359,6 +399,7 @@ namespace Create_your_Adventure
             var monitor = window.Monitor;
             if (monitor == null)
             {
+                Logger.Warn("[WINDOW] No monitor detected - cannot center window");
                 return;
             }
 
@@ -371,6 +412,8 @@ namespace Create_your_Adventure
                 (bounds.X - size.X) / 2,
                 (bounds.Y - size.Y) / 2
                 );
+
+            Logger.Info("[WINDOW] Window centered on monitor");
         }
 
         // OPENGL DEBUG ----------------------------------------------------------------
@@ -385,8 +428,21 @@ namespace Create_your_Adventure
         {
             if (severity == GLEnum.DebugSeverityNotification)
                 return;
+            
+            string messageText = SilkMarshal.PtrToString(message);
 
-            Console.WriteLine($"[GL] {severity}: {SilkMarshal.PtrToString(message)}");
+            if (severity == GLEnum.DebugSeverityHigh)
+            {
+                Logger.Error($"[OPENGL] {severity}: {messageText}");
+            }
+            else if (severity == GLEnum.DebugSeverityMedium)
+            {
+                Logger.Warn($"[OPENGL] {severity}: {messageText}");
+            }
+            else
+            {
+                Logger.Info($"[OPENGL] {severity}: {messageText}");
+            }
         }
 
         // SHADER ----------------------------------------------------------------
@@ -440,7 +496,7 @@ namespace Create_your_Adventure
             if (success == 0)
             {
                 string infoLog = gl.GetShaderInfoLog(shader);
-                Console.WriteLine($"[ERROR] Shader Compilation Failed ({type}):\n{infoLog}");
+                Logger.Error($"[SHADER] Compilation failed ({type}):\n{infoLog}");
                 throw new Exception($"Shader compilation error: {type}");
             }
         }
@@ -451,7 +507,7 @@ namespace Create_your_Adventure
             if (success == 0)
             {
                 string infoLog = gl.GetProgramInfoLog(program);
-                Console.WriteLine($"[ERROR] Shader Linking Failed:\n{infoLog}");
+                Logger.Error($"[SHADER] Linking failed:\n{infoLog}");
                 throw new Exception("Shader linking error");
             }
         }
@@ -459,21 +515,27 @@ namespace Create_your_Adventure
         // CREATE GRAPHICS PROGRAM ----------------------------------------------------------------
         private static uint CreateGraphicsProgram()
         {
+            Logger.Info("[SHADER] Compiling vertex shader...");
             uint vertex = gl.CreateShader(ShaderType.VertexShader);
             gl.ShaderSource(vertex, VertexShaderSource);
             gl.CompileShader(vertex);
             CheckShaderCompileErrors(vertex, "VERTEX");
+            Logger.Info("[SHADER] Vertex shader compiled successfully");
 
+            Logger.Info("[SHADER] Compiling fragment shader...");
             uint fragment = gl.CreateShader(ShaderType.FragmentShader);
             gl.ShaderSource(fragment, FragmentShaderSource);
             gl.CompileShader(fragment);
             CheckShaderCompileErrors(fragment, "FRAGMENT");
+            Logger.Info("[SHADER] Fragment shader compiled successfully");
 
+            Logger.Info("[SHADER] Linking shader program...");
             uint createProgram = gl.CreateProgram();
             gl.AttachShader(createProgram, vertex);
             gl.AttachShader(createProgram, fragment);
             gl.LinkProgram(createProgram);
             CheckProgramLinkErrors(createProgram);
+            Logger.Info("[SHADER] Shader program linked successfully");
 
             gl.DeleteShader(vertex);
             gl.DeleteShader(fragment);
@@ -484,6 +546,15 @@ namespace Create_your_Adventure
         // LOAD TEXTURE ----------------------------------------------------------------
         private static unsafe uint LoadTexture(string path)
         {
+
+            if (string.IsNullOrEmpty(path))
+            {
+                Logger.Error("[TEXTURE] Invalid texture path provided");
+                return 0;
+            }
+
+            Logger.Info($"[TEXTURE] Loading texture: {path}");
+
             // -------- StbImageSharp Configuration --------
             StbImage.stbi_set_flip_vertically_on_load(1);
 
@@ -494,10 +565,14 @@ namespace Create_your_Adventure
                 using var stream = File.OpenRead(path);
                 image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
             }
+            catch (FileNotFoundException)
+            {
+                Logger.Error($"[TEXTURE] File not found: {path}");
+                return 0;
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Error] Texture loading failed: {path}");
-                Console.WriteLine($"[Error] {ex.Message}");
+                Logger.Error($"[TEXTURE] Loading failed: {ex.Message}");
                 return 0;
             }
 
@@ -528,7 +603,7 @@ namespace Create_your_Adventure
             gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.NearestMipmapLinear);
             gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
 
-            Console.WriteLine($"[INFO] Textur load: {path} ({image.Width}x{image.Height})");
+            Logger.Info($"[TEXTURE] Loaded successfully: {path} ({image.Width}x{image.Height})");
 
             return textureId;
         }

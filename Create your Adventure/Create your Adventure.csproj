@@ -27,7 +27,6 @@
     <Folder Include="assets\base\audio\sounds\" />
     <Folder Include="assets\base\shaders\" />
     <Folder Include="assets\modded\" />
-    <Folder Include="docs\" />
     <Folder Include="Source\Rendering\" />
   </ItemGroup>
 

@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using Create_your_Adventure.Source.Engine.Debug;
+using Silk.NET.Maths;
 using System.Numerics;
 
 namespace Create_your_Adventure.Source.Gamelogic.Camera
@@ -57,6 +58,8 @@ namespace Create_your_Adventure.Source.Gamelogic.Camera
         /// </summary>
         public Camera()
         {
+            Logger.Info($"[CAMERA] Initialized at position: {cameraPosition}");
+            Logger.Info($"[CAMERA] Initial rotation - Yaw: {yaw}°, Pitch: {pitch}°");
         }
 
         // UPDATE ----------------------------------------------------------------------
@@ -202,8 +205,16 @@ namespace Create_your_Adventure.Source.Gamelogic.Camera
         /// <returns>A perspective projection matrix.</returns>
         public Matrix4X4<float> CreatePerspective(int width, int height, float fovDegrees, float near, float far)
         {
+            if (width <= 0 || height <= 0)
+            {
+                Logger.Warn($"[CAMERA] Invalid viewport dimensions: {width}x{height} - using fallback aspect ratio 1.0");
+            }
+
             float aspect = width <= 0 || height <= 0 ? 1.0f : (float)width / height;
             float fov = DegreesToRadians(fovDegrees);
+
+            Logger.Info($"[CAMERA] Projection created - FOV: {fovDegrees}°, Aspect: {aspect:F2}, Near: {near}, Far: {far}");
+
             return Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, near, far);
         }
 
@@ -221,6 +232,7 @@ namespace Create_your_Adventure.Source.Gamelogic.Camera
             {
                 lastMousePosition = currentPosition;
                 firstMouse = false;
+                Logger.Info("[CAMERA] Mouse input initialized");
                 return;
             }
 
