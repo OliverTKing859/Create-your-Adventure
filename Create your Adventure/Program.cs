@@ -179,7 +179,7 @@ namespace Create_your_Adventure
             Logger.Info("[OPENGL] Vertex Array Object created");
 
             // -------- Instancing Setup --------
-            chunk = new Chunk(new Vector3D<int>(0, 0, 0));
+            chunk = new Chunk(new Vector3D<long>(0, 0, 0));
 
             // -------- Instance VBO --------
             instanceVBO = gl.GenBuffer();

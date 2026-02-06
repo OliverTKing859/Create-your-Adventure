@@ -175,3 +175,26 @@ ChangeLogs
     - Warnungen bei fehlenden Input-Geräten oder ungültigen Viewport-Dimensionen
     - Error-Logs für fehlgeschlagene Texture-/Shader-Loads
 - Console.WriteLine() durch Logger-Aufrufe ersetzt für konsistente Ausgaben
+
+## 0.0.8.4 Alpha | Infinite World Architecture - 06.02.2026
+
+- Implementiert 64-Bit Chunk-Koordinaten für unendliche Weltgenerierung
+    - `ChunkPosition` nutzt jetzt `Vector3D<long>` statt `Vector3D<int>`
+    - Ermöglicht ±9,2 Trillionen Chunks (±147 Billionen Blöcke pro Achse)
+    - Übertrifft Minecraft's 30 Millionen Block Limit deutlich
+- Architektur-Verbesserung für Koordinatensysteme
+    - Intern: `long` für Chunk-Positionen, `int` für lokale Positionen (0-15)
+    - Rendering: `float` für Weltpositionen (aktuell)
+    - Vorbereitung für kamera-relatives Rendering zur Vermeidung von Float-Präzisionsproblemen
+- Methoden zu public static geändert
+    - `WorldToChunkPosition()` und `WorldToLocal()` sind jetzt öffentlich zugänglich
+    - Typo korrigiert: `WorldTolocal()` → `WorldToLocal()`
+- Erweiterte Dokumentation für zukünftige Optimierungen
+    - TODO-Kommentare für Block-Daten-Speicherung
+    - TODO-Kommentare für Visibility Culling (nur sichtbare Blöcke)
+    - TODO-Kommentare für Face Culling (versteckte Flächen nicht rendern)
+    - TODO-Kommentare für Greedy Meshing (Flächen zusammenfassen)
+    - Kommentierte Beispiel-Methode `LocalToWorldRelative()` für World-Offset Rendering
+- Architektur-Hinweise in XML-Dokumentation
+    - Chunk-Klasse soll zukünftig reiner Daten-Container werden (Rendering-Logik separieren)
+    - Aktuelle Instanz-Matrix-Generierung ist temporär für frühe Entwicklung
