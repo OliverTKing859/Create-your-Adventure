@@ -69,6 +69,12 @@ namespace Create_your_Adventure.Source.Engine.Debug
         {
             if (!showDebugWindow) return;
 
+            RenderLeftWing();
+            RenderRightWing();
+        }
+
+        private static void RenderLeftWing()
+        {
             ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoDecoration |
                                             ImGuiWindowFlags.AlwaysAutoResize |
                                             ImGuiWindowFlags.NoSavedSettings |
@@ -78,7 +84,26 @@ namespace Create_your_Adventure.Source.Engine.Debug
             ImGui.SetNextWindowPos(new Vector2(10, 10), ImGuiCond.Always);
             ImGui.SetNextWindowBgAlpha(0.35f);
 
-            if (ImGui.Begin("Debug Info", ref showDebugWindow, windowFlags))
+            if (ImGui.Begin("GAME DEBUG INFO", windowFlags))
+            {
+                ImGui.Text("placeholder");
+                ImGui.Separator();
+            }
+
+        }
+
+        private static void RenderRightWing()
+        {
+            ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoDecoration |
+                                            ImGuiWindowFlags.AlwaysAutoResize |
+                                            ImGuiWindowFlags.NoSavedSettings |
+                                            ImGuiWindowFlags.NoFocusOnAppearing |
+                                            ImGuiWindowFlags.NoNav;
+
+            ImGui.SetNextWindowPos(new Vector2(1750, 10), ImGuiCond.Always);
+            ImGui.SetNextWindowBgAlpha(0.35f);
+
+            if (ImGui.Begin("Debug Info", windowFlags))
             {
                 ImGui.Text("Performance");
                 ImGui.Separator();
