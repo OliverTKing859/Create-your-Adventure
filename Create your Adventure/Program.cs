@@ -1,7 +1,8 @@
 ﻿using Create_your_Adventure.Source.Engine.AssetLoader;
-using Create_your_Adventure.Source.Engine.Debug;
+using Create_your_Adventure.Source.Engine.DevDebug;
 using Create_your_Adventure.Source.Gamelogic.Camera;
 using Create_your_Adventure.Source.GameLogic.Chunk;
+using Create_your_Adventure.Source.Engine.Window;
 using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -126,6 +127,24 @@ namespace Create_your_Adventure
         // MAIN ----------------------------------------------------------------
         static void Main()
         {
+            var windowManager = WindowManager.Instance;
+
+            windowManager.Initialize(new WindowSettings
+            {
+                Title = "Create your Adventure",
+                Width = 1920,
+                Height = 1080
+            });
+
+            windowManager.Loaded += OnLoad;
+            windowManager.Updated += OnUpdate;
+            windowManager.Rendered += OnRender;
+            windowManager.OnClose += OnClose;
+
+            windowManager.Run();
+
+
+            /*
             Logger.Info("[ENGINE] Initializing application...");
 
             // -------- Window Creation --------
@@ -152,7 +171,7 @@ namespace Create_your_Adventure
             // -------- Run Application --------
             Logger.Info("[ENGINE] Starting main loop...");
             window.Run();
-
+            */
         }
 
         // ONLOAD ----------------------------------------------------------------
@@ -160,10 +179,8 @@ namespace Create_your_Adventure
         {
             Logger.Info("[ENGINE] Loading resources...");
 
-            // -------- OpenGL loading --------
-            gl = GL.GetApi(window);
-            Logger.Info("[OPENGL] GL context initialized");
-
+            var gl = WindowManager.Instance.GlContext;
+            var windowManager = WindowManager.Instance;
 
             gl.Enable(EnableCap.DebugOutput);
             gl.Enable(EnableCap.DebugOutputSynchronous);

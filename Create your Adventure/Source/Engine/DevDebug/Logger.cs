@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Create_your_Adventure.Source.Engine.Debug
+namespace Create_your_Adventure.Source.Engine.DevDebug
 {
     /// <summary>
     /// Provides logging functionality with color-coded console output for different log levels.

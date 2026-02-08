@@ -232,3 +232,27 @@ ChangeLogs
     - Dynamische Farbcodierung der FPS (Grün ≥60, Gelb ≥30, Rot <30)
     - Reset-Stats-Button repariert und Stabilität erhöht
     - ImGui-Fensterflags, Positionierung und Transparenz (Alpha 0.35) optimiert
+
+## 0.0.10.0 Alpha | Refactor: WindowManager Abstraction - 08.02.2026 ⚠️ **BROKEN**
+- **Status:** ⚠️ Programm läuft aktuell **NICHT** - In Entwicklung
+- Beginn der Architektur-Refaktorierung
+  - Erstellt `WindowManager` als Singleton Pattern
+    - Zentralisiert Fenster, GL Context und Input Verwaltung
+    - Entfernt globale statische Variablen für Window/GL/Input
+    - Event-basierte Architektur (OnLoad, OnUpdate, OnRender, OnClose)
+  - Erstellt `WindowSettings` für flexible Fenster-Konfiguration
+    - Title, Width, Height, GL Version konfigurierbar
+    - Debug Context optional
+  - Program.Main() vereinfacht zu 10 Zeilen
+- **Bekannte Probleme:**
+  - ❌ `OnLoad()` greift immer noch auf statische `gl` und `window` zu (sind null)
+  - ❌ `OnLoad()` nutzt nicht `WindowManager.Instance.GL`
+  - ❌ Input-Variablen (`keyboard`, `mouse`) sind nicht initialisiert
+  - ❌ InputManager nicht implementiert
+  - ❌ ShaderManager nicht implementiert
+  - ❌ TextureManager nicht implementiert
+  - ❌ RenderPipeline nicht implementiert
+- **Nächste Schritte:**
+  - InputManager implementieren
+  - OnLoad() mit WindowManager kompatibel machen
+  - Shader & Texture Manager abstrahieren
