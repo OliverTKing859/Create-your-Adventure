@@ -223,3 +223,12 @@ ChangeLogs
     - ImGui-Layout und Abstände optimiert
     - Reset Stats Funktionalität stabilisiert
     - Floating-Point-Formatierung konsistent gestaltet
+
+## 0.0.9.2 Alpha | ImGui Debug Display - 08.02.2026
+
+- Verbesserungen am ImGui-Debug-Display
+    - Stabile FPS-Berechnung mit Akkumulator und 1s-Updateintervall
+    - Min-/Max-FPS-Tracking und Frame-Time-Anzeige in Millisekunden
+    - Dynamische Farbcodierung der FPS (Grün ≥60, Gelb ≥30, Rot <30)
+    - Reset-Stats-Button repariert und Stabilität erhöht
+    - ImGui-Fensterflags, Positionierung und Transparenz (Alpha 0.35) optimiert

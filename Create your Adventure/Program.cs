@@ -172,11 +172,41 @@ namespace Create_your_Adventure
             Logger.Info("[OPENGL] Debug output enabled");
 
             CenterWindow(window);
+            
+            // --------Input Initialation --------
+            input = window.CreateInput();
+
+            keyboard = input.Keyboards.Count > 0 ? input.Keyboards[0] : null;
+            mouse = input.Mice.Count > 0 ? input.Mice[0] : null;
+
+            if (keyboard == null)
+            {
+                Logger.Warn("[INPUT] No keyboard detected");
+            }
+            else
+            {
+                Logger.Info("[INPUT] Keyboard initialized");
+            }
+
+            // -------- Mouse Setup --------
+            if (mouse != null)
+            {
+                mouse.Cursor.CursorMode = CursorMode.Disabled;
+                mouse.MouseMove += OnMouseMove;
+                Logger.Info("[INPUT] Mouse initialized (cursor locked)");
+            }
+            else
+            {
+                Logger.Warn("[INPUT] No mouse detected");
+            }
 
             // -------- OpenGL State --------
             gl.ClearColor(0.05f, 0.05f, 0.05f, 1.0f);
             gl.Enable(EnableCap.DepthTest);
             Logger.Info("[OPENGL] Depth testing enabled");
+
+            // -------- Camera --------
+            camera = new Camera();
 
             // -------- VAO --------
             vao = gl.GenVertexArray();
@@ -284,45 +314,16 @@ namespace Create_your_Adventure
             int uTexture = gl.GetUniformLocation(graphicsProgram, "uTexture");
             gl.Uniform1(uTexture, 0);
 
-            // -------- Camera --------
-            camera = new Camera();
-
-            // --------Input Initialation --------
-            input = window.CreateInput();
-
-            keyboard = input.Keyboards.Count > 0 ? input.Keyboards[0] : null;
-            mouse = input.Mice.Count > 0 ? input.Mice[0] : null;
-
-            if (keyboard == null)
-            {
-                Logger.Warn("[INPUT] No keyboard detected");
-            }
-            else
-            {
-                Logger.Info("[INPUT] Keyboard initialized");
-            }
-            // -------- ImGui Controller initialize
-            imGuiController = new ImGuiController(gl, window, input);
-            Logger.Info("[IMGUI] ImGui controller initialized");
-
-            // -------- Mouse Setup --------
-            if (mouse != null)
-            {
-                mouse.Cursor.CursorMode = CursorMode.Disabled;
-                mouse.MouseMove += OnMouseMove;
-                Logger.Info("[INPUT] Mouse initialized (cursor locked)");
-            }
-            else
-            {
-                Logger.Warn("[INPUT] No mouse detected");
-            }
-
             // -------- Initial Projection --------
             projection = camera.CreatePerspective(window.Size.X, window.Size.Y, 60f, 0.1f, 100f);
             fixed (Matrix4X4<float>* pointerProjection = &projection)
             {
                 gl.UniformMatrix4(uProjection, 1, false, (float*)pointerProjection);
             }
+
+            // -------- ImGui Controller initialize
+            imGuiController = new ImGuiController(gl, window, input);
+            Logger.Info("[IMGUI] ImGui controller initialized");
 
             Logger.Info("[ENGINE] All resources loaded successfully");
         }
