@@ -198,3 +198,20 @@ ChangeLogs
 - Architektur-Hinweise in XML-Dokumentation
     - Chunk-Klasse soll zukünftig reiner Daten-Container werden (Rendering-Logik separieren)
     - Aktuelle Instanz-Matrix-Generierung ist temporär für frühe Entwicklung
+
+## 0.0.9.0 Alpha | ImGui Debug Display - 08.02.2026
+
+- Implementiert ImGui-basiertes Debug-Display-System
+    - FPS-Tracking mit Min/Max-Statistiken
+    - Frame-Time-Messung in Millisekunden
+    - Dynamische Farbcodierung basierend auf Performance
+        - Grün: ≥60 FPS
+        - Gelb: ≥30 FPS
+        - Rot: <30 FPS
+    - ImGui-Fenster mit decorativen Optionen
+        - Automatisches Resizing
+        - Transparenter Hintergrund (Alpha 0.35)
+        - Positioniert in oberer linker Ecke (10, 10)
+    - Statistik-Reset-Button zur Datenbereinigung
+- DebugDisplay.cs als Static-Klasse mit Update() und RenderImGui() Methoden
+- Properties für FPS-Daten: CurrentFPS, MinFPS, MaxFPS, FrameTimeMs, ShowDebugWindow

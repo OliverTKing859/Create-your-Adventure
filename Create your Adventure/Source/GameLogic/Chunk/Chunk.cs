@@ -24,7 +24,7 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
     /// ARCHITECTURE NOTES:
     /// - Chunk positions use `long` for virtually unlimited world size (±9.2 quintillion chunks)
     /// - Local block positions use `int` (0-15 range)
-    /// - Rendering uses `float` with world offset to avoid precision loss
+    /// - Rendering uses camera-relative coordinates to prevent float precision loss (no Farlands!)
     /// 
     /// FUTURE OPTIMIZATIONS (TODO):
     /// - Block data storage (currently all blocks are rendered)
@@ -67,13 +67,14 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
 
         /// <summary>
         /// Gets the transformation matrices for all block instances in this chunk.
-        /// Each matrix represents the world-space transform of a single block.
+        /// Each matrix represents chunk-local transforms (0-15 range).
+        /// The chunk offset must be applied during rendering via view matrix.
         /// </summary>
         /// <remarks>
-        /// CURRENT: All blocks are rendered (temporary for early development).
+        /// IMPORTANT: These matrices contain LOCAL positions only (0-15 range).
+        /// The renderer must apply chunk offset relative to camera to prevent float jittering.
         /// TODO: Only generate matrices for visible, non-air blocks.
         /// TODO: Implement face culling and meshing for performance.
-        /// TODO: Use world offset in rendering to maintain float precision.
         /// </remarks>
         public Matrix4X4<float>[] InstanceMatrices { get; private set; }
 
@@ -123,11 +124,12 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
         /// Call this method after modifying block data to update the GPU buffer.
         /// </summary>
         /// <remarks>
-        /// CURRENT: Iterates through all block positions and creates matrices.
+        /// Generates LOCAL transformation matrices (0-15 range) to prevent float precision loss.
+        /// The chunk's world offset must be applied during rendering via the view matrix.
+        /// This approach eliminates Farlands and float jittering at large distances.
         /// TODO: Only generate matrices for visible blocks (not air).
         /// TODO: Implement face culling - don't render hidden faces.
         /// TODO: Implement greedy meshing - combine adjacent faces.
-        /// TODO: Apply world offset for rendering to maintain float precision at far distances.
         /// </remarks>
         public void RebuildInsanceData()
         {
@@ -143,42 +145,119 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
                 {
                     for (int z = 0; z < ChunkSize; z++)
                     {
-                        Vector3D<int> localPosition = new(x, y, z);
-                        Vector3D<float> worldPosition = LocalToWorld(localPosition);
+                        // Store LOCAL positions only (0-15 range) to maintain float precision
+                        Vector3D<float> localPosition = new(x, y, z);
 
-                        InstanceMatrices[index] = Matrix4X4.CreateTranslation<float>(worldPosition);
+                        InstanceMatrices[index] = Matrix4X4.CreateTranslation(localPosition);
                         index++;
                     }
                 }
             }
 
-            Logger.Info($"[CHUNK] Instance data rebuilt successfully ({InstanceCount} instances)");
+            Logger.Info($"[CHUNK] Instance data rebuilt successfully ({InstanceCount} instances with local transforms)");
         }
 
         // COORDINATE CONVERSION ----------------------------------------------------------------
 
         /// <summary>
-        /// Converts a local block position within this chunk to world coordinates.
+        /// Converts a local block position within this chunk to absolute world coordinates (64-bit precision).
         /// </summary>
         /// <param name="localPosition">
         /// The position relative to the chunk origin (0-15 per axis).
         /// </param>
         /// <returns>
-        /// The corresponding position in world-space coordinates as float for rendering.
+        /// The corresponding position in world-space coordinates using 64-bit integers.
         /// </returns>
         /// <remarks>
-        /// Converts from internal integer coordinates to float for rendering.
-        /// TODO: Apply camera-relative offset to avoid floating-point precision issues at far distances.
+        /// Returns `long` coordinates to maintain precision at any distance.
+        /// Use <see cref="LocalToWorldRelative"/> for rendering to avoid float precision loss.
         /// </remarks>
         /// <example>
-        /// For a chunk at (1, 0, 0), LocalToWorld((5, 3, 2)) returns (21, 3, 2).
+        /// For a chunk at (1, 0, 0), LocalToWorldAbsolute((5, 3, 2)) returns (21, 3, 2).
         /// </example>
-        public Vector3D<float> LocalToWorld(Vector3D<int> localPosition)
+        public Vector3D<long> LocalToWorldAbsolute(Vector3D<int> localPosition)
         {
-            return new Vector3D<float>(
+            return new Vector3D<long>(
                 ChunkPosition.X * ChunkSize + localPosition.X,
                 ChunkPosition.Y * ChunkSize + localPosition.Y,
                 ChunkPosition.Z * ChunkSize + localPosition.Z
+            );
+        }
+
+        /// <summary>
+        /// Converts a local block position to world coordinates relative to a reference chunk.
+        /// This prevents float precision loss when rendering at large distances.
+        /// </summary>
+        /// <param name="localPosition">
+        /// The position relative to the chunk origin (0-15 per axis).
+        /// </param>
+        /// <param name="referenceChunkPosition">
+        /// The reference chunk position (typically the camera's chunk) to calculate relative offset.
+        /// </param>
+        /// <returns>
+        /// The position relative to the reference chunk as float, safe for rendering.
+        /// </returns>
+        /// <remarks>
+        /// This method prevents Farlands and float jittering by keeping coordinates camera-relative.
+        /// Even at extreme distances (billions of blocks), float precision remains sufficient
+        /// because we only represent the small distance between chunks, not absolute positions.
+        /// 
+        /// RENDERING APPROACH:
+        /// 1. Determine camera's current chunk position
+        /// 2. For each chunk, calculate its offset relative to camera chunk
+        /// 3. Apply this offset to the chunk's local instance matrices
+        /// 4. Result: All rendering happens in camera-relative space with high precision
+        /// </remarks>
+        /// <example>
+        /// Camera at chunk (1000000, 0, 0), rendering chunk (1000002, 0, 0):
+        /// - Relative offset = (32, 0, 0) - perfectly precise as float
+        /// - Without this: absolute position (16000032, 0, 0) would lose precision
+        /// </example>
+        public Vector3D<float> LocalToWorldRelative(Vector3D<int> localPosition, Vector3D<long> referenceChunkPosition)
+        {
+            // Calculate chunk offset relative to reference (stays small even at huge distances)
+            long relativeChunkX = ChunkPosition.X - referenceChunkPosition.X;
+            long relativeChunkY = ChunkPosition.Y - referenceChunkPosition.Y;
+            long relativeChunkZ = ChunkPosition.Z - referenceChunkPosition.Z;
+
+            // Combine relative chunk offset with local block position
+            return new Vector3D<float>(
+                relativeChunkX * ChunkSize + localPosition.X,
+                relativeChunkY * ChunkSize + localPosition.Y,
+                relativeChunkZ * ChunkSize + localPosition.Z
+            );
+        }
+
+        /// <summary>
+        /// Gets the world offset of this chunk relative to a reference chunk position.
+        /// Use this to offset the chunk's local instance matrices during rendering.
+        /// </summary>
+        /// <param name="referenceChunkPosition">
+        /// The reference chunk position (typically the camera's chunk).
+        /// </param>
+        /// <returns>
+        /// The translation offset to apply to this chunk's instance matrices.
+        /// </returns>
+        /// <remarks>
+        /// USAGE IN RENDERER:
+        /// <code>
+        /// var cameraChunk = Chunk.WorldToChunkPosition(cameraPosition);
+        /// var chunkOffset = chunk.GetRenderOffset(cameraChunk);
+        /// 
+        /// // Apply offset to model matrix or view matrix before rendering
+        /// var chunkTransform = Matrix4X4.CreateTranslation(chunkOffset);
+        /// </code>
+        /// </remarks>
+        public Vector3D<float> GetRenderOffset(Vector3D<long> referenceChunkPosition)
+        {
+            long relativeChunkX = ChunkPosition.X - referenceChunkPosition.X;
+            long relativeChunkY = ChunkPosition.Y - referenceChunkPosition.Y;
+            long relativeChunkZ = ChunkPosition.Z - referenceChunkPosition.Z;
+
+            return new Vector3D<float>(
+                relativeChunkX * ChunkSize,
+                relativeChunkY * ChunkSize,
+                relativeChunkZ * ChunkSize
             );
         }
 
@@ -203,6 +282,18 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
         }
 
         /// <summary>
+        /// Overload for 64-bit world positions (e.g., from block coordinates).
+        /// </summary>
+        public static Vector3D<long> WorldToChunkPosition(Vector3D<long> worldPosition)
+        {
+            return new Vector3D<long>(
+                worldPosition.X >= 0 ? worldPosition.X / ChunkSize : (worldPosition.X - ChunkSize + 1) / ChunkSize,
+                worldPosition.Y >= 0 ? worldPosition.Y / ChunkSize : (worldPosition.Y - ChunkSize + 1) / ChunkSize,
+                worldPosition.Z >= 0 ? worldPosition.Z / ChunkSize : (worldPosition.Z - ChunkSize + 1) / ChunkSize
+            );
+        }
+
+        /// <summary>
         /// Converts a world position to local chunk coordinates (0-15 per axis).
         /// </summary>
         /// <param name="worldPosition">A position in world-space coordinates.</param>
@@ -223,19 +314,16 @@ namespace Create_your_Adventure.Source.GameLogic.Chunk
             );
         }
 
-        // TODO: Future method for rendering with world offset
-        // public Vector3D<float> LocalToWorldRelative(Vector3D<int> localPosition, Vector3D<long> cameraChunkPosition)
-        // {
-        //     // Calculate position relative to camera chunk to avoid float precision loss
-        //     long relativeChunkX = ChunkPosition.X - cameraChunkPosition.X;
-        //     long relativeChunkY = ChunkPosition.Y - cameraChunkPosition.Y;
-        //     long relativeChunkZ = ChunkPosition.Z - cameraChunkPosition.Z;
-        //     
-        //     return new Vector3D<float>(
-        //         relativeChunkX * ChunkSize + localPosition.X,
-        //         relativeChunkY * ChunkSize + localPosition.Y,
-        //         relativeChunkZ * ChunkSize + localPosition.Z
-        //     );
-        // }
+        /// <summary>
+        /// Overload for 64-bit world positions.
+        /// </summary>
+        public static Vector3D<int> WorldToLocal(Vector3D<long> worldPosition)
+        {
+            return new Vector3D<int>(
+                (int)((worldPosition.X % ChunkSize + ChunkSize) % ChunkSize),
+                (int)((worldPosition.Y % ChunkSize + ChunkSize) % ChunkSize),
+                (int)((worldPosition.Z % ChunkSize + ChunkSize) % ChunkSize)
+            );
+        }
     }
 }

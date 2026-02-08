@@ -6,6 +6,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
+using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 using StbImageSharp;
 using System.Numerics;
@@ -17,6 +18,9 @@ namespace Create_your_Adventure
         // -------- Window & GL --------
         private static IWindow window;
         private static GL gl;
+
+        // -------- ImGui --------
+        private static ImGuiController imGuiController;
 
         // -------- Input --------
         private static IInputContext input;
@@ -160,6 +164,7 @@ namespace Create_your_Adventure
             gl = GL.GetApi(window);
             Logger.Info("[OPENGL] GL context initialized");
 
+
             gl.Enable(EnableCap.DebugOutput);
             gl.Enable(EnableCap.DebugOutputSynchronous);
 
@@ -296,6 +301,9 @@ namespace Create_your_Adventure
             {
                 Logger.Info("[INPUT] Keyboard initialized");
             }
+            // -------- ImGui Controller initialize
+            imGuiController = new ImGuiController(gl, window, input);
+            Logger.Info("[IMGUI] ImGui controller initialized");
 
             // -------- Mouse Setup --------
             if (mouse != null)
@@ -325,7 +333,13 @@ namespace Create_your_Adventure
 
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
-            // -------- Camera (WASD/Space/Strg/Shift Input) --------
+            // -------- Update ImGui
+            imGuiController.Update((float)deltaTime);
+
+            // --- Update FPS Counter
+            DebugDisplay.Update(deltaTime);
+
+            // -------- Update Camera (WASD/Space/Strg/Shift Input) --------
             camera.Update(
                 deltaTime,
                 keyboard.IsKeyPressed(Key.W),
@@ -369,12 +383,17 @@ namespace Create_your_Adventure
                 null,
                 (uint)chunk.InstanceCount
                 );
+
+            DebugDisplay.RenderImGui();
+            imGuiController.Render();
         }
 
         // ONCLOSE ----------------------------------------------------------------
         private static void OnClose()
         {
             Logger.Info("[ENGINE] Shutting down...");
+
+            imGuiController?.Dispose();
 
             if (mouse != null)
             {
