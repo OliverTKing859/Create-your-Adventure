@@ -215,3 +215,11 @@ ChangeLogs
     - Statistik-Reset-Button zur Datenbereinigung
 - DebugDisplay.cs als Static-Klasse mit Update() und RenderImGui() Methoden
 - Properties für FPS-Daten: CurrentFPS, MinFPS, MaxFPS, FrameTimeMs, ShowDebugWindow
+
+## 0.0.9.1 Alpha | Fix Everything Bullshit - 08.02.2026
+
+- DebugDisplay.cs allgemeine Verbesserungen und Bugfixes
+    - FPS-Farbcodierung zuverlässiger implementiert
+    - ImGui-Layout und Abstände optimiert
+    - Reset Stats Funktionalität stabilisiert
+    - Floating-Point-Formatierung konsistent gestaltet
