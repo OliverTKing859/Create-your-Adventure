@@ -11,6 +11,7 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 using StbImageSharp;
 using System.Numerics;
+using Create_your_Adventure.Source.Rendering.Renderer;
 
 namespace Create_your_Adventure
 {
@@ -116,7 +117,6 @@ namespace Create_your_Adventure
         static void Main()
         {
             var windowManager = WindowManager.Instance;
-
             windowManager.Initialize(new WindowSettings
             {
                 Title = "Create your Adventure",
@@ -166,6 +166,8 @@ namespace Create_your_Adventure
         private static unsafe void OnLoad()
         {
             Logger.Info("[ENGINE] Loading resources...");
+
+            RendererManager.Instance.Initialize();
 
             /*var gl = WindowManager.Instance.GlContext;
             var windowManager = WindowManager.Instance;
@@ -336,7 +338,6 @@ namespace Create_your_Adventure
         // ONUPDATE ----------------------------------------------------------------
         private static void OnUpdate(double deltaTime)
         {
-            Logger.Info("[ENGINE] All resources loaded successfully");
 
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
@@ -364,6 +365,12 @@ namespace Create_your_Adventure
         // ONRENDER ----------------------------------------------------------------
         private static unsafe void OnRender(double deltaTime)
         {
+            RendererManager.Instance.BeginFrame();
+
+            // Render-Logik here
+
+            RendererManager.Instance.EndFrame();
+
             /*
 
             // -------- Rendering --------
@@ -404,7 +411,8 @@ namespace Create_your_Adventure
         // ONCLOSE ----------------------------------------------------------------
         private static void OnClose()
         {
-            Logger.Info("[ENGINE] Shutting down...");
+
+            RendererManager.Instance.Dispose();
 
             /*
             imGuiController?.Dispose();

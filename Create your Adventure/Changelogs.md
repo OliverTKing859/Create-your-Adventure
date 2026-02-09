@@ -256,3 +256,23 @@ ChangeLogs
   - InputManager implementieren
   - OnLoad() mit WindowManager kompatibel machen
   - Shader & Texture Manager abstrahieren
+
+  ## 0.0.11.0 Alpha | Refactor: RenderManager Abstraction - 09.02.2026
+
+- Implementiert RenderManager als zentrale Render-Verwaltung (Singleton Pattern)
+  - Abstraktion der Rendering-Pipeline für verschiedene Graphics APIs
+  - Event-basierte Architektur (OnWindowResize Integration)
+- Erstellt IRenderContext Interface
+  - Graphics API agnostisch
+  - Definiert Standard-Rendering-Operationen (BeginFrame, EndFrame, SetViewport, etc.)
+- OpenGLRenderContext Implementation
+  - Konkrete OpenGL-Implementierung des IRenderContext Interfaces
+  - Debug Output Aktivierung
+  - Viewport-Management mit automatischem Window-Resize-Handling
+  - Clear Color und Depth Test Konfiguration
+- RenderManager Integration mit WindowManager
+  - Zugriff auf GL Context vom WindowManager
+  - Automatisches Viewport-Update bei Window-Resize
+  - Proper Disposal bei Shutdown
+- **Status:** ⚠️ RenderManager erstellt, Integration in Program.cs noch ausstehend
+- **Nächste Schritte:** ShaderManager, TextureLoader, RenderPipeline Abstraktion
