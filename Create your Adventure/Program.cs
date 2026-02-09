@@ -16,24 +16,12 @@ namespace Create_your_Adventure
 {
     internal class Program
     {
-        // -------- Window & GL --------
-        private static IWindow window;
-        private static GL gl;
 
         // -------- ImGui --------
         private static ImGuiController imGuiController;
 
-        // -------- Input --------
-        private static IInputContext input;
-        private static IKeyboard keyboard;
-        private static IMouse mouse;
-
         // -------- Camera --------
         private static Camera camera;
-
-        // -------- Mouse Position --------
-        private static bool firstMouse = true;
-        private static Vector2 lastMousePosition;
 
         // -------- Matrices --------
         private static Matrix4X4<float> view;
@@ -179,7 +167,7 @@ namespace Create_your_Adventure
         {
             Logger.Info("[ENGINE] Loading resources...");
 
-            var gl = WindowManager.Instance.GlContext;
+            /*var gl = WindowManager.Instance.GlContext;
             var windowManager = WindowManager.Instance;
 
             gl.Enable(EnableCap.DebugOutput);
@@ -341,16 +329,18 @@ namespace Create_your_Adventure
             // -------- ImGui Controller initialize
             imGuiController = new ImGuiController(gl, window, input);
             Logger.Info("[IMGUI] ImGui controller initialized");
-
+            */
             Logger.Info("[ENGINE] All resources loaded successfully");
         }
 
         // ONUPDATE ----------------------------------------------------------------
         private static void OnUpdate(double deltaTime)
         {
+            Logger.Info("[ENGINE] All resources loaded successfully");
 
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
+            /*
             // -------- Update ImGui
             imGuiController.Update((float)deltaTime);
 
@@ -368,11 +358,14 @@ namespace Create_your_Adventure
                 keyboard.IsKeyPressed(Key.ControlLeft),
                 keyboard.IsKeyPressed(Key.ShiftLeft)
                 );
+            */
         }
 
         // ONRENDER ----------------------------------------------------------------
         private static unsafe void OnRender(double deltaTime)
         {
+            /*
+
             // -------- Rendering --------
             gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             gl.UseProgram(graphicsProgram);
@@ -404,6 +397,8 @@ namespace Create_your_Adventure
 
             DebugDisplay.RenderImGui();
             imGuiController.Render();
+
+            */
         }
 
         // ONCLOSE ----------------------------------------------------------------
@@ -411,6 +406,7 @@ namespace Create_your_Adventure
         {
             Logger.Info("[ENGINE] Shutting down...");
 
+            /*
             imGuiController?.Dispose();
 
             if (mouse != null)
@@ -427,7 +423,10 @@ namespace Create_your_Adventure
 
             Logger.Info("[OPENGL] Resources cleaned up");
             Logger.Info("[ENGINE] Application closed");
+
+            */
         }
+        /*
 
         // WINDOW ----------------------------------------------------------------
         public static void CenterWindow(IWindow window)
@@ -644,6 +643,8 @@ namespace Create_your_Adventure
 
             return textureId;
         }
+
+        */
 
         // MOUSE MOVE EVENT ----------------------------------------------------------------
         private static void OnMouseMove(IMouse mouse, Vector2 mousePosition)

@@ -28,7 +28,7 @@
     <Folder Include="assets\base\audio\sounds\" />
     <Folder Include="assets\base\shaders\" />
     <Folder Include="assets\modded\" />
-    <Folder Include="Source\Rendering\" />
+    <Folder Include="Source\Rendering\RendererPipeline\" />
   </ItemGroup>
 
 </Project>
