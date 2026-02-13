@@ -5,3 +5,12 @@ Schritt	Was	Warum
 4. TextureManager		Textur-Loading kapseln				Entfernt Texture-Komplexität
 5. RenderPipeline		VAO/VBO/EBO-Setup kapseln			Entfernt Rendering-Komplexität
 6. Integration			Alles zusammenführen				Saubere Architektur
+
+
+Engine
+ ├─ WindowManager        ✅ hast du
+ ├─ RenderManager        (OpenGL + Shader + DrawCalls)
+ ├─ InputManager         (Keyboard, Mouse)
+ ├─ ImGuiManager         (Debug UI)
+ ├─ WorldManager         (Chunks, World-Pos)
+ └─ AssetManager         ✅ hast du
