@@ -18,7 +18,7 @@ namespace Create_your_Adventure
 {
     internal class Program
     {
-
+        /*
         // -------- ImGui --------
         private static ImGuiController imGuiController;
 
@@ -44,7 +44,7 @@ namespace Create_your_Adventure
 
         // -------- Chunk --------
         private static Chunk chunk;
-
+        
         private static readonly float[] vertices =
         {
             // Position             Texture Coordinates
@@ -113,52 +113,7 @@ namespace Create_your_Adventure
         };
 
         private static readonly uint stride = 5 * sizeof(float);
-
-        // ══════════════════════════════════════════════════
-        // TEST SHADER
-        // ══════════════════════════════════════════════════
-        private const string TestVertexSource = """
-            #version 460 core
-
-            layout (location = 0) in vec3 aPosition;
-            layout (location = 1) in vec2 aTextureCoordinates;
-            layout (location = 2) in vec4 aInstanceMatrix0;
-            layout (location = 3) in vec4 aInstanceMatrix1;
-            layout (location = 4) in vec4 aInstanceMatrix2;
-            layout (location = 5) in vec4 aInstanceMatrix3;
-
-            out vec2 vTextureCoordinates;
-
-            uniform mat4 uView;
-            uniform mat4 uProjection;
-
-            void main()
-            {
-                mat4 instanceMatrix = mat4(
-                    aInstanceMatrix0,
-                    aInstanceMatrix1,
-                    aInstanceMatrix2,
-                    aInstanceMatrix3
-                    );
-
-                    gl_Position = uProjection * uView * instanceMatrix * vec4(aPosition, 1.0);
-                    vTextureCoordinates = aTextureCoordinates;
-            }
-            """;
-
-        private const string TestFragmentSource = """
-        #version 460 core
-
-        in vec2 vTextureCoordinates;
-        out vec4 FragColor;
-
-        uniform sampler2D uTexture;
-
-        void main()
-        {
-            FragColor = texture(uTexture, vTextureCoordinates);
-        }
-        """;
+        */
 
         // ══════════════════════════════════════════════════
         // MAIN
@@ -229,12 +184,21 @@ namespace Create_your_Adventure
             // ═══ Shader Manager
             ShaderManager.Instance.Initialize();
 
-            var basicShader = ShaderManager.Instance.LoadProgram(
-                "basic",
-                TestVertexSource,
-                TestFragmentSource
+            // ═══════════════════════════════════════════════════════════
+            // SHADER LOAD FROM FILES (with AssetLoader)
+            // ═══════════════════════════════════════════════════════════
+
+            var vertPath = AssetLoader.GetShaderPath("opengl/basic.vert");
+            var fragPath = AssetLoader.GetShaderPath("opengl/basic.frag");
+
+            // Shader load from files and compile
+            var basicShader = ShaderManager.Instance.LoadFromFiles(
+                "basic", // name for cache
+                vertPath,
+                fragPath
                 );
 
+            // shader activate and set uniforms
             basicShader.Use();
             basicShader.SetUniform("uTexture", 0);
 
@@ -750,9 +714,10 @@ namespace Create_your_Adventure
         */
 
         // MOUSE MOVE EVENT ----------------------------------------------------------------
-        private static void OnMouseMove(IMouse mouse, Vector2 mousePosition)
+
+        /*private static void OnMouseMove(IMouse mouse, Vector2 mousePosition)
         {
             camera.OnMouseMove(mousePosition);
-        }
+        }*/
     }
 }

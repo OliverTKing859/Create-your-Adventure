@@ -16,4 +16,4 @@ Removed:
 
 - [text]
 
-(All of English)
+(All please write Commits on English)

@@ -257,7 +257,7 @@ ChangeLogs
   - OnLoad() mit WindowManager kompatibel machen
   - Shader & Texture Manager abstrahieren
 
-  ## 0.0.11.0 Alpha | Refactor: RenderManager Abstraction - 09.02.2026
+  ## 0.0.10.1 Alpha | Refactor: RenderManager Abstraction - 09.02.2026
 
 - Implementiert RenderManager als zentrale Render-Verwaltung (Singleton Pattern)
   - Abstraktion der Rendering-Pipeline für verschiedene Graphics APIs
@@ -277,7 +277,7 @@ ChangeLogs
 - **Status:** ⚠️ RenderManager erstellt, Integration in Program.cs noch ausstehend
 - **Nächste Schritte:** ShaderManager, TextureLoader, RenderPipeline Abstraktion
 
-## 0.0.12.0 Alpha | ShaderProgram Class Finalization - 13.02.2026
+## 0.0.10.2 Alpha | ShaderProgram Class Finalization - 13.02.2026
 
 - Implementiert vollständige ShaderProgram Klasse mit Compile und Link Funktionalität
     - Vertex und Fragment Shader Kompilierung mit Fehlerprüfung
@@ -299,7 +299,7 @@ ChangeLogs
 - **Status:** ⚠️ ShaderProgram erstellt, Integration in Program.cs noch ausstehend
 - **Nächste Schritte:** ShaderManager, TextureLoader, RenderPipeline Abstraktion
 - 
-- ## 0.0.12.1 Alpha | ShaderManager Implementation & Documentation - 15.02.2026
+- ## 0.0.10.3 Alpha | ShaderManager Implementation & Documentation - 15.02.2026
 
 - Implementiert ShaderManager als Graphics API abstraction layer (Singleton Pattern)
     - Thread-safe Initialization mit Lock-Pattern
@@ -324,7 +324,7 @@ ChangeLogs
 - **Status:** ✅ ShaderManager vollständig implementiert - Graphics API unabhängig
 - **Nächste Schritte:** TextureManager Abstraktion, RenderPipeline Abstraktion, VAO/VBO/EBO Manager
 
-## 0.0.12.2 Alpha | API Abstraction: Graphics API Agnostic Shader System - 15.02.2026
+## 0.0.10.4 Alpha | API Abstraction: Graphics API Agnostic Shader System - 15.02.2026
 
 - Implementiert vollständiges Graphics API Abstraction Layer für Shader-Verwaltung
   - IShaderProgram Interface definiert API-unabhängigen Vertrag
@@ -340,3 +340,56 @@ ChangeLogs
     - Uniform-Caching für Performance-Optimierung
 - **Architektur-Verbesserung:** Vollständige Trennung von Logik (Manager) und API-Details
 - **Erweiterbarkeit:** Neue Graphics APIs können hinzugefügt werden ohne Manager zu ändern
+
+## 0.0.11.0 Alpha | Shader System Abstraction & File Loading - 15.02.2026
+
+- **Implementiert vollständiges Shader-Abstraktions-System mit API-Unabhängigkeit**
+  - IShaderProgram Interface definiert Graphics API agnostischen Vertrag
+    - Compile(), Use(), SetUniform() Methoden für alle APIs
+    - Unterstützt int, float, Vector2/3/4, Matrix4x4 Uniforms
+  - ShaderManager als zentrale Shader-Verwaltung (Singleton Pattern)
+    - Factory Pattern für automatische Backend-Erkennung (OpenGL, zukünftig Vulkan/DirectX)
+    - Thread-safe Shader-Caching mit Dictionary<string, IShaderProgram>
+    - LoadProgram() und LoadFromFiles() für flexible Shader-Erstellung
+    - UseProgram() mit State-Optimierung (bindet nur wenn nicht bereits aktiv)
+  - OpenGLShaderProgram als konkrete OpenGL-Implementierung
+    - GLSL Shader-Kompilierung mit Fehlerprüfung
+    - Uniform-Location-Caching für Performance-Optimierung
+    - Automatische Ressourcen-Bereinigung mit Dispose Pattern
+  
+- **Shader-Dateisystem mit AssetLoader Integration**
+  - Shader aus .vert und .frag Dateien laden
+  - Ordnerstruktur: assets/base/shaders/opengl/
+  - basic.vert (Vertex Shader mit Instancing-Support)
+  - basic.frag (Fragment Shader mit Texture-Sampling)
+  - AssetLoader.GetShaderPath() für automatische Asset-Lokalisierung
+  
+- **Vollständige XML-Dokumentation**
+  - Alle Public Methods dokumentiert (IShaderProgram, ShaderManager, OpenGLShaderProgram)
+  - Parameter, Return-Types und Exceptions erklärt
+  - Detaillierte Inline-Comments für Caching, Initialization und Error-Handling
+  
+- **Architektur-Verbesserungen**
+  - Vollständige Trennung von Logik (Manager) und API-Details (OpenGLShaderProgram)
+  - Program.cs reduziert auf 15 Zeilen Shader-Code (vorher >100 Zeilen)
+  - Erweiterbar auf zukünftige Graphics APIs ohne Manager-Änderungen
+  - Logger-Integration: [SHADER] kategorisierte Log-Nachrichten
+  
+- **Performance-Optimierungen**
+  - Uniform-Location-Caching vermeidet wiederholte OpenGL-Queries
+  - Shader-Caching verhindert Neu-Kompilierung bei mehrfachem Laden
+  - State-Tracking für UseProgram() (bindet nur wenn nötig)
+
+- **Initialisierungs-Reihenfolge etabliert**
+  - OnLoad: WindowManager → RendererManager → ShaderManager
+  - OnClose: ShaderManager → RendererManager (reverse order)
+  - Proper Dependency Chain für GL-Context-Abhängigkeiten
+
+- **Status:** ✅ Shader-System vollständig funktional und getestet
+- **Console-Output bestätigt:**
+  - ShaderManager initialized (OpenGL backend)
+  - Assets loaded from files (basic.vert, basic.frag)
+  - Shader compiled successfully (Handle: 3)
+  - 1 program cached
+
+- **Nächste Schritte:** TextureManager Abstraktion, Input Manager, VAO/VBO Pipeline Manager
