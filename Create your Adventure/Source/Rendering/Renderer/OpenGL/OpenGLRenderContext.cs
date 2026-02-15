@@ -80,7 +80,6 @@ namespace Create_your_Adventure.Source.Rendering.Renderer.OpenGL
         // ══════════════════════════════════════════════════
         // END FRAME
         // ══════════════════════════════════════════════════
-
         /// <summary>
         /// Ends the current rendering frame.
         /// In OpenGL, buffer swapping is typically handled by the windowing system,

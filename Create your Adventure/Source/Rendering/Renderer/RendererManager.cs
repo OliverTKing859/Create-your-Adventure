@@ -28,7 +28,6 @@ namespace Create_your_Adventure.Source.Rendering.Renderer
         // ══════════════════════════════════════════════════
         // RENDERMANAGER INSTANCING
         // ══════════════════════════════════════════════════
-
         /// <summary>
         /// Gets the singleton instance of the RendererManager.
         /// Creates a new instance if one doesn't exist yet (thread-safe).
@@ -62,7 +61,6 @@ namespace Create_your_Adventure.Source.Rendering.Renderer
         // ══════════════════════════════════════════════════
         // CONSTRUCTOR
         // ══════════════════════════════════════════════════
-
         /// <summary>
         /// Private constructor to enforce singleton pattern.
         /// </summary>
@@ -74,7 +72,6 @@ namespace Create_your_Adventure.Source.Rendering.Renderer
         // ══════════════════════════════════════════════════
         // INITIALIZATION
         // ══════════════════════════════════════════════════
-
         /// <summary>
         /// Initializes the rendering system by creating the render context and setting up the viewport.
         /// Must be called after WindowManager has been initialized.
@@ -109,7 +106,6 @@ namespace Create_your_Adventure.Source.Rendering.Renderer
         // ══════════════════════════════════════════════════
         // BEGIN THE FRAME
         // ══════════════════════════════════════════════════
-
         /// <summary>
         /// Begins a new rendering frame. Clears buffers and prepares the render context.
         /// Should be called at the start of each frame before any rendering operations.
@@ -122,7 +118,6 @@ namespace Create_your_Adventure.Source.Rendering.Renderer
         // ══════════════════════════════════════════════════
         // ENDING THE FRAME
         // ══════════════════════════════════════════════════
-
         /// <summary>
         /// Ends the current rendering frame and presents the result to the screen.
         /// Should be called after all rendering operations for the frame are complete.
@@ -135,7 +130,6 @@ namespace Create_your_Adventure.Source.Rendering.Renderer
         // ══════════════════════════════════════════════════
         // RESIZE ON WINDOW
         // ══════════════════════════════════════════════════
-
         /// <summary>
         /// Handles window resize events by updating the viewport dimensions.
         /// </summary>
@@ -149,7 +143,6 @@ namespace Create_your_Adventure.Source.Rendering.Renderer
         // ══════════════════════════════════════════════════
         // DISPOSE
         // ══════════════════════════════════════════════════
-
         /// <summary>
         /// Disposes of the RendererManager and releases all associated resources.
         /// Unsubscribes from events and disposes the render context.

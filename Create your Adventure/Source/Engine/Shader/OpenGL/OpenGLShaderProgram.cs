@@ -5,44 +5,45 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Create_your_Adventure.Source.Engine.Shader
+namespace Create_your_Adventure.Source.Engine.Shader.OpenGL
 {
     /// <summary>
-    /// Represents an OpenGL shader program that manages vertex and fragment shaders.
-    /// Handles compilation, linking, uniform location caching, and provides type-safe uniform setters.
+    /// OpenGL-specific implementation of a shader program.
+    /// Handles compilation, linking, and uniform management for vertex and fragment shaders.
+    /// Implements caching for uniform locations to optimize performance.
     /// </summary>
-    public sealed class ShaderProgram : IDisposable
+    public sealed class OpenGLShaderProgram : IShaderProgram
     {
-        // ═══ The OpenGL context used for shader operations
+        // ═══ The OpenGL context used for all shader operations
         private readonly GL gl;
-        // ═══ Cache for uniform locations to avoid repeated OpenGL queries
+        // ═══ Cache for uniform variable locations to avoid repeated OpenGL queries
         private readonly Dictionary<string, int> uniformCache = [];
-        // ═══ Flag to track whether this instance has been disposed
+        // ═══ Flag to track whether this shader program has been disposed
         private bool isDisposed;
 
         /// <summary>
-        /// Gets the OpenGL handle (ID) of the compiled shader program.
-        /// Returns 0 if the program has not been compiled yet.
+        /// Gets the OpenGL handle (ID) for this shader program.
+        /// Used internally for OpenGL operations.
         /// </summary>
         public uint Handle { get; private set; }
 
         /// <summary>
-        /// Gets the friendly name of this shader program for identification and logging purposes.
+        /// Gets the unique name identifier of this shader program.
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the shader program has been successfully compiled and linked.
+        /// Gets a value indicating whether this shader program has been successfully compiled and linked.
         /// </summary>
         public bool IsCompiled { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the ShaderProgram class with the specified OpenGL context and name.
+        /// Initializes a new instance of the OpenGLShaderProgram class.
         /// </summary>
         /// <param name="glContext">The OpenGL context to use for shader operations.</param>
-        /// <param name="name">A friendly name for this shader program (used for logging and identification).</param>
+        /// <param name="name">The unique name identifier for this shader program.</param>
         /// <exception cref="ArgumentNullException">Thrown when glContext or name is null.</exception>
-        public ShaderProgram(GL glContext, string name)
+        public OpenGLShaderProgram(GL glContext, string name)
         {
             gl = glContext ?? throw new ArgumentNullException(nameof(glContext));
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -51,10 +52,10 @@ namespace Create_your_Adventure.Source.Engine.Shader
         // ══════════════════════════════════════════════════
         // COMPILER
         // ══════════════════════════════════════════════════
-
         /// <summary>
-        /// Compiles and links the shader program from vertex and fragment shader source code.
-        /// Creates individual shaders, compiles them, links them into a program, and cleans up shader objects.
+        /// Compiles and links the vertex and fragment shaders into a complete shader program.
+        /// Creates individual shader objects, compiles them, links them into a program,
+        /// and performs cleanup of intermediate shader objects.
         /// </summary>
         /// <param name="vertexSource">The GLSL source code for the vertex shader.</param>
         /// <param name="fragmentSource">The GLSL source code for the fragment shader.</param>
@@ -135,10 +136,9 @@ namespace Create_your_Adventure.Source.Engine.Shader
         // ══════════════════════════════════════════════════
         // USING
         // ══════════════════════════════════════════════════
-
         /// <summary>
-        /// Activates this shader program for use in subsequent rendering operations.
-        /// All draw calls after this will use this shader until another program is activated.
+        /// Activates this shader program for subsequent rendering operations.
+        /// All draw calls after this will use this shader until another shader is activated.
         /// </summary>
         public void Use()
         {
@@ -153,15 +153,14 @@ namespace Create_your_Adventure.Source.Engine.Shader
         }
 
         // ══════════════════════════════════════════════════
-        // UNIFORMS LOCATIONS (with Caching)
+        // UNIFORMS IMPLEMENTATION (with Caching)
         // ══════════════════════════════════════════════════
-
         /// <summary>
-        /// Gets the location of a uniform variable in the shader program.
-        /// Results are cached to avoid repeated OpenGL queries for better performance.
+        /// Retrieves the location of a uniform variable in the shader program.
+        /// Uses caching to avoid repeated OpenGL queries for the same uniform.
         /// </summary>
         /// <param name="name">The name of the uniform variable as declared in the shader.</param>
-        /// <returns>The uniform location, or -1 if the uniform was not found or is not active.</returns>
+        /// <returns>The uniform location, or -1 if the uniform was not found.</returns>
         public int GetUniformLocation(string name)
         {
             // ═══ Check if the location is already cached
@@ -178,88 +177,75 @@ namespace Create_your_Adventure.Source.Engine.Shader
                 Logger.Warn($"[SHADER] Uniform '{name}' not found in program '{Name}'");
             }
 
-            // ═══ Cache the location for future use
+            // ═══ Cache the location for future use (optimization)
             uniformCache[name] = location;
             return location;
         }
 
         // ══════════════════════════════════════════════════
-        // UNIFORM SETTERS
-        // ══════════════════════════════════════════════════
-
         /// <summary>
-        /// Sets an integer uniform value in the shader program.
+        /// Sets an integer uniform variable in the shader.
         /// </summary>
         /// <param name="name">The name of the uniform variable.</param>
         /// <param name="value">The integer value to set.</param>
         public void SetUniform(string name, int value)
-        {
-            gl.Uniform1(GetUniformLocation(name), value);
-        }
+            => gl.Uniform1(GetUniformLocation(name), value);
 
+        // ══════════════════════════════════════════════════
         /// <summary>
-        /// Sets a float uniform value in the shader program.
+        /// Sets a floating-point uniform variable in the shader.
         /// </summary>
         /// <param name="name">The name of the uniform variable.</param>
         /// <param name="value">The float value to set.</param>
         public void SetUniform(string name, float value)
-        {
-            gl.Uniform1(GetUniformLocation(name), value);
-        }
+            => gl.Uniform1(GetUniformLocation(name), value);
 
+        // ══════════════════════════════════════════════════
         /// <summary>
-        /// Sets a 2D vector (vec2) uniform value in the shader program.
+        /// Sets a 2D vector uniform variable in the shader.
         /// </summary>
         /// <param name="name">The name of the uniform variable.</param>
-        /// <param name="value">The 2D vector containing X and Y components.</param>
+        /// <param name="value">The 2D vector value to set.</param>
         public void SetUniform(string name, Vector2D<float> value)
-        {
-            gl.Uniform2(GetUniformLocation(name), value.X, value.Y);
-        }
+            => gl.Uniform2(GetUniformLocation(name), value.X, value.Y);
 
+        // ══════════════════════════════════════════════════
         /// <summary>
-        /// Sets a 3D vector (vec3) uniform value in the shader program.
+        /// Sets a 3D vector uniform variable in the shader.
         /// </summary>
         /// <param name="name">The name of the uniform variable.</param>
-        /// <param name="value">The 3D vector containing X, Y, and Z components.</param>
+        /// <param name="value">The 3D vector value to set.</param>
         public void SetUniform(string name, Vector3D<float> value)
-        {
-            gl.Uniform3(GetUniformLocation(name), value.X, value.Y, value.Z);
-        }
+            => gl.Uniform3(GetUniformLocation(name), value.X, value.Y, value.Z);
 
+        // ══════════════════════════════════════════════════
         /// <summary>
-        /// Sets a 4D vector (vec4) uniform value in the shader program.
-        /// Commonly used for colors (RGBA) or homogeneous coordinates.
+        /// Sets a 4D vector uniform variable in the shader.
         /// </summary>
         /// <param name="name">The name of the uniform variable.</param>
-        /// <param name="value">The 4D vector containing X, Y, Z, and W components.</param>
+        /// <param name="value">The 4D vector value to set.</param>
         public void SetUniform(string name, Vector4D<float> value)
-        {
-            gl.Uniform4(GetUniformLocation(name), value.X, value.Y, value.Z, value.W);
-        }
+            => gl.Uniform4(GetUniformLocation(name), value.X, value.Y, value.Z, value.W);
 
+        // ══════════════════════════════════════════════════
         /// <summary>
-        /// Sets a 4x4 matrix (mat4) uniform value in the shader program.
+        /// Sets a 4x4 matrix uniform variable in the shader.
         /// Commonly used for transformation matrices (model, view, projection).
         /// </summary>
         /// <param name="name">The name of the uniform variable.</param>
-        /// <param name="value">The 4x4 matrix to set.</param>
+        /// <param name="value">The 4x4 matrix value to set.</param>
         public unsafe void SetUniform(string name, Matrix4X4<float> value)
-        {
             // ═══ Pass the matrix data directly to OpenGL (transpose = false means column-major order)
-            gl.UniformMatrix4(GetUniformLocation(name), 1, false, (float*)&value);
-        }
+            => gl.UniformMatrix4(GetUniformLocation(name), 1, false, (float*)&value);
 
         // ══════════════════════════════════════════════════
         // ERROR CHECKING
         // ══════════════════════════════════════════════════
-
         /// <summary>
-        /// Checks if an individual shader (vertex or fragment) compiled successfully.
-        /// Logs detailed error information if compilation failed.
+        /// Checks whether a shader compiled successfully and logs any compilation errors.
         /// </summary>
-        /// <param name="shader">The shader handle to check.</param>
-        /// <param name="type">The shader type name for logging (e.g., "VERTEX", "FRAGMENT").</param>
+        /// <param name="shader">The OpenGL shader handle to check.</param>
+        /// <param name="type">The type of shader (for logging purposes, e.g., "VERTEX" or "FRAGMENT").</param>
         /// <returns>True if compilation succeeded, false otherwise.</returns>
         private bool CheckShaderCompileStatus(uint shader, string type)
         {
@@ -279,10 +265,8 @@ namespace Create_your_Adventure.Source.Engine.Shader
         }
 
         // ══════════════════════════════════════════════════
-
         /// <summary>
-        /// Checks if the shader program linked successfully.
-        /// Logs detailed error information if linking failed.
+        /// Checks whether the shader program linked successfully and logs any linking errors.
         /// </summary>
         /// <returns>True if linking succeeded, false otherwise.</returns>
         private bool CheckProgramLinkStatus()
@@ -305,10 +289,9 @@ namespace Create_your_Adventure.Source.Engine.Shader
         // ══════════════════════════════════════════════════
         // DISPOSE
         // ══════════════════════════════════════════════════
-
         /// <summary>
-        /// Disposes of the shader program and releases all associated GPU resources.
-        /// Deletes the OpenGL program and clears the uniform cache.
+        /// Releases all GPU resources associated with this shader program.
+        /// Deletes the OpenGL program object and clears the uniform cache.
         /// </summary>
         public void Dispose()
         {
