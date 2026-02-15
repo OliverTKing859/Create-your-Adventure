@@ -12,6 +12,7 @@ using Silk.NET.Windowing;
 using StbImageSharp;
 using System.Numerics;
 using Create_your_Adventure.Source.Rendering.Renderer;
+using Create_your_Adventure.Source.Engine.Shader;
 
 namespace Create_your_Adventure
 {
@@ -113,7 +114,55 @@ namespace Create_your_Adventure
 
         private static readonly uint stride = 5 * sizeof(float);
 
-        // MAIN ----------------------------------------------------------------
+        // ══════════════════════════════════════════════════
+        // TEST SHADER
+        // ══════════════════════════════════════════════════
+        private const string TestVertexSource = """
+            #version 460 core
+
+            layout (location = 0) in vec3 aPosition;
+            layout (location = 1) in vec2 aTextureCoordinates;
+            layout (location = 2) in vec4 aInstanceMatrix0;
+            layout (location = 3) in vec4 aInstanceMatrix1;
+            layout (location = 4) in vec4 aInstanceMatrix2;
+            layout (location = 5) in vec4 aInstanceMatrix3;
+
+            out vec2 vTextureCoordinates;
+
+            uniform mat4 uView;
+            uniform mat4 uProjection;
+
+            void main()
+            {
+                mat4 instanceMatrix = mat4(
+                    aInstanceMatrix0,
+                    aInstanceMatrix1,
+                    aInstanceMatrix2,
+                    aInstanceMatrix3
+                    );
+
+                    gl_Position = uProjection * uView * instanceMatrix * vec4(aPosition, 1.0);
+                    vTextureCoordinates = aTextureCoordinates;
+            }
+            """;
+
+        private const string TestFragmentSource = """
+        #version 460 core
+
+        in vec2 vTextureCoordinates;
+        out vec4 FragColor;
+
+        uniform sampler2D uTexture;
+
+        void main()
+        {
+            FragColor = texture(uTexture, vTextureCoordinates);
+        }
+        """;
+
+        // ══════════════════════════════════════════════════
+        // MAIN
+        // ══════════════════════════════════════════════════
         static void Main()
         {
             var windowManager = WindowManager.Instance;
@@ -124,7 +173,8 @@ namespace Create_your_Adventure
                 Height = 1080
             });
 
-            windowManager.Loaded += OnLoad;
+            windowManager.Loaded 
+                += OnLoad;
             windowManager.Updated += OnUpdate;
             windowManager.Rendered += OnRender;
             windowManager.OnClose += OnClose;
@@ -162,12 +212,33 @@ namespace Create_your_Adventure
             */
         }
 
-        // ONLOAD ----------------------------------------------------------------
+        // ══════════════════════════════════════════════════
+        // ONLOAD
+        // ══════════════════════════════════════════════════
         private static unsafe void OnLoad()
         {
             Logger.Info("[ENGINE] Loading resources...");
 
+            // ═══════════════════════════════════════════════════════════
+            // INITIALISIERUNG (Order is important!)
+            // ═══════════════════════════════════════════════════════════
+
+            // ═══ Renderer Manager
             RendererManager.Instance.Initialize();
+
+            // ═══ Shader Manager
+            ShaderManager.Instance.Initialize();
+
+            var basicShader = ShaderManager.Instance.LoadProgram(
+                "basic",
+                TestVertexSource,
+                TestFragmentSource
+                );
+
+            basicShader.Use();
+            basicShader.SetUniform("uTexture", 0);
+
+            Logger.Info($"[ENGINE] ShaderManager has {ShaderManager.Instance.CachedProgramCount} program(s) cached");
 
             /*var gl = WindowManager.Instance.GlContext;
             var windowManager = WindowManager.Instance;
@@ -335,7 +406,9 @@ namespace Create_your_Adventure
             Logger.Info("[ENGINE] All resources loaded successfully");
         }
 
-        // ONUPDATE ----------------------------------------------------------------
+        // ══════════════════════════════════════════════════
+        // ONUPDATE
+        // ══════════════════════════════════════════════════
         private static void OnUpdate(double deltaTime)
         {
 
@@ -362,12 +435,23 @@ namespace Create_your_Adventure
             */
         }
 
-        // ONRENDER ----------------------------------------------------------------
+        // ══════════════════════════════════════════════════
+        // ONRENDER
+        // ══════════════════════════════════════════════════
         private static unsafe void OnRender(double deltaTime)
         {
+
             RendererManager.Instance.BeginFrame();
 
-            // Render-Logik here
+            // ═══════════════════════════════════════════════════════════ RENDERING MIT SHADER MANAGER
+            var shader = ShaderManager.Instance.UseProgram("basic");
+
+            if (shader is not null)
+            {
+                // Später: Uniforms setzen, Draw Calls, etc.
+                // shader.SetUniform("uView", viewMatrix);
+                // shader.SetUniform("uProjection", projectionMatrix);
+            }
 
             RendererManager.Instance.EndFrame();
 
@@ -408,11 +492,22 @@ namespace Create_your_Adventure
             */
         }
 
-        // ONCLOSE ----------------------------------------------------------------
+        // ══════════════════════════════════════════════════
+        // ONCLOSE
+        // ══════════════════════════════════════════════════
         private static void OnClose()
         {
 
+            Logger.Info("[ENGINE] Shutting down...");
+
+            // ═══════════════════════════════════════════════════════════
+            // DISPOSE (Reverse order)
+            // ═══════════════════════════════════════════════════════════
+
+            ShaderManager.Instance.Dispose();
             RendererManager.Instance.Dispose();
+
+            Logger.Info("[ENGINE] Application closed ✓");
 
             /*
             imGuiController?.Dispose();
