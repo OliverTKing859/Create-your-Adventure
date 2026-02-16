@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Create_your_Adventure.Source.Engine.AssetLoader
+namespace Create_your_Adventure.Source.Engine.Assets
 {
     /// <summary>
     /// Provides methods for locating game assets (audio, models, shaders, textures)

@@ -1,4 +1,4 @@
-﻿using Create_your_Adventure.Source.Engine.AssetLoader;
+﻿using Create_your_Adventure.Source.Engine.Assets;
 using Create_your_Adventure.Source.Engine.DevDebug;
 using Create_your_Adventure.Source.Gamelogic.Camera;
 using Create_your_Adventure.Source.GameLogic.Chunk;
@@ -13,6 +13,7 @@ using StbImageSharp;
 using System.Numerics;
 using Create_your_Adventure.Source.Engine.Shader;
 using Create_your_Adventure.Source.Engine.Render;
+using Create_your_Adventure.Source.Engine.Texture;
 
 namespace Create_your_Adventure
 {
@@ -177,10 +178,10 @@ namespace Create_your_Adventure
             // INITIALISIERUNG (Order is important!)
             // ═══════════════════════════════════════════════════════════
 
-            // ═══ Renderer Manager
+            // ═══ 01 ═══ Renderer Manager
             RendererManager.Instance.Initialize();
 
-            // ═══ Shader Manager
+            // ═══ 02 ═══ Shader Manager
             ShaderManager.Instance.Initialize();
 
             // ═══════════════════════════════════════════════════════════
@@ -190,18 +191,35 @@ namespace Create_your_Adventure
             var vertPath = AssetLoader.GetShaderPath("opengl/basic.vert");
             var fragPath = AssetLoader.GetShaderPath("opengl/basic.frag");
 
-            // Shader load from files and compile
+            // ═══ Shader load from files and compile
             var basicShader = ShaderManager.Instance.LoadFromFiles(
                 "basic", // name for cache
                 vertPath,
                 fragPath
                 );
 
-            // shader activate and set uniforms
+            // ═══ shader activate and set uniforms
             basicShader.Use();
             basicShader.SetUniform("uTexture", 0);
 
+            // ═══ 02 ═══ Texture Manager
+            TextureManager.Instance.Initialize();
+
+            // ═══════════════════════════════════════════════════════════
+            // BUILD BLOCK ATLAS
+            // ═══════════════════════════════════════════════════════════
+            var blockAtlas = TextureManager.Instance.BuildBlockAtlas();
+
+            // ═══ Test: Get UV coordinates for a block
+            if (blockAtlas.HasTexture("dirt"))
+            {
+                var dirtRegion = TextureManager.Instance.GetBlockUV("dirt");
+                Logger.Info($"[ENGINE] Dirt UV: ({dirtRegion.U0:F3}, {dirtRegion.V0:F3}) - ({dirtRegion.U1:F3}, {dirtRegion.V1:F3})");
+            }
+
+            Logger.Info($"[ENGINE] TextureManager has {TextureManager.Instance.CachedAtlasCount} atlas(es) cached");
             Logger.Info($"[ENGINE] ShaderManager has {ShaderManager.Instance.CachedProgramCount} program(s) cached");
+            Logger.Info("[ENGINE] All resources loaded successfully");
 
             /*var gl = WindowManager.Instance.GlContext;
             var windowManager = WindowManager.Instance;
@@ -366,7 +384,6 @@ namespace Create_your_Adventure
             imGuiController = new ImGuiController(gl, window, input);
             Logger.Info("[IMGUI] ImGui controller initialized");
             */
-            Logger.Info("[ENGINE] All resources loaded successfully");
         }
 
         // ══════════════════════════════════════════════════
@@ -415,6 +432,8 @@ namespace Create_your_Adventure
                 // shader.SetUniform("uView", viewMatrix);
                 // shader.SetUniform("uProjection", projectionMatrix);
             }
+
+            TextureManager.Instance.BindAtlas("blocks", 0);
 
             RendererManager.Instance.EndFrame();
 
@@ -467,6 +486,7 @@ namespace Create_your_Adventure
             // DISPOSE (Reverse order)
             // ═══════════════════════════════════════════════════════════
 
+            TextureManager.Instance.Dispose();
             ShaderManager.Instance.Dispose();
             RendererManager.Instance.Dispose();
 
