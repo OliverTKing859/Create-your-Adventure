@@ -9,7 +9,8 @@ Schritt	Was	Warum
 
 Engine
  ├─ WindowManager        ✅ hast du
- ├─ RenderManager        (OpenGL + Shader + DrawCalls)
+ ├─ RenderManager        ✅ (OpenGL + Shader + DrawCalls)
+ ├─ TextureManager         (Texture Manager)
  ├─ InputManager         (Keyboard, Mouse)
  ├─ ImGuiManager         (Debug UI)
  ├─ WorldManager         (Chunks, World-Pos)

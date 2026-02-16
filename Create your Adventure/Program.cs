@@ -11,8 +11,8 @@ using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 using StbImageSharp;
 using System.Numerics;
-using Create_your_Adventure.Source.Rendering.Renderer;
 using Create_your_Adventure.Source.Engine.Shader;
+using Create_your_Adventure.Source.Engine.Render;
 
 namespace Create_your_Adventure
 {
@@ -128,8 +128,7 @@ namespace Create_your_Adventure
                 Height = 1080
             });
 
-            windowManager.Loaded 
-                += OnLoad;
+            windowManager.Loaded += OnLoad;
             windowManager.Updated += OnUpdate;
             windowManager.Rendered += OnRender;
             windowManager.OnClose += OnClose;

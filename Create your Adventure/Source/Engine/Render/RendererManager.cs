@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Create_your_Adventure.Source.Rendering.Renderer
+namespace Create_your_Adventure.Source.Engine.Render
 {
     /// <summary>
     /// Manages the rendering system and provides a singleton interface to the render context.

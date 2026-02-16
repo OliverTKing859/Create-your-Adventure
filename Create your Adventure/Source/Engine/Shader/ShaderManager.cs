@@ -1,5 +1,5 @@
 ﻿using Create_your_Adventure.Source.Engine.DevDebug;
-using Create_your_Adventure.Source.Engine.Shader.OpenGL;
+using Create_your_Adventure.Source.Rendering.Shader.OpenGL;
 using Create_your_Adventure.Source.Engine.Window;
 using Silk.NET.OpenGL;
 using System;
@@ -100,7 +100,7 @@ namespace Create_your_Adventure.Source.Engine.Shader
         }
 
         // ══════════════════════════════════════════════════
-        // LOAD / CREATE (API-Agnostic)
+        // LOAD / CREATE (API-agnostic)
         // ══════════════════════════════════════════════════
         /// <summary>
         /// Loads or creates a shader program from source code.
@@ -158,7 +158,7 @@ namespace Create_your_Adventure.Source.Engine.Shader
         }
 
         // ══════════════════════════════════════════════════
-        // ACCESS / USE (API-Agnostic)
+        // ACCESS / USE (API-agnostic)
         // ══════════════════════════════════════════════════
         /// <summary>
         /// Retrieves a shader program from the cache by name.

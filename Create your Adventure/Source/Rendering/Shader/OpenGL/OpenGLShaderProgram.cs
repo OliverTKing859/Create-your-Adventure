@@ -1,11 +1,12 @@
 ﻿using Create_your_Adventure.Source.Engine.DevDebug;
+using Create_your_Adventure.Source.Engine.Shader;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Create_your_Adventure.Source.Engine.Shader.OpenGL
+namespace Create_your_Adventure.Source.Rendering.Shader.OpenGL
 {
     /// <summary>
     /// OpenGL-specific implementation of a shader program.

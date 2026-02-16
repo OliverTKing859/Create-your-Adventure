@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Create_your_Adventure.Source.Rendering.Renderer
+namespace Create_your_Adventure.Source.Engine.Render
 {
     /// <summary>
     /// Defines the contract for a rendering context that abstracts graphics API functionality.
@@ -58,6 +58,5 @@ namespace Create_your_Adventure.Source.Rendering.Renderer
         /// Gets a value indicating whether the render context has been successfully initialized.
         /// </summary>
         bool IsInitialized { get; }
-
     }
 }
