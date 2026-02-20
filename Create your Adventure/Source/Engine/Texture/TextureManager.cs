@@ -1,5 +1,6 @@
-﻿using Create_your_Adventure.Source.Engine.Assets;
-using Create_your_Adventure.Source.Engine.DevDebug;
+﻿using Create_your_Adventure.Source.Debug;
+using Create_your_Adventure.Source.Engine.Assets;
+using Create_your_Adventure.Source.Engine.Texture.Atlase;
 using Create_your_Adventure.Source.Engine.Window;
 using Create_your_Adventure.Source.Rendering.Texture.OpenGL;
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
-namespace Create_your_Adventure.Source.Engine.DevDebug
+namespace Create_your_Adventure.Source.Debug
 {
     public class DebugDisplay
     {

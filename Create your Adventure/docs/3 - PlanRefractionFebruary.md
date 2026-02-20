@@ -10,8 +10,16 @@ Schritt	Was	Warum
 Engine
  ├─ WindowManager        ✅ hast du
  ├─ RenderManager        ✅ (OpenGL + Shader + DrawCalls)
- ├─ TextureManager         (Texture Manager)
+ ├─ TextureManager       ✅ (Texture Manager)
  ├─ InputManager         (Keyboard, Mouse)
  ├─ ImGuiManager         (Debug UI)
  ├─ WorldManager         (Chunks, World-Pos)
  └─ AssetManager         ✅ hast du
+
+1. GpuMesh / VAO-VBO Basis
+2. Quad rendern (Atlas + Shader)
+3. Render-Pipeline festziehen
+4. Block = 6 Quads (ohne Chunk)
+5. ChunkMeshBuilder (nur Daten!)
+6. Chunk rendern (1 DrawCall)
+7. Optimierungen (Greedy / Instancing)

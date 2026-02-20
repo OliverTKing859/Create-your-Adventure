@@ -1,5 +1,6 @@
-﻿using Create_your_Adventure.Source.Engine.DevDebug;
+﻿using Create_your_Adventure.Source.Debug;
 using Create_your_Adventure.Source.Engine.Texture;
+using Create_your_Adventure.Source.Engine.Texture.Atlase;
 using Silk.NET.OpenGL;
 using StbImageSharp;
 

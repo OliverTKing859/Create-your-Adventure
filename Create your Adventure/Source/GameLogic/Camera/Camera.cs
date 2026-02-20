@@ -1,4 +1,4 @@
-﻿using Create_your_Adventure.Source.Engine.DevDebug;
+﻿using Create_your_Adventure.Source.Debug;
 using Silk.NET.Maths;
 using System.Numerics;
 

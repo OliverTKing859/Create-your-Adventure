@@ -1,10 +1,10 @@
-﻿using Create_your_Adventure.Source.Engine.DevDebug;
-using Create_your_Adventure.Source.Rendering.Shader.OpenGL;
+﻿using Create_your_Adventure.Source.Rendering.Shader.OpenGL;
 using Create_your_Adventure.Source.Engine.Window;
 using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Create_your_Adventure.Source.Debug;
 
 namespace Create_your_Adventure.Source.Engine.Shader
 {
