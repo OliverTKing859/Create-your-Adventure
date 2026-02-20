@@ -566,3 +566,23 @@ ChangeLogs
   - Render-Loop Integration
   - Performance-Benchmarking mit 4096+ Meshes
   - Face Culling & Greedy Meshing (zukünftig)
+
+  ## 0.0.13.1 Alpha | Project Documentation - LICENSE & README - 20.02.2026
+
+- Hinzugefügt MIT License für Open-Source-Projekt
+  - Klare Lizenzierung für Entwickler und Beitragstäter
+  - Standard-Open-Source-Bedingungen
+
+- Erstellt umfassendes README.md
+  - Projekt-Übersicht: "Create Your Adventure" - Voxel-Engine mit C# und OpenGL
+  - Feature-Liste (Texture System, GPU-Instancing, Infinite World, etc.)
+  - Setup-Anleitung für Entwickler
+  - Architektur-Dokumentation
+    - Manager Pattern (Shader, Texture, Mesh, etc.)
+    - API-Abstraktion für Graphics Backends
+    - Component-basierte Struktur
+  - Roadmap für zukünftige Features
+  - Contributing Guidelines
+  - Links zu Dependencies (Silk.NET, ImGui, StbImageSharp)
+
+- **Status:** ✅ Projekt-Dokumentation fertiggestellt
