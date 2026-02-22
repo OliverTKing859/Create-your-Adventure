@@ -14,6 +14,7 @@ using Create_your_Adventure.Source.Engine.Shader;
 using Create_your_Adventure.Source.Engine.Render;
 using Create_your_Adventure.Source.Engine.Texture;
 using Create_your_Adventure.Source.Debug;
+using Create_your_Adventure.Source.Engine.Mesh;
 
 namespace Create_your_Adventure
 {
@@ -170,6 +171,7 @@ namespace Create_your_Adventure
         // ══════════════════════════════════════════════════
         // ONLOAD
         // ══════════════════════════════════════════════════
+        private static IMesh? testCube;
         private static unsafe void OnLoad()
         {
             Logger.Info("[ENGINE] Loading resources...");
@@ -178,9 +180,11 @@ namespace Create_your_Adventure
             // INITIALISIERUNG (Order is important!)
             // ═══════════════════════════════════════════════════════════
 
+            // ═══════════════════════════════════════════════════════════
             // ═══ 01 ═══ Renderer Manager
             RendererManager.Instance.Initialize();
 
+            // ═══════════════════════════════════════════════════════════
             // ═══ 02 ═══ Shader Manager
             ShaderManager.Instance.Initialize();
 
@@ -202,7 +206,8 @@ namespace Create_your_Adventure
             basicShader.Use();
             basicShader.SetUniform("uTexture", 0);
 
-            // ═══ 02 ═══ Texture Manager
+            // ═══════════════════════════════════════════════════════════
+            // ═══ 03 ═══ Texture Manager
             TextureManager.Instance.Initialize();
 
             // ═══════════════════════════════════════════════════════════
@@ -217,8 +222,14 @@ namespace Create_your_Adventure
                 Logger.Info($"[ENGINE] Dirt UV: ({dirtRegion.U0:F3}, {dirtRegion.V0:F3}) - ({dirtRegion.U1:F3}, {dirtRegion.V1:F3})");
             }
 
+            // ═══════════════════════════════════════════════════════════
+            // ═══ 04 ═══ Mesh Manager
+            MeshManager.Instance.Initialize();
+            testCube = MeshManager.Instance.CreateCube("testBlock", 1.0f);
+
             Logger.Info($"[ENGINE] TextureManager has {TextureManager.Instance.CachedAtlasCount} atlas(es) cached");
             Logger.Info($"[ENGINE] ShaderManager has {ShaderManager.Instance.CachedProgramCount} program(s) cached");
+            Logger.Info($"[ENGINE] ShaderManager has {MeshManager.Instance.CachedMeshCount} program(s) cached");
             Logger.Info("[ENGINE] All resources loaded successfully");
 
             /*var gl = WindowManager.Instance.GlContext;
@@ -420,10 +431,11 @@ namespace Create_your_Adventure
         // ══════════════════════════════════════════════════
         private static unsafe void OnRender(double deltaTime)
         {
-
+            // ═══════════════════════════════════════════════════════════
             RendererManager.Instance.BeginFrame();
 
-            // ═══════════════════════════════════════════════════════════ RENDERING MIT SHADER MANAGER
+            // ═══════════════════════════════════════════════════════════
+            // ═══ Rendering with Shader Manager
             var shader = ShaderManager.Instance.UseProgram("basic");
 
             if (shader is not null)
@@ -433,8 +445,15 @@ namespace Create_your_Adventure
                 // shader.SetUniform("uProjection", projectionMatrix);
             }
 
+            // ═══════════════════════════════════════════════════════════
+            // ═══ Bind Atlas
             TextureManager.Instance.BindAtlas("blocks", 0);
 
+            // ═══════════════════════════════════════════════════════════
+            // ═══ Draw Cube
+            testCube?.Draw();
+
+            // ═══════════════════════════════════════════════════════════
             RendererManager.Instance.EndFrame();
 
             /*
@@ -486,6 +505,7 @@ namespace Create_your_Adventure
             // DISPOSE (Reverse order)
             // ═══════════════════════════════════════════════════════════
 
+            MeshManager.Instance.Dispose();
             TextureManager.Instance.Dispose();
             ShaderManager.Instance.Dispose();
             RendererManager.Instance.Dispose();
