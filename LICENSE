@@ -25,7 +25,7 @@ This right is granted free of charge and without restriction,
 provided that the Viewer does not violate any other section of this license.
 
 --------------------------------------------------------------------------------
-2. RESTRICTIONS – MODIFICATION
+2. RESTRICTIONS – MODIFICATION OF THE SOFTWARE
 --------------------------------------------------------------------------------
 
 The modification, alteration, adaptation, or creation of derivative works
@@ -42,12 +42,16 @@ This includes but is not limited to:
 Any such action requires prior explicit written permission from Oliver Schmidt.
 
 --------------------------------------------------------------------------------
-3. RESTRICTIONS – REDISTRIBUTION
+3. RESTRICTIONS – REDISTRIBUTION OF THE SOURCE CODE
 --------------------------------------------------------------------------------
 
-The redistribution of this Software, whether modified or unmodified,
-in source or binary form, is strictly prohibited without prior explicit
-written permission from Oliver Schmidt.
+The redistribution of the source code of this Software, whether modified or
+unmodified, is strictly prohibited without prior explicit written permission
+from Oliver Schmidt.
+
+Note: This section refers exclusively to the source code of CyA.
+The distribution and sharing of the purchased game itself is governed
+separately under Section 6 (Purchase & Ownership).
 
 --------------------------------------------------------------------------------
 4. COMMERCIAL USE
@@ -63,33 +67,100 @@ under the following condition:
 "Commercial use" includes but is not limited to: selling, licensing,
 monetizing, or incorporating the Software into a paid product or service.
 
-For commercial licensing inquiries, please contact Oliver Schmidt directly.
+For commercial licensing inquiries, please contact Oliver Schmidt directly
+via the repository's issue tracker.
 
 --------------------------------------------------------------------------------
-5. PERSONAL & NON-COMMERCIAL USE
+5. MODDING POLICY
 --------------------------------------------------------------------------------
 
-Non-commercial use of this Software (e.g., for private study or research)
-is permitted under the condition that:
+Create Your Adventure supports and encourages community creativity through
+mods and texture packs, subject to the following terms:
 
-  - No modification is made to the Software (see Section 2).
-  - No redistribution takes place (see Section 3).
-  - The Software is not used in any way that generates revenue.
+5.1 WHAT IS PERMITTED
+
+  - Creating gameplay modifications ("Mods") that alter or extend
+    the behavior of the game.
+  - Creating texture packs that replace or modify the visual assets of the game.
+  - Sharing and distributing Mods and Texture Packs freely within the community.
+
+5.2 INTELLECTUAL PROPERTY OF MODS
+
+  - The original code and assets created by a Mod author remain the
+    intellectual property of that Mod author.
+  - However, all Mods and Texture Packs are considered dependent works,
+    as they cannot function without Create Your Adventure.
+  - Oliver Schmidt retains the right to determine whether Mods are
+    permitted within the CyA ecosystem.
+
+5.3 WHAT IS NOT PERMITTED
+
+  - Selling Mods or Texture Packs for monetary gain in any form,
+    including but not limited to: direct sales, donations tied to
+    exclusive content, subscription models, or paywalls.
+  - Using Mods or Texture Packs for any commercial purpose without
+    the explicit written permission of Oliver Schmidt.
+  - Distributing Mods that contain malicious code, exploit game systems
+    in harmful ways, or violate any applicable law.
+
+5.4 GOVERNING LAW FOR MODDERS
+
+  This Modding Policy is governed by the laws of the Federal Republic
+  of Germany, regardless of the Mod author's country of residence.
 
 --------------------------------------------------------------------------------
-6. INTELLECTUAL PROPERTY
+6. PURCHASE & OWNERSHIP
 --------------------------------------------------------------------------------
 
-All content within this repository – including but not limited to source code,
-concepts, designs, documentation, and names – remains the sole intellectual
-property of Oliver Schmidt.
+6.1 ONE-TIME PURCHASE
 
-No rights, licenses, or ownership are transferred to any Viewer or User
-of this Software unless explicitly stated in a separate written agreement
-signed by Oliver Schmidt.
+  Create Your Adventure is sold under a one-time purchase model.
+  Once purchased, the player owns their copy of the game indefinitely,
+  with no subscriptions, recurring fees, or forced online activation.
+  This reflects the philosophy of classic game ownership – you buy it,
+  you own it, forever.
+
+6.2 EXPANSIONS
+
+  CyA may offer optional Expansions (e.g. technology-themed content,
+  castle building, RPG elements) that extend the base game experience.
+  These Expansions:
+
+  - Are installed automatically alongside the base game.
+  - Can be individually enabled or disabled by the player at any time.
+  - Are each subject to a separate one-time purchase if applicable.
+  - Will never be required to enjoy the base game experience.
+
+6.3 NO MICROTRANSACTIONS
+
+  Create Your Adventure will never contain microtransactions, loot boxes,
+  pay-to-win mechanics, or any other form of predatory monetization.
+  All content is fairly priced and clearly communicated upfront.
+
+6.4 RESALE & SHARING
+
+  Purchased copies of the game may not be resold or transferred to
+  another person without explicit written permission from Oliver Schmidt.
 
 --------------------------------------------------------------------------------
-7. DISCLAIMER OF WARRANTY
+7. SUCCESSION & DEATH CLAUSE
+--------------------------------------------------------------------------------
+
+In the event of the death of Oliver Schmidt, the following terms apply:
+
+  - All rights, ownership, and intellectual property of Create Your Adventure
+    and its source code shall immediately and automatically transfer to the
+    public domain.
+  - The Software shall become fully Open Source upon confirmation of
+    Oliver Schmidt's passing, free for anyone to use, modify, and distribute.
+  - No individual, company, or legal entity may claim ownership over
+    the Software following this transition.
+
+This clause reflects the author's wish that Create Your Adventure continues
+to live on and benefit the community, regardless of personal circumstances.
+
+--------------------------------------------------------------------------------
+8. DISCLAIMER OF WARRANTY
 --------------------------------------------------------------------------------
 
 THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -102,20 +173,31 @@ OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 
 --------------------------------------------------------------------------------
-8. GOVERNING LAW
+9. GOVERNING LAW
 --------------------------------------------------------------------------------
 
 This license shall be governed by and construed in accordance with the laws
 of the Federal Republic of Germany. Any disputes arising from this license
 shall be subject to the exclusive jurisdiction of the courts of Germany.
 
+This applies to all parties worldwide, including Viewers, Mod authors,
+Texture Pack creators, and players, regardless of their country of residence.
+
 --------------------------------------------------------------------------------
-9. CONTACT
+10. AMENDMENTS
+--------------------------------------------------------------------------------
+
+Oliver Schmidt reserves the right to update or amend this license at any time.
+Changes will be communicated via the official repository.
+Continued use of the Software after an amendment constitutes acceptance
+of the updated terms.
+
+--------------------------------------------------------------------------------
+11. CONTACT
 --------------------------------------------------------------------------------
 
 For permissions, licensing inquiries, or any questions regarding this license,
-please contact the author directly via the repository's issue tracker or
-through official channels.
+please contact the author via the official GitHub repository's issue tracker.
 
 ================================================================================
                     © 2026 Oliver Schmidt – All Rights Reserved
