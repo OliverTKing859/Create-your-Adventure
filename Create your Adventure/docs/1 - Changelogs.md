@@ -257,7 +257,7 @@ ChangeLogs
   - OnLoad() mit WindowManager kompatibel machen
   - Shader & Texture Manager abstrahieren
 
-  ## 0.0.10.1 Alpha | Refactor: RenderManager Abstraction - 09.02.2026
+## 0.0.10.1 Alpha | Refactor: RenderManager Abstraction - 09.02.2026
 
 - Implementiert RenderManager als zentrale Render-Verwaltung (Singleton Pattern)
   - Abstraktion der Rendering-Pipeline für verschiedene Graphics APIs
@@ -298,8 +298,8 @@ ChangeLogs
 
 - **Status:** ⚠️ ShaderProgram erstellt, Integration in Program.cs noch ausstehend
 - **Nächste Schritte:** ShaderManager, TextureLoader, RenderPipeline Abstraktion
-- 
-- ## 0.0.10.3 Alpha | ShaderManager Implementation & Documentation - 15.02.2026
+
+## 0.0.10.3 Alpha | ShaderManager Implementation & Documentation - 15.02.2026
 
 - Implementiert ShaderManager als Graphics API abstraction layer (Singleton Pattern)
     - Thread-safe Initialization mit Lock-Pattern
@@ -567,7 +567,7 @@ ChangeLogs
   - Performance-Benchmarking mit 4096+ Meshes
   - Face Culling & Greedy Meshing (zukünftig)
 
-  ## 0.0.13.1 Alpha | Project Documentation - LICENSE & README - 20.02.2026
+## 0.0.13.1 Alpha | Project Documentation - LICENSE & README - 20.02.2026
 
 - Hinzugefügt MIT License für Open-Source-Projekt
   - Klare Lizenzierung für Entwickler und Beitragstäter
@@ -671,3 +671,135 @@ ChangeLogs
   - Camera-System mit View/Projection-Matrizen
   - Render-Loop Integration mit Draw-Calls
   - Chunk-Mesh-Integration (Chunk → OpenGLMesh)
+
+## 0.0.14.0 Alpha | Input System - Part 1 (Enums, State & Bindings) - 24.02.2026 🔄 **IN ENTWICKLUNG**
+
+- **Status:** 🔄 In Entwicklung - Umfassendes Input-System mit Enum-Definitionen, State-Management und Binding-System
+- Implementiert vollständiges Input-Abstraktions-System für Keyboard, Mouse und Gamepad
+
+- **Input-Enums (API-agnostisch)**
+  - CursorMode: Visible, Hidden, Locked, Confined, ConfinedHidden
+    - Platform-unabhängige Cursor-Verwaltung
+  - KeyCode: 60+ Tasten
+    - Letters: A-Z
+    - Numbers: 0-9
+    - Function Keys: F1-F12
+    - Modifiers: LeftShift, RightShift, LeftControl, RightControl, LeftAlt, RightAlt
+    - Navigation: Up, Down, Left, Right, Home, End, PageUp, PageDown, Insert, Delete
+    - Special: Space, Enter, Escape, Tab, Backspace, CapsLock, NumLock, ScrollLock, PrintScreen, Pause
+    - Numpad: 0-9, Add, Subtract, Multiply, Divide, Enter, Decimal
+    - Miscellaneous: Grave, Minus, Equals, LeftBracket, RightBracket, Backslash, Semicolon, Apostrophe, Comma, Period, Slash
+  - MouseButton: Left, Right, Middle, Button4, Button5
+    - Basis für 5-Button Mäuse Support
+  - GamepadButton: 15 Buttons
+    - Face Buttons: A, B, X, Y (Xbox-Standard)
+    - Bumpers & Triggers: LeftBumper, RightBumper, LeftTrigger, RightTrigger
+    - Analog Sticks: LeftStick, RightStick (Pressbar)
+    - D-Pad: DPadUp, DPadDown, DPadLeft, DPadRight
+    - Special: Start, Back, Guide
+  - GamepadAxis: 6 Achsen
+    - LeftStickX, LeftStickY
+    - RightStickX, RightStickY
+    - LeftTrigger, RightTrigger
+  - InputActionType: 6 Event-Typen
+    - Pressed: Einmalige Aktivierung
+    - Held: Kontinuierlich gedrückt
+    - Released: Freigabe-Event
+    - LongPress: Nach 0.5s Halten
+    - DoublePress: Doppel-Klick (0.3s Fenster)
+    - Axis: Analoge Eingabe
+
+- **InputState Klasse - Zustand-Management**
+  - Keyboard State Tracking
+    - currentKeys, previousKeys für Frame-Vergleich
+    - IsKeyDown(), IsKeyPressed(), IsKeyReleased() Queries
+    - GetKeyHoldTime() für Dauer-Tracking
+  - Mouse State Tracking
+    - MousePosition, MouseDelta, ScrollDelta Properties
+    - IsMouseButtonDown/Pressed/Released() Queries
+  - Gamepad State Tracking
+    - currentGamepadButtons, previousGamepadButtons
+    - GamepadAxes mit Deadzone-Support (default 0.15)
+    - GetGamepadAxis(), GetLeftStick(), GetRightStick() mit Deadzone
+  - Long Press Detection
+    - keyHoldTimes, mouseHoldTimes, gamepadHoldTimes Dictionaries
+    - LongPressThreshold: 0.5 Sekunden
+    - IsKeyLongPressed() Query
+  - Double Press Detection
+    - doublePressTracking Dictionary
+    - DoublePressWindow: 0.3 Sekunden
+    - IsKeyDoublePressed(key, currentTime) Query
+  - Frame Lifecycle
+    - BeginFrame(): Speichert previous State
+    - EndFrame(deltaTime): Aktualisiert Hold Times
+  - Kombinationen
+    - IsKeyCombinationDown(params KeyCode[] keys): Alle Tasten gedrückt?
+    - IsKeyCombinationPressed(mainKey, params modifiers): Modifier-Kombination?
+
+- **InputAction Klasse - Action-Binding-System**
+  - Name und InputActionType Properties
+  - Multiple Bindings pro Action (List<InputBinding>)
+  - Event-basierte Architektur
+    - Triggered Event: Action wurde ausgelöst
+    - AxisChanged Event: Analoge Eingabe mit float-Value
+  - Fluent API für Bindings
+    - AddKeyBinding(key, modifiers): Tastatur-Binding hinzufügen
+    - AddGamepadBinding(button): Gamepad-Button-Binding
+    - AddAxisBinding(axis): Gamepad-Achsen-Binding
+  - RaiseTrigger() und RaiseAxis() für Internal-Events
+
+- **InputBinding System - Flexible Bindungen**
+  - Abstraktes InputBinding Base
+    - IsActive(InputState, InputActionType): Query für Action-Aktivierung
+    - GetAxisValue(InputState): Analog-Wert
+    - Serialization: Serialize() / Deserialize(string data)
+  - KeyBinding Konkretisierung
+    - Key + Modifiers Support (z.B. Ctrl+Shift+A)
+    - IsActive() evaluiert alle InputActionTypes
+    - Serialisierung: "Key:Modifier1+Modifier2+MainKey"
+  - MouseButtonBinding Konkretisierung
+    - Alle 5 Mouse-Buttons supportiert
+    - Pressed, Held, Released Support
+    - Serialisierung: "Mouse:Button"
+  - GamepadButtonBinding Konkretisierung
+    - Xbox-Style Button-Mapping
+    - Pressed, Held Support
+    - Serialisierung: "Gamepad:Button"
+  - GamepadAxisBinding Konkretisierung
+    - Deadzone-Support (0.15 default)
+    - IsActive() für Achsen-Bewegung
+    - GetAxisValue() für kontinuierliche Eingabe
+    - Serialisierung: "Axis:AxisName"
+
+- **Architektur & Design Patterns**
+  - Factory Pattern für Binding-Deserialisierung
+  - Observer Pattern mit Events (Triggered, AxisChanged)
+  - Fluent API in InputAction für Binding-Konfiguration
+  - State Pattern mit BeginFrame/EndFrame Lifecycle
+  - Deadzone-Pattern für Gamepad-Achsen
+
+- **Performance & Optimierung**
+  - HashSet für schnelle Key/Button-Lookups (O(1))
+  - Dictionary-basiertes Hold-Time-Tracking
+  - Frame-basierte State-Verwaltung (current/previous)
+  - Minimale GC-Allocations durch HashSet
+
+- **Vollständige XML-Dokumentation**
+  - Alle Enums dokumentiert mit Beschreibungen
+  - InputState Klasse: Zweck und Verwendung erklärt
+  - InputAction und InputBinding: Event-System dokumentiert
+  - Methoden-Summaries und Parameter-Dokumentation
+
+- **Status:** 🔄 In Entwicklung - Folgende Tasks ausstehend:
+  - ❌ IInputDevice Interface Implementation (KeyboardDevice, MouseDevice, GamepadDevice)
+  - ❌ InputManager Singleton-Integration
+  - ❌ Platform-spezifische Input-Polling (Silk.NET Integration)
+  - ❌ Testing mit echten Input-Events
+  - ❌ Serialization von Input-Konfigurationen
+
+- **Nächste Schritte:** 
+  - IInputDevice Interface für Devices
+  - Keyboard/Mouse/Gamepad Device Implementations
+  - InputManager für Koordination aller Devices
+  - Integration in Program.cs OnLoad/OnUpdate
+  - Key-Rebinding UI System
