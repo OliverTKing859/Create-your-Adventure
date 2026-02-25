@@ -803,3 +803,210 @@ ChangeLogs
   - InputManager für Koordination aller Devices
   - Integration in Program.cs OnLoad/OnUpdate
   - Key-Rebinding UI System
+
+## 0.0.14.1 Alpha | Input System - Part 2 (InputManager & Silk.NET Integration) - 25.02.2026 🔄 **IN ENTWICKLUNG**
+
+- **Status:** 🔄 In Entwicklung - InputManager implementiert, Integration in Program.cs ausstehend
+- Implementiert vollständigen InputManager als zentrale Input-Verwaltung (Singleton Pattern)
+
+- **InputManager - Zentrale Verwaltung**
+  - Singleton Pattern mit Lock-Protection
+  - Thread-safe Initialization
+  - Integration mit WindowManager.InputContext (Silk.NET)
+  - Device-Erkennung und Initialisierung
+    - Keyboard: inputContext.Keyboards[0]
+    - Mouse: inputContext.Mice[0]
+    - Gamepad: inputContext.Gamepads[0] (optional)
+  - Properties: HasKeyboard, HasMouse, HasGamepad, IsInitialized, CurrentCursorMode
+  - BeginFrame/EndFrame Lifecycle-Management
+    - BeginFrame(): InputState.BeginFrame() → previous State speichern
+    - EndFrame(deltaTime): PollGamepadAxes() → CheckActions() → InputState.EndFrame()
+  - Automatische Action-Evaluierung jeden Frame
+  - Proper Disposal Pattern mit Event-Unsubscription
+
+- **Cursor-Control-System**
+  - SetCursorMode(CursorMode): 5 Modi verfügbar
+    - Visible: Normal sichtbar
+    - Hidden: Unsichtbar aber beweglich
+    - Locked: FPS-Modus (Disabled in Silk.NET)
+    - Confined: Auf Fenster beschränkt (TODO: Window-Clipping)
+    - ConfinedHidden: Beschränkt + versteckt (TODO: Window-Clipping)
+  - Convenience-Methoden
+    - LockCursor(): Setzt Locked-Modus
+    - UnlockCursor(): Setzt Visible-Modus
+    - ToggleCursorLock(): Wechselt zwischen Locked/Visible
+  - Silk.NET CursorMode Mapping (Normal, Hidden, Disabled)
+
+- **Direct Input Query API**
+  - Keyboard Queries
+    - IsKeyDown(KeyCode): Aktuell gedrückt?
+    - IsKeyPressed(KeyCode): Gerade heruntergedrückt?
+    - IsKeyReleased(KeyCode): Gerade losgelassen?
+    - IsKeyLongPressed(KeyCode): >0.5s gehalten?
+    - GetKeyHoldTime(KeyCode): Halte-Dauer in Sekunden
+    - IsKeyCombinationPressed(mainKey, modifiers): Ctrl+Shift+A etc.
+  - Mouse Queries
+    - IsMouseButtonDown(MouseButton): Aktuell gedrückt?
+    - IsMouseButtonPressed(MouseButton): Gerade heruntergedrückt?
+    - GetMousePosition(): Vector2 absolute Position
+    - GetMouseDelta(): Vector2 Frame-Delta
+    - GetScrollDelta(): float Scroll-Wert
+  - Gamepad Queries
+    - IsGamepadButtonDown(GamepadButton): Aktuell gedrückt?
+    - IsGamepadButtonPressed(GamepadButton): Gerade heruntergedrückt?
+    - GetGamepadAxis(GamepadAxis): float -1.0 bis 1.0
+    - GetLeftStick(): Vector2 mit Deadzone
+    - GetRightStick(): Vector2 mit Deadzone
+
+- **High-Level Input Helpers**
+  - GetMovementVector(): Automatisches WASD + Gamepad Fallback
+    - Keyboard hat Priorität (WASD)
+    - Fallback auf linken Gamepad-Stick
+    - Normalisiert diagonal Movement
+    - Returns Vector2.Zero wenn kein Input
+  - GetLookVector(): Maus-Delta + Gamepad Fallback
+    - Mouse-Delta hat Priorität
+    - Fallback auf rechten Gamepad-Stick
+    - Für Camera-Look-Rotation
+
+- **Action System Implementation**
+  - RegisterAction(name, type): Erstellt InputAction mit Type
+    - Returns InputAction für Fluent API Chaining
+    - Cached in Dictionary<string, InputAction>
+    - Logging für jede registrierte Action
+  - GetAction(name): Gibt InputAction zurück oder null
+  - IsActionTriggered(name): Prüft ob Action aktiv
+    - Iteriert durch alle Bindings der Action
+    - Returns true wenn mindestens ein Binding aktiv
+  - CheckAction(action): Interne Frame-Evaluierung
+    - Prüft alle Bindings pro Action
+    - Raised Triggered-Event für normale Actions
+    - Raised AxisChanged-Event für Axis-Actions
+    - Break nach erstem aktiven Binding (nur 1 pro Frame)
+
+- **Default Action Bindings**
+  - Movement Actions
+    - MoveForward: W / DPadUp
+    - MoveBackward: S / DPadDown
+    - MoveLeft: A / DPadLeft
+    - MoveRight: D / A (Gamepad)
+    - MoveUp: Space / RightBumper
+    - MoveDown: LeftControl / LeftBumper
+    - Sprint: LeftShift / LeftStick (Press)
+  - Camera Actions
+    - ToggleCursorLock: Escape
+  - Kommentiert: Jump, Interact, Inventory, Save, Load, Pause (für spätere Implementierung)
+  - Logging: "{count} default actions registered"
+
+- **Gamepad Axes Polling**
+  - PollGamepadAxes(): Jedes Frame aufgerufen in EndFrame()
+    - Liest Thumbsticks[0-1] aus Gamepad
+      - LeftStickX: Thumbsticks[0].X
+      - LeftStickY: Thumbsticks[0].Y
+      - RightStickX: Thumbsticks[1].X
+      - RightStickY: Thumbsticks[1].Y
+    - Liest Triggers[0-1] aus Gamepad
+      - LeftTrigger: Triggers[0].Position
+      - RightTrigger: Triggers[1].Position
+    - Setzt Werte in InputState über SetGamepadAxis()
+    - Null-Check für Gamepad-Verfügbarkeit
+
+- **Event Handlers - Silk.NET Integration**
+  - Keyboard Events
+    - OnKeyDown(IKeyboard kb, Key key, int scancode)
+      - Konvertiert Silk.NET Key → KeyCode
+      - Ruft state.SetKeyDown(keyCode) auf
+    - OnKeyUp(IKeyboard kb, Key key, int scancode)
+      - Konvertiert Silk.NET Key → KeyCode
+      - Ruft state.SetKeyUp(keyCode) auf
+  - Mouse Events
+    - OnMouseDown(IMouse m, MouseButton button)
+      - Konvertiert Silk.NET MouseButton → MouseButton
+      - Ruft state.SetMouseButtonDown(button) auf
+    - OnMouseUp(IMouse m, MouseButton button)
+      - Konvertiert Silk.NET MouseButton → MouseButton
+      - Ruft state.SetMouseButtonUp(button) auf
+    - OnMouseMove(IMouse m, Vector2 position)
+      - Berechnet delta = position - lastMousePosition
+      - Aktualisiert lastMousePosition
+      - Ruft state.SetMousePosition(position) und SetMouseDelta(delta) auf
+    - OnMouseScroll(IMouse m, ScrollWheel scroll)
+      - Ruft state.SetScrollDelta(scroll.Y) auf
+  - Gamepad Events
+    - OnGamepadButtonDown(IGamepad gp, Button button)
+      - Konvertiert ButtonName → GamepadButton
+      - Ruft state.SetGamepadButtonDown(button) auf
+    - OnGamepadButtonUp(IGamepad gp, Button button)
+      - Konvertiert ButtonName → GamepadButton
+      - Ruft state.SetGamepadButtonUp(button) auf
+
+- **Input Enum Converters - Silk.NET Mapping**
+  - ConvertKey(Silk.NET.Input.Key): Konvertiert zu KeyCode
+    - 60+ Key-Mappings
+    - Letters: A-Z → KeyCode.A-Z
+    - Numbers: Number0-9 → KeyCode.Number0-9
+    - Modifiers: ShiftLeft → LeftShift, ControlLeft → LeftControl, AltLeft → LeftAlt
+    - Navigation: Up/Down/Left/Right → KeyCode.Up/Down/Left/Right
+    - Special: Space, Enter, Escape, Tab, Backspace, etc.
+    - Numpad: Keypad0-9 → Numpad0-9, KeypadAdd → NumpadAdd, etc.
+    - Miscellaneous: GraveAccent → Grave, BackSlash → Backslash, etc.
+    - Returns KeyCode? (nullable für unbekannte Tasten)
+  - ConvertMouseButton(Silk.NET.Input.MouseButton): Konvertiert zu MouseButton
+    - Left → MouseButton.Left
+    - Right → MouseButton.Right
+    - Middle → MouseButton.Middle
+    - Button4 → MouseButton.Button4
+    - Button5 → MouseButton.Button5
+    - Returns MouseButton? (nullable)
+  - ConvertGamepadButton(ButtonName): Konvertiert zu GamepadButton
+    - Face Buttons: A, B, X, Y → GamepadButton.A/B/X/Y
+    - Bumpers: LeftBumper, RightBumper
+    - Sticks: LeftStick, RightStick
+    - D-Pad: DPadUp, DPadDown, DPadLeft, DPadRight
+    - Special: Start, Back, Home → Guide
+    - ⚠️ LeftTrigger/RightTrigger fehlen in ButtonName (Triggers sind Achsen!)
+    - Returns GamepadButton? (nullable)
+
+- **Logger-Integration**
+  - [INPUT] Kategorie für alle Input-Logs
+  - Initialization Logs
+    - "Keyboard initialized" oder "No keyboard detected"
+    - "Mouse initialized" oder "No mouse detected"
+    - "Gamepad initialized: {name}" oder "No gamepad detected (optional)"
+    - "InputManager initialized"
+  - Action Registration
+    - "Action '{name}' registered (Type: {type})"
+    - "{count} default actions registered"
+    - "Action '{name}' already registered" (Warnung)
+  - Cursor Mode
+    - "Cursor mode set to: {mode}"
+  - Disposal
+    - "InputManager disposed"
+
+- **Architektur & Design Patterns**
+  - Singleton Pattern für globalen Input-Zugriff
+  - Observer Pattern für Event-Handling (Silk.NET Events → InputState)
+  - Adapter Pattern für Enum-Konvertierung (Silk.NET → Custom Enums)
+  - Facade Pattern: InputManager als einfache API über komplexe Input-Devices
+  - Frame-based Input Processing (Begin/End Frame)
+
+- **Vollständige XML-Dokumentation**
+  - ⚠️ XML-Dokumentation fehlt noch für alle Public-Methoden
+  - TODO: Summaries für Initialize, BeginFrame, EndFrame
+  - TODO: Parameter-Dokumentation für alle Queries
+
+- **Status:** 🔄 In Entwicklung - Folgende Tasks ausstehend:
+  - ❌ XML-Dokumentation für InputManager hinzufügen
+  - ❌ Integration in Program.cs (OnLoad: InputManager.Instance.Initialize())
+  - ❌ BeginFrame/EndFrame Calls in Program.cs OnUpdate
+  - ❌ Camera-Integration mit GetMovementVector() und GetLookVector()
+  - ❌ Testing mit echten Keyboard/Mouse/Gamepad-Inputs
+  - ❌ ToggleCursorLock Action-Binding testen
+  - ❌ Export/Import Bindings (JSON Serialization) implementieren
+
+- **Nächste Schritte:** 
+  - XML-Dokumentation ergänzen
+  - Program.cs Integration (OnLoad, OnUpdate)
+  - Camera.cs Update für Input-System
+  - Cursor-Lock beim Fenster-Focus
+  - Key-Rebinding UI (zukünftig)

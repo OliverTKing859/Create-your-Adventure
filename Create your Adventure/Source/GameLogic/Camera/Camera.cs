@@ -1,4 +1,5 @@
 ﻿using Create_your_Adventure.Source.Debug;
+using Create_your_Adventure.Source.Engine.Input;
 using Silk.NET.Maths;
 using System.Numerics;
 
@@ -76,20 +77,34 @@ namespace Create_your_Adventure.Source.Gamelogic.Camera
         /// <param name="keySpace">Upward movement input.</param>
         /// <param name="keyLeftCtrl">Downward movement input.</param>
         /// <param name="keyLeftShift">Sprint modifier input.</param>
-        public void Update(
-            double deltaTime,
-            bool keyW,
-            bool keyA,
-            bool keyS,
-            bool keyD,
-            bool keySpace,
-            bool keyLeftCtrl,
-            bool keyLeftShift
-            )
+        public void Update(double deltaTime)
         {
-            // -------- Delta Time --------
+            // ═══ Delta Time
             float dt = (float)deltaTime;
 
+            // ═══ Input of InputManager to get (Not more on Silk.NET directly)
+            var input = InputManager.Instance;
+
+            // ═══ Movement Vector (Keyboard or Gamepad)
+            Vector2 movement = input.GetMovementVector();
+            bool isSprinting = input.IsKeyDown(KeyCode.LeftShift) ||
+                               input.IsGamepadButtonDown(GamepadButton.LeftBumper);
+
+            // ═══ Vertical Movement
+            float verticalInput = 0f;
+            if (input.IsKeyDown(KeyCode.Space)) verticalInput += 1f;
+            if (input.IsKeyDown(KeyCode.LeftControl)) verticalInput -= 1f;
+
+            // ═══ Look Vector
+            Vector2 lookDelta = input.GetLookVector();
+
+            // ═══ Toggle Cursor Lock (ESC)
+            if (input.IsActionTriggered("ToggleCursorLock"))
+            {
+                input.ToggleCursorLock();
+            }
+
+            /*
             // -------- View --------
             Vector3D<float> viewForward = GetViewDirection(yaw, pitch);
             Vector3D<float> viewRight = Vector3D.Normalize(Vector3D.Cross(viewForward, Vector3D<float>.UnitY));
@@ -175,6 +190,11 @@ namespace Create_your_Adventure.Source.Gamelogic.Camera
 
             // --- Reset raw delta for next frame
             rawMouseDelta = Vector2.Zero;
+
+            */
+            // ═══ Apply
+            ApplyMovement(movement, verticalInput, isSprinting, dt);
+            ApplyRotation(lookDelta, dt);
         }
 
         // VIEW MAXTRIX ---------------------------------------------------

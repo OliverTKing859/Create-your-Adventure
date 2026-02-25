@@ -15,6 +15,7 @@ using Create_your_Adventure.Source.Engine.Render;
 using Create_your_Adventure.Source.Engine.Texture;
 using Create_your_Adventure.Source.Debug;
 using Create_your_Adventure.Source.Engine.Mesh;
+using Create_your_Adventure.Source.Engine.Input;
 
 namespace Create_your_Adventure
 {
@@ -227,6 +228,15 @@ namespace Create_your_Adventure
             MeshManager.Instance.Initialize();
             testCube = MeshManager.Instance.CreateCube("testBlock", 1.0f);
 
+            // ═══════════════════════════════════════════════════════════
+            // ═══ 05 ═══ Input Manager
+            InputManager.Instance.Initialize();
+            InputManager.Instance.LockCursor(); // ═══ For FPS-Cam
+
+            // ═══════════════════════════════════════════════════════════
+            // ═══ 06 ═══ Camera Manager (Under Construction)
+            camera = new Camera();
+
             Logger.Info($"[ENGINE] TextureManager has {TextureManager.Instance.CachedAtlasCount} atlas(es) cached");
             Logger.Info($"[ENGINE] ShaderManager has {ShaderManager.Instance.CachedProgramCount} program(s) cached");
             Logger.Info($"[ENGINE] ShaderManager has {MeshManager.Instance.CachedMeshCount} program(s) cached");
@@ -405,6 +415,13 @@ namespace Create_your_Adventure
 
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
+            // ═══ Input Frame beginn
+            InputManager.Instance.BeginFrame();
+
+            camera.Update(deltaTime);
+
+            InputManager.Instance.EndFrame((float)deltaTime);
+
             /*
             // -------- Update ImGui
             imGuiController.Update((float)deltaTime);
@@ -505,6 +522,7 @@ namespace Create_your_Adventure
             // DISPOSE (Reverse order)
             // ═══════════════════════════════════════════════════════════
 
+            InputManager.Instance.Dispose();
             MeshManager.Instance.Dispose();
             TextureManager.Instance.Dispose();
             ShaderManager.Instance.Dispose();
