@@ -1010,3 +1010,151 @@ ChangeLogs
   - Camera.cs Update für Input-System
   - Cursor-Lock beim Fenster-Focus
   - Key-Rebinding UI (zukünftig)
+
+## 0.0.14.2 Alpha | Input System - Part 3 (Device Abstraction & Converters) - 26.02.2026 🔄 **IN ENTWICKLUNG**
+
+- **Status:** 🔄 In Entwicklung - Device-Abstraktions-Layer implementiert, Part 4 (Finalisierung) ausstehend
+- Implementiert vollständige Device-Abstraktion für Keyboard, Mouse und Gamepad
+
+- **IInputDevice Interface - Generische Device-Abstraktion**
+  - Definiert einheitliches Interface für alle Input-Geräte
+  - Properties: Name, IsConnected
+    - Name: Geräte-Identifikation (z.B. "Logitech G502")
+    - IsConnected: Verfügbarkeits-Check
+  - Initialize(): Geräte-Setup und Logger-Output
+  - RegisterEvents(InputState): Event-Handler-Registrierung
+  - UnregisterEvents(): Event-Handler-Cleanup
+  - Poll(InputState): Frame-basiertes Input-Polling (für Gamepad-Achsen)
+  - IDisposable: Proper Resource Management
+  - Ermöglicht polymorphe Device-Verwaltung im InputManager
+
+- **KeyboardDevice - Silk.NET Keyboard-Wrapper**
+  - Wrapper für Silk.NET IKeyboard
+  - Event-basierte Input-Verarbeitung
+    - OnKeyDown(IKeyboard, Key, scancode): Key → KeyCode Konvertierung
+    - OnKeyUp(IKeyboard, Key, scancode): Key → KeyCode Konvertierung
+  - Kein Polling nötig (rein event-driven)
+  - Automatische KeyConverter-Integration
+  - Logger-Integration
+    - "Keyboard initialized: {Name}" oder "No keyboard detected"
+  - Proper Disposal mit Event-Unsubscription
+
+- **MouseDevice - Silk.NET Mouse-Wrapper**
+  - Wrapper für Silk.NET IMouse
+  - Event-basierte Input-Verarbeitung
+    - OnMouseDown(IMouse, MouseButton): Button-Erkennung
+    - OnMouseUp(IMouse, MouseButton): Button-Release
+    - OnMouseMove(IMouse, Vector2 position): Delta-Berechnung
+    - OnScroll(IMouse, ScrollWheel): Scroll-Delta
+  - lastPosition Tracking für präzise Delta-Berechnung
+  - SetCursorMode(CursorMode): Cursor-Steuerung
+    - Visible → Normal
+    - Hidden → Hidden
+    - Locked → Disabled
+    - Confined → Normal (TODO: Window-Clipping)
+    - ConfinedHidden → Hidden (TODO: Window-Clipping)
+  - RawMouse Property: Direkter Zugriff auf IMouse-Instanz
+  - Kein Polling nötig (rein event-driven)
+
+- **GamepadDevice - Silk.NET Gamepad-Wrapper**
+  - Wrapper für Silk.NET IGamepad
+  - Hybrid-Architektur: Events + Polling
+    - Events: ButtonDown, ButtonUp für digitale Inputs
+    - Polling: Thumbsticks und Triggers für analoge Inputs
+  - TriggerThreshold Property (0.5f default)
+    - Behandelt Trigger als Button ab Schwellwert
+    - Ermöglicht Trigger-Bindings wie normale Buttons
+  - Polling in Poll(InputState)
+    - Thumbsticks[0]: LeftStickX, LeftStickY
+    - Thumbsticks[1]: RightStickX, RightStickY
+    - Triggers[0]: LeftTrigger (analog + button)
+    - Triggers[1]: RightTrigger (analog + button)
+  - SetTriggerValue(GamepadButton, float): Speichert analoge Trigger-Werte
+  - Automatische GamepadConverter-Integration
+
+- **InputConverter - Zentrale Enum-Konvertierung**
+  - Separate Static-Klasse (vorher inline im InputManager)
+  - Nested Static Classes für Übersichtlichkeit
+    - KeyConverter: Silk.NET.Key → KeyCode
+      - 60+ Tastatur-Mappings
+      - A-Z, 0-9, F1-F12
+      - Modifiers: ShiftLeft → LeftShift, ControlLeft → LeftControl
+      - Navigation: Up/Down/Left/Right, Home/End, PageUp/PageDown
+      - Special: Space, Enter, Escape, Tab, Backspace, CapsLock, NumLock
+      - Numpad: Keypad0-9 → Numpad0-9, KeypadAdd → NumpadAdd
+      - Miscellaneous: GraveAccent → Grave, BackSlash → Backslash
+    - MouseConverter: Silk.NET.MouseButton → MouseButton
+      - Left, Right, Middle, Button4, Button5
+    - GamepadConverter: ButtonName → GamepadButton
+      - Face Buttons: A, B, X, Y
+      - Bumpers: LeftBumper, RightBumper
+      - Sticks: LeftStick, RightStick (Pressable)
+      - D-Pad: DPadUp, DPadDown, DPadLeft, DPadRight
+      - Special: Start, Back, Home → Guide
+  - Nullable Returns (KeyCode?, MouseButton?, GamepadButton?)
+    - null für nicht-unterstützte Inputs
+  - Architektur-Verbesserung: Trennung von Device-Logik und Konvertierung
+
+- **InputState Erweiterungen**
+  - Access Modifier Änderungen
+    - Internal statt private für Fields (CurrentKeys, PreviousKeys, etc.)
+    - Ermöglicht direkten Zugriff von Device-Klassen
+    - Bessere Performance (kein Setter-Overhead)
+  - TriggerValues Dictionary hinzugefügt
+    - Dictionary<GamepadButton, float> für analoge Trigger-Werte
+    - Speichert LeftTrigger/RightTrigger Positionen (0.0-1.0)
+  - SetTriggerValue(GamepadButton, float) Methode
+    - Setzt analoge Trigger-Werte
+    - Wird von GamepadDevice.Poll() aufgerufen
+
+- **InputAnalyzer - Placeholder-Klasse**
+  - Leere Klasse für zukünftige Funktionalität
+  - Geplante Features (zukünftig):
+    - Input-Pattern-Erkennung (Combo-Detection)
+    - Gesture-Recognition (Swipe, Pinch, etc.)
+    - Input-Replay/Recording für Testing
+    - Input-Heatmaps für UI/UX-Analyse
+  - Vorbereitet für Part 4 oder spätere Updates
+
+- **Architektur & Design Patterns**
+  - Strategy Pattern: IInputDevice für polymorphe Device-Verwaltung
+  - Adapter Pattern: Silk.NET → Custom Enums via Converter
+  - Observer Pattern: Events von Silk.NET → InputState Updates
+  - Polling Pattern: Gamepad Axes pro Frame (wegen analoger Natur)
+  - Separation of Concerns: Converter separiert von Devices und Manager
+
+- **Performance & Optimierung**
+  - Internal Fields für direkten Zugriff (kein Property-Overhead)
+  - Event-basiert wo möglich (Keyboard, Mouse) statt Polling
+  - Polling nur für Gamepad-Achsen (kontinuierliche Werte)
+  - Nullable Returns vermeiden Exception-Overhead
+
+- **Logger-Integration**
+  - [INPUT] Kategorie konsistent
+  - Device-spezifische Logs
+    - "Keyboard initialized: {Name}"
+    - "Mouse initialized: {Name}"
+    - "Gamepad initialized: {Name}"
+    - "No {device} detected" Warnungen
+
+- **Vollständige XML-Dokumentation**
+  - ⚠️ XML-Dokumentation fehlt noch für Device-Klassen
+  - TODO: Summaries für IInputDevice Interface
+  - TODO: Methoden-Dokumentation für alle Devices
+  - TODO: InputConverter Dokumentation
+
+- **Status:** 🔄 In Entwicklung - Folgende Tasks ausstehend (Part 4):
+  - ❌ InputManager Refactoring auf Device-Abstraktion
+  - ❌ Device-Registrierung und -Verwaltung im Manager
+  - ❌ Integration in Program.cs (OnLoad, OnUpdate)
+  - ❌ XML-Dokumentation vervollständigen
+  - ❌ Testing mit echten Devices
+  - ❌ InputAnalyzer Funktionalität (später)
+
+- **Nächste Schritte (Part 4 - Finalisierung):** 
+  - InputManager Refactoring: Device-Verwaltung statt direkte Silk.NET-Zugriffe
+  - RegisterDevice() / UnregisterDevice() Methoden
+  - Program.cs Integration und Testing
+  - XML-Dokumentation vervollständigen
+  - Camera-Integration mit neuem Input-System
+  - **Abschluss des Input-Systems** 🎯

@@ -14,6 +14,8 @@ namespace Create_your_Adventure.Source.Engine.Input
 
         // ═══ Bumpers & Triggers
         LeftBumper, RightBumper,
+
+        // ═══ Triggers (analogous, but treated as a button)
         LeftTrigger, RightTrigger,
 
         // ═══ Sticks

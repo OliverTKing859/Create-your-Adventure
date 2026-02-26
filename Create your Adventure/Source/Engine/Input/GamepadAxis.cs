@@ -9,8 +9,12 @@ namespace Create_your_Adventure.Source.Engine.Input
     /// </summary>
     public enum GamepadAxis
     {
-        LeftStickX, LeftStickY,
-        RightStickX, RightStickY,
-        LeftTrigger, RightTrigger
+        // ═══
+        LeftStickX,
+        LeftStickY,
+
+        // ═══
+        RightStickX,
+        RightStickY
     }
 }
