@@ -11,7 +11,7 @@ Engine
  ├─ WindowManager        ✅ hast du
  ├─ RenderManager        ✅ (OpenGL + Shader + DrawCalls)
  ├─ TextureManager       ✅ (Texture Manager)
- ├─ InputManager         (Keyboard, Mouse)
+ ├─ InputManager         ✅ (Keyboard, Mouse)
  ├─ ImGuiManager         (Debug UI)
  ├─ WorldManager         (Chunks, World-Pos)
  └─ AssetManager         ✅ hast du

@@ -40,8 +40,7 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
         public void UnregisterEvents()
         {
             if (keyboard is null) return;
-
-            keyboard.KeyDown += OnKeyDown;
+            keyboard.KeyDown -= OnKeyDown;
             keyboard.KeyUp -= OnKeyUp;
         }
 

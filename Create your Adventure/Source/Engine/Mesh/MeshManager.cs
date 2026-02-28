@@ -1,4 +1,5 @@
 ﻿using Create_your_Adventure.Source.Debug;
+using Create_your_Adventure.Source.Engine.Texture.Atlase;
 using Create_your_Adventure.Source.Engine.Window;
 using Create_your_Adventure.Source.Rendering.Mesh.OpenGL;
 using System;
@@ -156,43 +157,47 @@ namespace Create_your_Adventure.Source.Engine.Mesh
         /// <param name="name">The unique name of the cube mesh.</param>
         /// <param name="size">The size of the cube.</param>
         /// <returns>The created cube mesh instance.</returns>
-        public IMesh CreateCube(string name, float size = 1.0f)
+        public IMesh CreateCube(string name, float size, AtlasRegion region)
         {
             var mesh = CreateMesh(name);
-
             float half = size / 2.0f;
+
+            float u0 = region.U0;
+            float v0 = region.V0;
+            float u1 = region.U1;
+            float v1 = region.V1;
 
             float[] vertices =
             [
-                -half, -half,  half, 0.0f, 0.0f,
-                 half, -half,  half, 1.0f, 0.0f,
-                 half,  half,  half, 1.0f, 1.0f,
-                -half,  half,  half, 0.0f, 1.0f,
+                -half, -half,  half, u0, v0,
+                 half, -half,  half, u1, v0,
+                 half,  half,  half, u1, v1,
+                -half,  half,  half, u0, v1,
 
-                 half, -half, -half, 0.0f, 0.0f,
-                -half, -half, -half, 1.0f, 0.0f,
-                -half,  half, -half, 1.0f, 1.0f,
-                 half,  half, -half, 0.0f, 1.0f,
+                 half, -half, -half, u0, v0,
+                -half, -half, -half, u1, v0,
+                -half,  half, -half, u1, v1,
+                 half,  half, -half, u0, v1,
 
-                 half, -half, -half, 0.0f, 0.0f,
-                 half, -half, -half, 1.0f, 0.0f,
-                 half,  half, -half, 1.0f, 1.0f,
-                 half,  half, -half, 0.0f, 1.0f,
+                 half, -half,  half, u0, v0,
+                 half, -half, -half, u1, v0,
+                 half,  half, -half, u1, v1,
+                 half,  half,  half, u0, v1,
 
-                -half, -half, -half, 0.0f, 0.0f,
-                -half, -half,  half, 1.0f, 0.0f,
-                -half,  half,  half, 1.0f, 1.0f,
-                -half,  half, -half, 0.0f, 1.0f,
+                -half, -half, -half, u0, v0,
+                -half, -half,  half, u1, v0,
+                -half,  half,  half, u1, v1,
+                -half,  half, -half, u0, v1,
 
-                -half,  half,  half, 0.0f, 0.0f,
-                 half,  half,  half, 1.0f, 0.0f,
-                 half,  half, -half, 1.0f, 1.0f,
-                -half,  half, -half, 0.0f, 1.0f,
+                -half,  half,  half, u0, v0,
+                 half,  half,  half, u1, v0,
+                 half,  half, -half, u1, v1,
+                -half,  half, -half, u0, v1,
 
-                -half, -half, -half, 0.0f, 0.0f,
-                 half, -half, -half, 1.0f, 0.0f,
-                 half, -half,  half, 1.0f, 1.0f,
-                -half, -half,  half, 0.0f, 1.0f
+                -half, -half, -half, u0, v0,
+                 half, -half, -half, u1, v0,
+                 half, -half,  half, u1, v1,
+                -half, -half,  half, u0, v1
             ];
 
             uint[] indices =

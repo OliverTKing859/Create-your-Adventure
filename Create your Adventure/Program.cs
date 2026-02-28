@@ -206,17 +206,19 @@ namespace Create_your_Adventure
             // ═══════════════════════════════════════════════════════════
             // ═══ 03 ═══ Texture Manager
             TextureManager.Instance.Initialize();
-            TextureManager.Instance.BuildBlockAtlas(); 
+            TextureManager.Instance.BuildBlockAtlas();
+            var dirtRegion = TextureManager.Instance.GetBlockUV("dirt");
 
             // ═══════════════════════════════════════════════════════════
             // ═══ 04 ═══ Mesh Manager
             MeshManager.Instance.Initialize();
-            testCube = MeshManager.Instance.CreateCube("testBlock", 1.0f);
+
+            testCube = MeshManager.Instance.CreateCube("testBlock", 1.0f, dirtRegion);
 
             // ═══════════════════════════════════════════════════════════
             // ═══ 05 ═══ Input Manager
             InputManager.Instance.Initialize();
-            InputManager.Instance.LockCursor(); // ═══ For FPS-Cam
+            InputManager.Instance.LockCursor();
 
             // ═══════════════════════════════════════════════════════════
             // ═══ 06 ═══ Camera Manager
@@ -396,12 +398,14 @@ namespace Create_your_Adventure
         {
             float dt = (float)deltaTime;
 
-            // ═══ Input Frame beginn
-            InputManager.Instance.BeginFrame();
-
             camera?.Update(dt);
 
-            InputManager.Instance.EndFrame((float)deltaTime);
+            // ═══ Input Frame End
+            InputManager.Instance.EndFrame(dt);
+
+            // ═══ Input Frame begin
+            InputManager.Instance.BeginFrame();
+
 
             // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
@@ -443,8 +447,17 @@ namespace Create_your_Adventure
                 // Später: Uniforms setzen, Draw Calls, etc.
                 // shader.SetUniform("uView", viewMatrix);
                 // shader.SetUniform("uProjection", projectionMatrix);
+                var windowSize = WindowManager.Instance.Size;
+
                 shader.SetUniform("uView", camera.GetViewMatrix());
-                shader.SetUniform("uProjection", camera.GetProjectionMatrix(1920, 1080));
+                shader.SetUniform("uProjection", camera.GetProjectionMatrix(
+                    windowSize.X,
+                    windowSize.Y,
+                    fovDegrees: 60f,
+                    near: 0.1f,
+                    far: 1000f
+                    )); 
+                shader.SetUniform("uModel", Matrix4X4<float>.Identity);
             }
 
             // ═══════════════════════════════════════════════════════════

@@ -61,9 +61,15 @@ namespace Create_your_Adventure.Source.Gamelogic.Camera
             if (input.IsActionTriggered("ToggleCursorLock"))
                 input.ToggleCursorLock();
 
+            // ═══ Debug-Combos
+            if (input.IsDebugCombo(KeyCode.F3, KeyCode.G))
+                Logger.Info("[CAMERA] Debug: Chunk borders toggled");
+
+            if (input.IsDebugCombo(KeyCode.F3, KeyCode.B))
+                Logger.Info("[CAMERA] Debug: Hitboxes toggled");
+
             // ═══ Movement (Direct Queries!)
             ProcessMovement(deltaTime);
-
             ProcessRotation(deltaTime);
         }
 

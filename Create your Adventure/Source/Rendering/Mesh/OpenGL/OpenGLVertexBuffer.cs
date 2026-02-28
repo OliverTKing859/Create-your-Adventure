@@ -67,7 +67,7 @@ namespace Create_your_Adventure.Source.Rendering.Mesh.OpenGL
         {
             Layout = layout;
             VertexCount = vertices.Length;
-            VertexCount = vertices.Length * sizeof(T);
+            SizeInBytes = vertices.Length * sizeof(T);
 
             // ═══ Create and bind the OpenGL buffer object
             Handle = gl.GenBuffer();

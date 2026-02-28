@@ -70,7 +70,7 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
         {
             var btn = MouseConverter.Convert(button);
             if (btn.HasValue)
-                state?.SetMouseButtonUp(btn.Value);
+                state?.SetMouseButtonDown(btn.Value);
         }
 
         private void OnMouseMove(IMouse m, Vector2 position)

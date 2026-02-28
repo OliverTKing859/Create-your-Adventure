@@ -6,10 +6,10 @@ ChangeLogs
 - Projekt start
 - Repository erstellt
 
-## 0.0.0.1 Alpha | Hello World - 20.01.2026
+## 0.1.0.0 Alpha | Hello World - 20.01.2026
 - Hello World
 
-## 0.0.1.0 Alpha | Create Window - 20.01.2026
+## 0.1.1.0 Alpha | Create Window - 20.01.2026
 - Erstelle ein Fenster in C# mit Silk.NET auf OpenGL Basis
 	- Fenster ist auf HD Auflösung eingestellt
 	- Nutzt 4.6 OpenGL
@@ -20,70 +20,70 @@ ChangeLogs
 		- OnClose
 	- aktuelle Hintergrundfarbe ist fast Schwarz (RGB)
 
-## 0.0.1.1 Alpha | KHR Debug - 24.01.2026
+## 0.1.2.0 Alpha | KHR Debug - 24.01.2026
 - Erlaube es Unsafe Code zu nutzen
 	- Unsafe OnLoad
 - Erstellt ein KHR Debug Fenster
 	- Debug Nachrichten werden in der Konsole ausgegeben
 
-## 0.0.2.0 Alpha | Create Triangle - 30.01.2026
+## 0.1.3.0 Alpha | Create Triangle - 30.01.2026
 - Erstellt ein Dreieck
 	- Nutzt VBO, VAO und EBO
 	- Nutzt Shader (Vertex & Fragment)
 	- Nutzt GLSL 4.6
 	- Nutzt Farben für das Dreieck (RGB)
 
-## 0.0.3.0 Alpha | Create Cube - 26.01.2026
+## 0.1.4.0 Alpha | Create Cube - 26.01.2026
 - Erstellt einen Würfel
 	- Nutzt VBO, VAO und EBO
 	- Nutzt Shader (Vertex & Fragment)
 	- Nutzt GLSL 4.6
 	- Nutzt Farben für den Würfel (RGB)
 
-## 0.0.4.0 Alpha | Create Camera - 26.01.2026
+## 0.1.5.0 Alpha | Create Camera - 26.01.2026
 - Erstellt eine Kamera
 	- Nutzt Matrix Transformationen (Model, View, Projection)
 	- Nutzt Yaw, Pitch
 
-## 0.0.4.1 Alpha | Camera Controls - 27.01.2026
+## 0.1.6.0 Alpha | Camera Controls - 27.01.2026
 - Erstellt Kamera Steuerung
 	- Nutzt Maus (Gyro) und Tastatur (WASD, Space, Left Shift) Eingaben
 	- Nutzt Delta Time für Bewegung
 	- Pitch begrenzt auf -89 bis 89 Grad
 
-## 0.0.4.2 Alpha | Acceleration / Deceleration, Smooth - 29.01.2026
+## 0.1.7.0 Alpha | Acceleration / Deceleration, Smooth - 29.01.2026
 - Erstellt eine Beschleunigung / Verzögerung für die Kamera Bewegung
 - Nutzt Smooth Mouse Movement
 - Erhöht die Max Speed der Kamera
 
-## 0.0.4.3 Alpha |  - 29.01.2026 Mouse Sensitivity / Smoothing Factor
+## 0.1.8.0 Alpha |  - 29.01.2026 Mouse Sensitivity / Smoothing Factor
 - Nutzt Mouse Sensitivity
 - Nutzt Mouse Smoothing Faktor
 - Ändert Left Shift zu Left STRG
 
-## 0.0.4.4 Alpha | Revision of camera functions - 30.01.2026
+## 0.1.9.0 Alpha | Revision of camera functions - 30.01.2026
 
 - Ändert Acceleration / Deceleration zu eine horizontale Achse und eine vertikale Achse
 - Nutzt aufbauende Geschwindigkeit und abbauende Geschwindigkeit
 - Überarbeitung von Smoothing Factor
 
-## 0.0.4.5 Alpha | Fine-tuning the camera - 30.01.2026
+## 0.1.10.0 Alpha | Fine-tuning the camera - 30.01.2026
 
 - Überarbeitung der Variablen Namen
 - Code Optimierung
 - Vorbereitung auf Abstraktion für der Kamera Klasse
 
-## 0.0.4.6 Alpha | Smoothing reworked again - 30.01.2026
+## 0.1.11.0 Alpha | Smoothing reworked again - 30.01.2026
 
-## 0.0.5.0 Alpha | Abtraction Camera To Camera Class - 01.02.2026
+## 0.1.12.0 Alpha | Abtraction Camera To Camera Class - 01.02.2026
 
 - Abstraktion der Kamera in eine eigene Kamera Klasse
 
-## 0.0.5.1 Alpha | Added Commentary Improvements - 01.02.2026
+## 0.1.13.0 Alpha | Added Commentary Improvements - 01.02.2026
 
 - Hinzugefügt Kommentare zur Kamera Klasse
 
-## 0.0.6.0 Alpha | Texture Support - 02.02.2026
+## 0.1.14.0 Alpha | Texture Support - 02.02.2026
 
 - Integriert StbImageSharp für Textur-Dekodierung
 - Erstellt Textur-Loader mit dirt.png
@@ -95,7 +95,7 @@ ChangeLogs
     - Fragment Shader: uniform sampler2D uTexture
 - Vertex-Layout korrigiert: 24 Vertices (4 pro Seite) für korrektes UV-Mapping
 
-## 0.0.7.0 Alpha | GPU Instancing - 02.02.2026
+## 0.1.15.0 Alpha | GPU Instancing - 02.02.2026
 
 - Implementiert GPU-Instancing für performantes Rendern vieler Blöcke
     - 1 Draw Call für 4096 Blöcke (16×16×16 Grid)
@@ -110,7 +110,7 @@ ChangeLogs
     - Abstimmung für zentrierte Renderierung
 - Entfernt uModel Uniform (jetzt per-instance aus aInstanceMatrix)
 
-## 0.0.8.0 Alpha | Chunk Coordinate System - 03.02.2026
+## 0.1.16.0 Alpha | Chunk Coordinate System - 03.02.2026
 
 - Implementiert Chunk-basiertes Koordinaten-System
     - ChunkPosition (Chunk-Koordinaten in 3D)
@@ -123,7 +123,7 @@ ChangeLogs
 - Vorbereitung für dynamisches Chunk-Loading
 - Instance-Daten basierend auf Chunk-Position berechnet
 
-## 0.0.8.1 Alpha | Chunk Class Abstraction & Naming Conventions - 04.02.2026
+## 0.1.16.0 Alpha | Chunk Class Abstraction & Naming Conventions - 04.02.2026
 
 - Abstrahiert Instance-Daten in Chunk-Klasse
     - `InstanceMatrices` und `InstanceCount` sind nun Properties der Chunk-Klasse
@@ -139,7 +139,7 @@ ChangeLogs
     - Trennung von Logik (Chunk) und Rendering (Program)
 - Typo behoben: `RebuildInsanceData()` → `RebuildInstanceData()`
 
-## 0.0.8.2 Alpha | XML Documentation & AssetLoader - 04.02.2026
+## 0.2.0.0 Alpha | XML Documentation & AssetLoader - 04.02.2026
 
 - Implementiert XML-Dokumentation (Summaries) für alle Public-Methoden
     - Chunk.cs: Klassen-Summary, Properties und Methoden dokumentiert
@@ -154,7 +154,7 @@ ChangeLogs
     - `WorldTolocal()` → `WorldToLocal()`
 - Code-Stil vereinheitlicht (Englische Summaries, Inline-Kommentare)
 
-## 0.0.8.3 Alpha | Logger System Implementation - 05.02.2026
+## 0.2.1.0 Alpha | Logger System Implementation - 05.02.2026
 
 - Implementiert Logger-System für strukturierte Debug-Ausgaben
     - Logger-Klasse mit Info, Warn, Error und Debug Methoden
@@ -176,7 +176,7 @@ ChangeLogs
     - Error-Logs für fehlgeschlagene Texture-/Shader-Loads
 - Console.WriteLine() durch Logger-Aufrufe ersetzt für konsistente Ausgaben
 
-## 0.0.8.4 Alpha | Infinite World Architecture - 06.02.2026
+## 0.2.2.0 Alpha | Infinite World Architecture - 06.02.2026
 
 - Implementiert 64-Bit Chunk-Koordinaten für unendliche Weltgenerierung
     - `ChunkPosition` nutzt jetzt `Vector3D<long>` statt `Vector3D<int>`
@@ -199,7 +199,7 @@ ChangeLogs
     - Chunk-Klasse soll zukünftig reiner Daten-Container werden (Rendering-Logik separieren)
     - Aktuelle Instanz-Matrix-Generierung ist temporär für frühe Entwicklung
 
-## 0.0.9.0 Alpha | ImGui Debug Display - 08.02.2026
+## 0.2.3.0 Alpha | ImGui Debug Display - 08.02.2026
 
 - Implementiert ImGui-basiertes Debug-Display-System
     - FPS-Tracking mit Min/Max-Statistiken
@@ -216,7 +216,7 @@ ChangeLogs
 - DebugDisplay.cs als Static-Klasse mit Update() und RenderImGui() Methoden
 - Properties für FPS-Daten: CurrentFPS, MinFPS, MaxFPS, FrameTimeMs, ShowDebugWindow
 
-## 0.0.9.1 Alpha | Fix Everything Bullshit - 08.02.2026
+## 0.2.3.1 Alpha | Fix Everything Bullshit - 08.02.2026
 
 - DebugDisplay.cs allgemeine Verbesserungen und Bugfixes
     - FPS-Farbcodierung zuverlässiger implementiert
@@ -224,7 +224,7 @@ ChangeLogs
     - Reset Stats Funktionalität stabilisiert
     - Floating-Point-Formatierung konsistent gestaltet
 
-## 0.0.9.2 Alpha | ImGui Debug Display - 08.02.2026
+## 0.2.4.1 Alpha | ImGui Debug Display - 08.02.2026
 
 - Verbesserungen am ImGui-Debug-Display
     - Stabile FPS-Berechnung mit Akkumulator und 1s-Updateintervall
@@ -233,7 +233,7 @@ ChangeLogs
     - Reset-Stats-Button repariert und Stabilität erhöht
     - ImGui-Fensterflags, Positionierung und Transparenz (Alpha 0.35) optimiert
 
-## 0.0.10.0 Alpha | Refactor: WindowManager Abstraction - 08.02.2026 ⚠️ **BROKEN**
+## 0.3.0.0 Alpha | Refactor: WindowManager Abstraction - 08.02.2026 ⚠️ **BROKEN**
 - **Status:** ⚠️ Programm läuft aktuell **NICHT** - In Entwicklung
 - Beginn der Architektur-Refaktorierung
   - Erstellt `WindowManager` als Singleton Pattern
@@ -257,7 +257,7 @@ ChangeLogs
   - OnLoad() mit WindowManager kompatibel machen
   - Shader & Texture Manager abstrahieren
 
-## 0.0.10.1 Alpha | Refactor: RenderManager Abstraction - 09.02.2026
+## 0.3.1.0 Alpha | Refactor: RenderManager Abstraction - 09.02.2026
 
 - Implementiert RenderManager als zentrale Render-Verwaltung (Singleton Pattern)
   - Abstraktion der Rendering-Pipeline für verschiedene Graphics APIs
@@ -277,7 +277,7 @@ ChangeLogs
 - **Status:** ⚠️ RenderManager erstellt, Integration in Program.cs noch ausstehend
 - **Nächste Schritte:** ShaderManager, TextureLoader, RenderPipeline Abstraktion
 
-## 0.0.10.2 Alpha | ShaderProgram Class Finalization - 13.02.2026
+## 0.3.2.0 Alpha | ShaderProgram Class Finalization - 13.02.2026
 
 - Implementiert vollständige ShaderProgram Klasse mit Compile und Link Funktionalität
     - Vertex und Fragment Shader Kompilierung mit Fehlerprüfung
@@ -299,7 +299,7 @@ ChangeLogs
 - **Status:** ⚠️ ShaderProgram erstellt, Integration in Program.cs noch ausstehend
 - **Nächste Schritte:** ShaderManager, TextureLoader, RenderPipeline Abstraktion
 
-## 0.0.10.3 Alpha | ShaderManager Implementation & Documentation - 15.02.2026
+## 0.3.3.0 Alpha | ShaderManager Implementation & Documentation - 15.02.2026
 
 - Implementiert ShaderManager als Graphics API abstraction layer (Singleton Pattern)
     - Thread-safe Initialization mit Lock-Pattern
@@ -324,7 +324,7 @@ ChangeLogs
 - **Status:** ✅ ShaderManager vollständig implementiert - Graphics API unabhängig
 - **Nächste Schritte:** TextureManager Abstraktion, RenderPipeline Abstraktion, VAO/VBO/EBO Manager
 
-## 0.0.10.4 Alpha | API Abstraction: Graphics API Agnostic Shader System - 15.02.2026
+## 0.3.4.0 Alpha | API Abstraction: Graphics API Agnostic Shader System - 15.02.2026
 
 - Implementiert vollständiges Graphics API Abstraction Layer für Shader-Verwaltung
   - IShaderProgram Interface definiert API-unabhängigen Vertrag
@@ -341,7 +341,7 @@ ChangeLogs
 - **Architektur-Verbesserung:** Vollständige Trennung von Logik (Manager) und API-Details
 - **Erweiterbarkeit:** Neue Graphics APIs können hinzugefügt werden ohne Manager zu ändern
 
-## 0.0.11.0 Alpha | Shader System Abstraction & File Loading - 15.02.2026
+## 0.3.5.0 Alpha | Shader System Abstraction & File Loading - 15.02.2026
 
 - **Implementiert vollständiges Shader-Abstraktions-System mit API-Unabhängigkeit**
   - IShaderProgram Interface definiert Graphics API agnostischen Vertrag
@@ -394,7 +394,7 @@ ChangeLogs
 
 - **Nächste Schritte:** TextureManager Abstraktion, Input Manager, VAO/VBO Pipeline Manager
 
-## 0.0.12.0 Alpha | Texture System - Part 1 (API Abstraction) - 16.02.2026 ⚠️ **IN ENTWICKLUNG**
+## 0.4.0.0 Alpha | Texture System - Part 1 (API Abstraction) - 16.02.2026 ⚠️ **IN ENTWICKLUNG**
 
 - **Status:** ⚠️ Interfaces und Manager fertig, aber noch nicht bereit zum Starten
 - Implementiert vollständiges Texture-Abstraktions-System mit API-Unabhängigkeit
@@ -440,7 +440,7 @@ ChangeLogs
   - TextureManager in Program.cs integrieren
   - Atlas-Rendering und Block-UV-System testen
 
-## 0.0.12.1 Alpha | Texture System Implementation (Part 2) - 16.02.2026
+## 0.4.1.0 Alpha | Texture System Implementation - Part 2 - 16.02.2026
 
 - **Vollständiges Texture-Management-System implementiert**
   - ITexture Interface für API-Abstraktion (OpenGL, Vulkan, DirectX)
@@ -488,7 +488,7 @@ ChangeLogs
 - **Status:** ✅ TextureSystem vollständig funktional
 - **Nächste Schritte:** VAO/VBO Manager, RenderPipeline, Chunk-Mesh-Integration
 
-## 0.0.13.0 Alpha | Mesh System - Part 1 (VAO/VBO/EBO Abstraction) - 20.02.2026 🔄 **IN ARBEIT**
+## 0.5.0.0 Alpha | Mesh System - Part 1 (VAO/VBO/EBO Abstraction) - 20.02.2026 🔄 **IN ARBEIT**
 
 - **Status:** 🔄 In Arbeit - Interfaces und OpenGL-Implementierung abgeschlossen, Integration pending
 - Implementiert vollständiges Mesh-Abstraktions-System mit API-Unabhängigkeit
@@ -567,7 +567,7 @@ ChangeLogs
   - Performance-Benchmarking mit 4096+ Meshes
   - Face Culling & Greedy Meshing (zukünftig)
 
-## 0.0.13.1 Alpha | Project Documentation - LICENSE & README - 20.02.2026
+## 0.5.1.0 Alpha | Project Documentation - LICENSE & README - 20.02.2026
 
 - Hinzugefügt MIT License für Open-Source-Projekt
   - Klare Lizenzierung für Entwickler und Beitragstäter
@@ -587,7 +587,7 @@ ChangeLogs
 
 - **Status:** ✅ Projekt-Dokumentation fertiggestellt
 
-## 0.0.13.2 Alpha | Mesh System Implementation (VAO/VBO/EBO Abstraction) - 22.02.2026
+## 0.5.2.0 Alpha | Mesh System Implementation (VAO/VBO/EBO Abstraction) - 22.02.2026
 
 - **Vollständiges Mesh-Abstraktions-System mit API-Unabhängigkeit implementiert**
   - IMesh Interface definiert Graphics API agnostischen Vertrag
@@ -672,7 +672,7 @@ ChangeLogs
   - Render-Loop Integration mit Draw-Calls
   - Chunk-Mesh-Integration (Chunk → OpenGLMesh)
 
-## 0.0.14.0 Alpha | Input System - Part 1 (Enums, State & Bindings) - 24.02.2026 🔄 **IN ENTWICKLUNG**
+## 0.6.0.0 Alpha | Input System - Part 1 (Enums, State & Bindings) - 24.02.2026 🔄 **IN ENTWICKLUNG**
 
 - **Status:** 🔄 In Entwicklung - Umfassendes Input-System mit Enum-Definitionen, State-Management und Binding-System
 - Implementiert vollständiges Input-Abstraktions-System für Keyboard, Mouse und Gamepad
@@ -804,7 +804,7 @@ ChangeLogs
   - Integration in Program.cs OnLoad/OnUpdate
   - Key-Rebinding UI System
 
-## 0.0.14.1 Alpha | Input System - Part 2 (InputManager & Silk.NET Integration) - 25.02.2026 🔄 **IN ENTWICKLUNG**
+## 0.6.1.0 Alpha | Input System - Part 2 (InputManager & Silk.NET Integration) - 25.02.2026 🔄 **IN ENTWICKLUNG**
 
 - **Status:** 🔄 In Entwicklung - InputManager implementiert, Integration in Program.cs ausstehend
 - Implementiert vollständigen InputManager als zentrale Input-Verwaltung (Singleton Pattern)
@@ -1011,7 +1011,7 @@ ChangeLogs
   - Cursor-Lock beim Fenster-Focus
   - Key-Rebinding UI (zukünftig)
 
-## 0.0.14.2 Alpha | Input System - Part 3 (Device Abstraction & Converters) - 26.02.2026 🔄 **IN ENTWICKLUNG**
+## 0.6.2.0 Alpha | Input System - Part 3 (Device Abstraction & Converters) - 26.02.2026 🔄 **IN ENTWICKLUNG**
 
 - **Status:** 🔄 In Entwicklung - Device-Abstraktions-Layer implementiert, Part 4 (Finalisierung) ausstehend
 - Implementiert vollständige Device-Abstraktion für Keyboard, Mouse und Gamepad
@@ -1159,7 +1159,7 @@ ChangeLogs
   - Camera-Integration mit neuem Input-System
   - **Abschluss des Input-Systems** 🎯
 
-## 0.0.14.3 Alpha | Input System - Part 4 - Complete Implementation - 28.02.2026
+## 0.6.3.0 Alpha | Input System - Part 4 - Complete Implementation - 28.02.2026
 
 - **Vollständiges Input-Abstraktions-System implementiert**
   - Unterstützung für Keyboard, Mouse und Gamepad
@@ -1264,3 +1264,56 @@ ChangeLogs
   - Camera View/Projection Matrizen an Shader übergeben
   - Block visuell rendern (VAO/VBO funktioniert)
   - Chunk-System reaktivieren
+
+## 0.6.3.1 Alpha | Bugfix: Rendering Pipeline & Input Integration - 28.02.2026
+
+- **Kritische Rendering-Bugs behoben**
+  - OnRender() übergab keine View/Projection-Matrizen an Shader (Cube war unsichtbar)
+    - shader.SetUniform("uView", camera.GetViewMatrix())
+    - shader.SetUniform("uProjection", camera.GetProjectionMatrix(...))
+    - shader.SetUniform("uModel", Matrix4X4<float>.Identity) hinzugefügt
+  - Shader erhielt keine Transformations-Matrizen → Cube wurde nicht gerendert
+  - Window-Size wird jetzt korrekt von WindowManager.Instance.Size geholt
+
+- **Input-System Integration behoben**
+  - BeginFrame/EndFrame Reihenfolge korrigiert
+    - VORHER (falsch): EndFrame → Camera.Update → BeginFrame
+    - NACHHER (korrekt): BeginFrame → Camera.Update → EndFrame
+  - InputState wurde vor Camera-Update gecleart (Input war immer leer)
+  - Input-Events werden jetzt korrekt pro Frame verarbeitet
+
+- **Camera-System Fixes**
+  - Camera.Update() rief nicht-existente Methoden auf
+    - ApplyMovement() → ProcessMovement() (existiert jetzt)
+    - ApplyRotation() → ProcessRotation() (existiert jetzt)
+  - Camera nutzt jetzt InputManager.Instance für Direct Queries
+    - IsKeyDown(KeyCode.W/A/S/D) für Bewegung
+    - GetLookVector() für Maus-Rotation
+    - IsDebugCombo(F3, G) für Debug-Ausgaben
+  - ProcessMovement() implementiert mit WASD + Sprint + Space/Ctrl
+  - ProcessRotation() implementiert mit Maus-Smoothing
+  - Rotation-Berechnung Typo behoben (yawRad: 180 → 180f)
+
+- **MeshManager API-Fix**
+  - CreateCube() Signatur korrigiert
+    - VORHER: CreateCube(string name, float size)
+    - NACHHER: CreateCube(string name, float size, AtlasRegion region)
+  - UV-Koordinaten werden jetzt korrekt von AtlasRegion übernommen
+  - Program.cs ruft MeshManager.CreateCube() mit dirtRegion auf
+  - Alle 6 Cube-Flächen nutzen korrekte UV-Mapping
+
+- **InputAnalyzer Integration**
+  - InputManager.Analyzer Property wurde nicht initialisiert (null)
+  - Analyzer wird jetzt in InputManager.Initialize() erstellt
+  - Camera kann jetzt Direct Queries nutzen
+  - IsDebugCombo(modifier, key) funktioniert korrekt
+    - F3+G logged "[CAMERA] Debug: Chunk borders toggled"
+    - F3+B logged "[CAMERA] Debug: Hitboxes toggled"
+
+- **Logging-Verbesserungen**
+  - Camera Position-Log nutzt Vector3D-Notation: `<0, 0, 5>`
+  - Konsistente Formatierung für alle Vector-Logs
+  - Debug-Combos werden in Console ausgegeben
+
+- **Testing & Validation**
+  - ✅ Cube 
