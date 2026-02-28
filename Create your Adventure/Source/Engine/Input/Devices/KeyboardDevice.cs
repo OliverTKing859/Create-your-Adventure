@@ -3,6 +3,7 @@ using Silk.NET.Input;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static Create_your_Adventure.Source.Engine.Input.InputConverter;
 
 namespace Create_your_Adventure.Source.Engine.Input.Devices
 {

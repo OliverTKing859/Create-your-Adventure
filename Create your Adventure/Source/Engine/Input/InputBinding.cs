@@ -7,13 +7,10 @@ namespace Create_your_Adventure.Source.Engine.Input
     public class InputAction
     {
         public string Name { get; }
-
         public InputActionType Type { get; }
-
         public List<InputBinding> Bindings { get; } = [];
 
         public event Action<InputAction>? Triggered;
-
         public event Action<InputAction, float>? AxisChanged;
 
         public InputAction(string name, InputActionType type)
@@ -47,14 +44,15 @@ namespace Create_your_Adventure.Source.Engine.Input
     public abstract class InputBinding
     {
         public abstract bool IsActive(InputState state, InputActionType actionType);
-
         public virtual float GetAxisValue(InputState state) => 0f;
-
         public abstract string Serialize();
 
         public static InputBinding Deserialize(string data)
         {
             var parts = data.Split(':');
+            if (parts.Length < 2)
+                throw new ArgumentException($"Invalid binding format: {data}");
+
             var type = parts[0];
             var value = parts[1];
 
@@ -78,7 +76,23 @@ namespace Create_your_Adventure.Source.Engine.Input
             return new KeyBinding(mainKey, modifiers);
         }
 
-        // ═══ Additional parse methods
+        private static InputBinding ParseMouseBinding(string value)
+        {
+            var button = Enum.Parse<MouseButton>(value);
+            return new MouseButtonBinding(button);
+        }
+
+        private static InputBinding ParseGamepadBinding(string value)
+        {
+            var button = Enum.Parse<GamepadButton>(value);
+            return new GamepadButtonBinding(button);
+        }
+
+        private static InputBinding ParseAxisBinding(string value)
+        {
+            var axis = Enum.Parse<GamepadAxis>(value);
+            return new GamepadAxisBinding(axis);
+        }
     }
 
     public class KeyBinding : InputBinding
@@ -94,15 +108,15 @@ namespace Create_your_Adventure.Source.Engine.Input
 
         public override bool IsActive(InputState state, InputActionType actionType)
         {
-            if (!Modifiers.All(m => state.IsKeyDown(m)))
+            if (!Modifiers.All(m => state.CurrentKeys.Contains(m)))
                 return false;
 
             return actionType switch
             {
-                InputActionType.Pressed => state.IsKeyPressed(Key),
-                InputActionType.Held => state.IsKeyDown(Key),
-                InputActionType.Released => state.IsKeyReleased(Key),
-                InputActionType.LongPress => state.IsKeyLongPressed(Key),
+                InputActionType.Pressed => state.CurrentKeys.Contains(Key) && !state.PreviousKeys.Contains(Key),
+                InputActionType.Held => state.CurrentKeys.Contains(Key),
+                InputActionType.Released => !state.CurrentKeys.Contains(Key) && state.PreviousKeys.Contains(Key),
+                InputActionType.LongPress => state.KeyHoldTimes.TryGetValue(Key, out var t) && t >= 0.5f,
                 _ => false
             };
         }
@@ -129,9 +143,9 @@ namespace Create_your_Adventure.Source.Engine.Input
         {
             return actionType switch
             {
-                InputActionType.Pressed => state.IsMouseButtonPressed(Button),
-                InputActionType.Held => state.IsMouseButtonDown(Button),
-                InputActionType.Released => state.IsMouseButtonReleased(Button),
+                InputActionType.Pressed => state.CurrentMouseButtons.Contains(Button) && !state.PreviousMouseButtons.Contains(Button),
+                InputActionType.Held => state.CurrentMouseButtons.Contains(Button),
+                InputActionType.Released => !state.CurrentMouseButtons.Contains(Button) && state.PreviousMouseButtons.Contains(Button),
                 _ => false
             };
         }
@@ -152,8 +166,9 @@ namespace Create_your_Adventure.Source.Engine.Input
         {
             return actionType switch
             {
-                InputActionType.Pressed => state.IsGamepadButtonPressed(Button),
-                InputActionType.Held => state.IsGamepadButtonPressed(Button),
+                InputActionType.Pressed => state.CurrentGamepadButtons.Contains(Button) && !state.PreviousGamepadButtons.Contains(Button),
+                InputActionType.Held => state.CurrentGamepadButtons.Contains(Button),
+                InputActionType.Released => !state.CurrentGamepadButtons.Contains(Button) && state.PreviousGamepadButtons.Contains(Button),
                 _ => false
             };
         }
@@ -178,7 +193,8 @@ namespace Create_your_Adventure.Source.Engine.Input
 
         public override float GetAxisValue(InputState state)
         {
-            return state.GetGamepadAxis(Axis, Deadzone);
+            if (!state.GamepadAxes.TryGetValue(Axis, out var value)) return 0f;
+            return MathF.Abs(value) < Deadzone ? 0f : value;
         }
 
         public override string Serialize() => $"Axis:{Axis}";

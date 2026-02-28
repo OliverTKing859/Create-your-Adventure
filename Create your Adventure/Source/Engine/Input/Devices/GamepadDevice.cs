@@ -3,6 +3,7 @@ using Silk.NET.Input;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static Create_your_Adventure.Source.Engine.Input.InputConverter;
 
 namespace Create_your_Adventure.Source.Engine.Input.Devices
 {
@@ -34,7 +35,7 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
             if (gamepad is null) return;
 
             state = inputState;
-            gamepad.ButtonDown += OnButtomDown;
+            gamepad.ButtonDown += OnButtonDown;
             gamepad.ButtonUp += OnButtonUp;
         }
 
@@ -42,8 +43,8 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
         {
             if (gamepad is null) return;
 
-            gamepad.ButtonDown -= OnButtomDown;
-            gamepad.ButtonUp -= OnButtomUp;
+            gamepad.ButtonDown -= OnButtonDown;
+            gamepad.ButtonUp -= OnButtonUp;
         }
 
         public void Poll(InputState inputState)

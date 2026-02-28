@@ -2,7 +2,9 @@
 using Silk.NET.Input;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
+using static Create_your_Adventure.Source.Engine.Input.InputConverter;
 
 namespace Create_your_Adventure.Source.Engine.Input.Devices
 {
@@ -35,6 +37,17 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
             }
         }
 
+        public void RegisterEvents(InputState inputState)
+        {
+            if (mouse is null) return;
+
+            state = inputState;
+            mouse.MouseDown += OnMouseDown;
+            mouse.MouseUp += OnMouseUp;
+            mouse.MouseMove += OnMouseMove;
+            mouse.Scroll += OnScroll;
+        }
+
         public void UnregisterEvents()
         {
             if (mouse is null) return;
@@ -47,6 +60,12 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
 
         public void Poll(InputState state) { } // ═══ Mouse does not require polling
 
+        private void OnMouseUp(IMouse m, Silk.NET.Input.MouseButton button)
+        {
+            var btn = MouseConverter.Convert(button);
+            if (btn.HasValue)
+                state?.SetMouseButtonUp(btn.Value);
+        }
         private void OnMouseDown(IMouse m, Silk.NET.Input.MouseButton button)
         {
             var btn = MouseConverter.Convert(button);

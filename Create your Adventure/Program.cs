@@ -21,6 +21,9 @@ namespace Create_your_Adventure
 {
     internal class Program
     {
+        private static IMesh? testCube;
+        private static Camera? camera;
+
         /*
         // -------- ImGui --------
         private static ImGuiController imGuiController;
@@ -172,7 +175,6 @@ namespace Create_your_Adventure
         // ══════════════════════════════════════════════════
         // ONLOAD
         // ══════════════════════════════════════════════════
-        private static IMesh? testCube;
         private static unsafe void OnLoad()
         {
             Logger.Info("[ENGINE] Loading resources...");
@@ -189,39 +191,22 @@ namespace Create_your_Adventure
             // ═══ 02 ═══ Shader Manager
             ShaderManager.Instance.Initialize();
 
-            // ═══════════════════════════════════════════════════════════
-            // SHADER LOAD FROM FILES (with AssetLoader)
-            // ═══════════════════════════════════════════════════════════
-
             var vertPath = AssetLoader.GetShaderPath("opengl/basic.vert");
             var fragPath = AssetLoader.GetShaderPath("opengl/basic.frag");
 
-            // ═══ Shader load from files and compile
-            var basicShader = ShaderManager.Instance.LoadFromFiles(
-                "basic", // name for cache
+            var shader = ShaderManager.Instance.LoadFromFiles(
+                "basic",
                 vertPath,
                 fragPath
                 );
 
-            // ═══ shader activate and set uniforms
-            basicShader.Use();
-            basicShader.SetUniform("uTexture", 0);
+            shader.Use();
+            shader.SetUniform("uTexture", 0);
 
             // ═══════════════════════════════════════════════════════════
             // ═══ 03 ═══ Texture Manager
             TextureManager.Instance.Initialize();
-
-            // ═══════════════════════════════════════════════════════════
-            // BUILD BLOCK ATLAS
-            // ═══════════════════════════════════════════════════════════
-            var blockAtlas = TextureManager.Instance.BuildBlockAtlas();
-
-            // ═══ Test: Get UV coordinates for a block
-            if (blockAtlas.HasTexture("dirt"))
-            {
-                var dirtRegion = TextureManager.Instance.GetBlockUV("dirt");
-                Logger.Info($"[ENGINE] Dirt UV: ({dirtRegion.U0:F3}, {dirtRegion.V0:F3}) - ({dirtRegion.U1:F3}, {dirtRegion.V1:F3})");
-            }
+            TextureManager.Instance.BuildBlockAtlas(); 
 
             // ═══════════════════════════════════════════════════════════
             // ═══ 04 ═══ Mesh Manager
@@ -234,12 +219,9 @@ namespace Create_your_Adventure
             InputManager.Instance.LockCursor(); // ═══ For FPS-Cam
 
             // ═══════════════════════════════════════════════════════════
-            // ═══ 06 ═══ Camera Manager (Under Construction)
+            // ═══ 06 ═══ Camera Manager
             camera = new Camera();
 
-            Logger.Info($"[ENGINE] TextureManager has {TextureManager.Instance.CachedAtlasCount} atlas(es) cached");
-            Logger.Info($"[ENGINE] ShaderManager has {ShaderManager.Instance.CachedProgramCount} program(s) cached");
-            Logger.Info($"[ENGINE] ShaderManager has {MeshManager.Instance.CachedMeshCount} program(s) cached");
             Logger.Info("[ENGINE] All resources loaded successfully");
 
             /*var gl = WindowManager.Instance.GlContext;
@@ -412,15 +394,16 @@ namespace Create_your_Adventure
         // ══════════════════════════════════════════════════
         private static void OnUpdate(double deltaTime)
         {
-
-            // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
+            float dt = (float)deltaTime;
 
             // ═══ Input Frame beginn
             InputManager.Instance.BeginFrame();
 
-            camera.Update(deltaTime);
+            camera?.Update(dt);
 
             InputManager.Instance.EndFrame((float)deltaTime);
+
+            // Game Logic (Input, Physics, Chunk Management, etc pp 😜)
 
             /*
             // -------- Update ImGui
@@ -455,11 +438,13 @@ namespace Create_your_Adventure
             // ═══ Rendering with Shader Manager
             var shader = ShaderManager.Instance.UseProgram("basic");
 
-            if (shader is not null)
+            if (shader is not null && camera is not null)
             {
                 // Später: Uniforms setzen, Draw Calls, etc.
                 // shader.SetUniform("uView", viewMatrix);
                 // shader.SetUniform("uProjection", projectionMatrix);
+                shader.SetUniform("uView", camera.GetViewMatrix());
+                shader.SetUniform("uProjection", camera.GetProjectionMatrix(1920, 1080));
             }
 
             // ═══════════════════════════════════════════════════════════

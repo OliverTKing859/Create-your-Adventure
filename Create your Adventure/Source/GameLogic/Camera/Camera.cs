@@ -1,286 +1,167 @@
 ﻿using Create_your_Adventure.Source.Debug;
 using Create_your_Adventure.Source.Engine.Input;
+using Silk.NET.Input;
 using Silk.NET.Maths;
 using System.Numerics;
 
 namespace Create_your_Adventure.Source.Gamelogic.Camera
 {
-    // Future me: When you do first-person and third-person later, you'll do it with an ->interface<- "ICamera".
-
-
-    /// <summary>
-    /// A free-flying debug camera with smooth WASD movement and mouse look.
-    /// Supports sprinting, vertical movement (Space/Ctrl), and configurable acceleration.
-    /// </summary>
-    /// <remarks>
-    /// Future: Implement <c>ICamera</c> interface for first-person and third-person variants.
-    /// </remarks>
     public class Camera
     {
-        // -------- Configurations --------
-        // --- Mouse
-        private float mouseSensitivity = 50.0f;
-        private float mouseSmoothingFactor = 60.0f;
+        // ══════════════════════════════════════════════════
+        // CONFIGURATION
+        // ══════════════════════════════════════════════════
+        private float mouseSensitivity = 0.1f;
+        private float mouseSmoothingFactor = 15.0f;
 
-        // --- Camera Movement
+        // ═══ Movement
         private float movementSpeed = 6.0f;
-        private float movementVerticalSpeed = 5.0f;
-        private float sprintMovementSpeedMultiplier = 2.5f;
+        private float verticalSpeed = 5.0f;
+        private float sprintMultiplier = 2.5f;
 
-        // --- Acceleration & Deceleration
-        private float accelerationHorizontalRate = 4.0f;
-        private float decelerationHorizontalRate = 2.0f;
-        private float accelerationVerticalRate = 12.0f;
-        private float decelerationVerticalRate = 8.0f;
+        // ═══ accel & decel rate
+        private float accelerationRate = 8.0f;
+        private float decelerationRate = 6.0f;
 
-        // --- Velocity
-        private float velocityVertical = 0.0f;
-        private Vector3D<float> velocityHorizontal = Vector3D<float>.Zero;
-
-        // -------- Camera State --------
-        private Vector3D<float> cameraPosition = new(0f, 0f, 3f);
+        // ══════════════════════════════════════════════════
+        // STATE
+        // ══════════════════════════════════════════════════
+        private Vector3D<float> position = new(0f, 0f, 5f);
         private float yaw = -90f;
         private float pitch = 0f;
+        
+        private Vector3D<float> velocity = Vector3D<float>.Zero;
+        private float verticalVelocity = 0f;
+        private Vector2 smoothedMouseDelta = Vector2.Zero;
 
-        // -------- Mouse State ---------
-        private Vector2 mouseDeltaSmoothed = Vector2.Zero;
-        private Vector2 rawMouseDelta = Vector2.Zero;
-        private bool firstMouse = true;
-        private Vector2 lastMousePosition;
+        // ══════════════════════════════════════════════════
+        // PROPERTIES
+        // ══════════════════════════════════════════════════
+        public Vector3D<float> Position => position;
+        public float Yaw => yaw;
+        public float Pitch => pitch;
 
-        // -------- Cache Matrices --------
-        private Matrix4X4<float> view;
-        private Matrix4X4<float> projection;
-
-        // CONSTRUCTION ----------------------------------------------------------------
-
-        /// <summary>
-        /// Initializes a new camera with default position (0, 0, 3) and rotation (yaw: -90°, pitch: 0°).
-        /// </summary>
+        // ══════════════════════════════════════════════════
+        // CONSTRUCTOR
+        // ══════════════════════════════════════════════════
         public Camera()
         {
-            Logger.Info($"[CAMERA] Initialized at position: {cameraPosition}");
-            Logger.Info($"[CAMERA] Initial rotation - Yaw: {yaw}°, Pitch: {pitch}°");
+            Logger.Info($"[CAMERA] Initialized at {position}");
         }
 
-        // UPDATE ----------------------------------------------------------------------
+        // ══════════════════════════════════════════════════
+        // UPDATE (Direct queries only!)
+        // ══════════════════════════════════════════════════
 
-        /// <summary>
-        /// Updates the camera position and rotation based on input and delta time.
-        /// Applies smooth acceleration/deceleration for fluid movement.
-        /// </summary>
-        /// <param name="deltaTime">Time elapsed since last frame in seconds.</param>
-        /// <param name="keyW">Forward movement input.</param>
-        /// <param name="keyA">Left strafe input.</param>
-        /// <param name="keyS">Backward movement input.</param>
-        /// <param name="keyD">Right strafe input.</param>
-        /// <param name="keySpace">Upward movement input.</param>
-        /// <param name="keyLeftCtrl">Downward movement input.</param>
-        /// <param name="keyLeftShift">Sprint modifier input.</param>
-        public void Update(double deltaTime)
+        public void Update(float deltaTime)
         {
-            // ═══ Delta Time
-            float dt = (float)deltaTime;
-
-            // ═══ Input of InputManager to get (Not more on Silk.NET directly)
             var input = InputManager.Instance;
 
-            // ═══ Movement Vector (Keyboard or Gamepad)
-            Vector2 movement = input.GetMovementVector();
-            bool isSprinting = input.IsKeyDown(KeyCode.LeftShift) ||
-                               input.IsGamepadButtonDown(GamepadButton.LeftBumper);
-
-            // ═══ Vertical Movement
-            float verticalInput = 0f;
-            if (input.IsKeyDown(KeyCode.Space)) verticalInput += 1f;
-            if (input.IsKeyDown(KeyCode.LeftControl)) verticalInput -= 1f;
-
-            // ═══ Look Vector
-            Vector2 lookDelta = input.GetLookVector();
-
-            // ═══ Toggle Cursor Lock (ESC)
+            // ═══ Cursor toggle (only action use permitted)
             if (input.IsActionTriggered("ToggleCursorLock"))
-            {
                 input.ToggleCursorLock();
-            }
 
-            /*
-            // -------- View --------
-            Vector3D<float> viewForward = GetViewDirection(yaw, pitch);
-            Vector3D<float> viewRight = Vector3D.Normalize(Vector3D.Cross(viewForward, Vector3D<float>.UnitY));
-            //Code fossil: Vector3D<float> viewUp = Vector3D<float>.UnitY;
+            // ═══ Movement (Direct Queries!)
+            ProcessMovement(deltaTime);
 
-            // -------- Input Direction --------
-            Vector3D<float> viewForwardHorizontal = Vector3D.Normalize(new Vector3D<float>(viewForward.X, 0, viewForward.Z));
-            Vector3D<float> inputDirection = Vector3D<float>.Zero;
-
-            // -------- WASD --------
-            if (keyW)
-            {
-                inputDirection += viewForwardHorizontal;
-            }
-            if (keyA)
-            {
-                inputDirection -= viewRight;
-            }
-            if (keyS)
-            {
-                inputDirection -= viewForwardHorizontal;
-            }
-            if (keyD)
-            {
-                inputDirection += viewRight;
-            }
-
-            // --- Normalize input direction to prevent faster diagonal movement
-            if (inputDirection.LengthSquared > 0)
-            {
-                inputDirection = Vector3D.Normalize(inputDirection);
-            }
-
-            // -------- Sprint Input --------
-            float speed = movementSpeed;
-            if (keyLeftShift)
-            {
-                speed *= sprintMovementSpeedMultiplier;
-            }
-
-            // -------- Horizontal Velocity --------
-            Vector3D<float> targetVelocity = inputDirection * speed;
-            float rate = (inputDirection.LengthSquared > 0) ? accelerationHorizontalRate : decelerationHorizontalRate;
-            velocityHorizontal = Vector3D.Lerp(
-                velocityHorizontal,
-                targetVelocity,
-                1.0f - MathF.Exp(-rate * dt)
-                );
-
-            // -------- Vertical Input (Space/Ctrl) --------
-            float targetVertical = 0f;
-
-            if (keySpace)
-            {
-                targetVertical += movementVerticalSpeed;
-            }
-            if (keyLeftCtrl)
-            {
-                targetVertical -= movementVerticalSpeed;
-            }
-
-            // -------- Vertical Velocity --------
-            float verticalRate = (MathF.Abs(targetVertical) > 0.001f)
-                ? accelerationVerticalRate
-                : decelerationVerticalRate;
-
-            float verticalLerpFactor = 1.0f - MathF.Exp(-verticalRate * dt);
-            velocityVertical = velocityVertical + (targetVertical - velocityVertical) * verticalLerpFactor;
-
-            // -------- Apply Movement --------
-            cameraPosition += velocityHorizontal * dt;
-            cameraPosition.Y += velocityVertical * dt;
-
-            // -------- Mouse Smoothing --------
-            float smoothFactor = 1.0f - MathF.Exp(-mouseSmoothingFactor * dt);
-            mouseDeltaSmoothed = Vector2.Lerp(mouseDeltaSmoothed, rawMouseDelta, smoothFactor);
-
-            // -------- Apply Rotation --------
-            yaw += mouseDeltaSmoothed.X * mouseSensitivity * dt;
-            pitch -= mouseDeltaSmoothed.Y * mouseSensitivity * dt;
-            // --- Clamp Pitch
-            pitch = Math.Clamp(pitch, -89f, 89f);
-
-            // --- Reset raw delta for next frame
-            rawMouseDelta = Vector2.Zero;
-
-            */
-            // ═══ Apply
-            ApplyMovement(movement, verticalInput, isSprinting, dt);
-            ApplyRotation(lookDelta, dt);
+            ProcessRotation(deltaTime);
         }
 
-        // VIEW MAXTRIX ---------------------------------------------------
+        private void ProcessMovement(float dt)
+        {
+            var input = InputManager.Instance;
 
-        /// <summary>
-        /// Computes the view matrix based on current camera position and orientation.
-        /// </summary>
-        /// <returns>A look-at view matrix for rendering.</returns>
+            // ═══ Direction-Vectors
+            var forward = GetViewDirection();
+            var right = Vector3D.Normalize(Vector3D.Cross(forward, Vector3D<float>.UnitY));
+            var forwardFlat = Vector3D.Normalize(new Vector3D<float>(forward.X, 0, forward.Z));
+
+            // ═══ Input (Direct Queries!)
+            Vector3D<float> inputDir = Vector3D<float>.Zero;
+
+            if (input.IsKeyDown(KeyCode.W)) inputDir += forwardFlat;
+            if (input.IsKeyDown(KeyCode.S)) inputDir -= forwardFlat;
+            if (input.IsKeyDown(KeyCode.A)) inputDir -= right;
+            if (input.IsKeyDown(KeyCode.D)) inputDir += right;
+
+            if (inputDir.LengthSquared > 0)
+                inputDir = Vector3D.Normalize(inputDir);
+
+            // ═══ Sprint
+            float speed = movementSpeed;
+            if (input.IsKeyDown(KeyCode.LeftShift))
+                speed *= sprintMultiplier;
+
+            // ═══ Horizontal Velocity (Smooth)
+            var targetVel = inputDir * speed;
+            float rate = inputDir.LengthSquared > 0 ? accelerationRate : decelerationRate;
+            velocity = Vector3D.Lerp(velocity, targetVel, 1f - MathF.Exp(-rate * dt));
+
+            // ═══ Vertical
+            float targetVert = 0f;
+            if (input.IsKeyDown(KeyCode.Space)) targetVert += verticalSpeed;
+            if (input.IsKeyDown(KeyCode.LeftControl)) targetVert -= verticalSpeed;
+
+            verticalVelocity = MathHelper.Lerp(verticalVelocity, targetVert, 1f - MathF.Exp(-accelerationRate * dt));
+
+            // ═══ Apply
+            position += velocity * dt;
+            position.Y += verticalVelocity * dt;
+        }
+
+        private void ProcessRotation(float dt)
+        {
+            var input = InputManager.Instance;
+
+            // ═══ Mouse Delta (Direct Query!)
+            var rawDelta = input.GetLookVector();
+
+            // ═══ Smoothing
+            float smooth = 1f - MathF.Exp(-mouseSmoothingFactor * dt);
+            smoothedMouseDelta = Vector2.Lerp(smoothedMouseDelta, rawDelta, smooth);
+
+            // ═══ Apply Rotation
+            yaw += smoothedMouseDelta.X * mouseSensitivity;
+            pitch -= smoothedMouseDelta.Y * mouseSensitivity;
+            pitch = Math.Clamp(pitch, -89f, 89f);
+        }
+
+        // ══════════════════════════════════════════════════
+        // MATRICES
+        // ══════════════════════════════════════════════════
         public Matrix4X4<float> GetViewMatrix()
         {
-            // -------- Calculate camera axes --------
-            Vector3D<float> cameraFront = GetViewDirection(yaw, pitch);
-            Vector3D<float> cameraRight = Vector3D.Normalize(Vector3D.Cross(cameraFront, Vector3D<float>.UnitY));
-            Vector3D<float> cameraUp = Vector3D.Cross(cameraRight, cameraFront);
-            return Matrix4X4.CreateLookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
+            var front = GetViewDirection();
+            var right = Vector3D.Normalize(Vector3D.Cross(front, Vector3D<float>.UnitY));
+            var up = Vector3D.Cross(right, front);
+            return Matrix4X4.CreateLookAt(position, position + front, up);
         }
 
-        // PROJECTION MATRIX ---------------------------------------------------
-
-        /// <summary>
-        /// Creates a perspective projection matrix for the given viewport dimensions.
-        /// </summary>
-        /// <param name="width">Viewport width in pixels.</param>
-        /// <param name="height">Viewport height in pixels.</param>
-        /// <param name="fovDegrees">Vertical field of view in degrees.</param>
-        /// <param name="near">Near clipping plane distance.</param>
-        /// <param name="far">Far clipping plane distance.</param>
-        /// <returns>A perspective projection matrix.</returns>
-        public Matrix4X4<float> CreatePerspective(int width, int height, float fovDegrees, float near, float far)
+        public Matrix4X4<float> GetProjectionMatrix(int width, int height, float fovDegrees = 60f, float near = 0.1f, float far = 1000f)
         {
-            if (width <= 0 || height <= 0)
-            {
-                Logger.Warn($"[CAMERA] Invalid viewport dimensions: {width}x{height} - using fallback aspect ratio 1.0");
-            }
-
-            float aspect = width <= 0 || height <= 0 ? 1.0f : (float)width / height;
-            float fov = DegreesToRadians(fovDegrees);
-
-            Logger.Info($"[CAMERA] Projection created - FOV: {fovDegrees}°, Aspect: {aspect:F2}, Near: {near}, Far: {far}");
-
-            return Matrix4X4.CreatePerspectiveFieldOfView(fov, aspect, near, far);
+            float aspect = height > 0 ? (float)width / height : 1f;
+            float fovRad = fovDegrees * (MathF.PI / 180f);
+            return Matrix4X4.CreatePerspectiveFieldOfView(fovRad, aspect, near, far);
         }
 
-        // MOUSE INPUT ---------------------------------------------------
-
-        /// <summary>
-        /// Processes mouse movement input for camera rotation.
-        /// Call this from your mouse move event handler.
-        /// </summary>
-        /// <param name="currentPosition">Current mouse position in screen coordinates.</param>
-        public void OnMouseMove(Vector2 currentPosition)
+        // ══════════════════════════════════════════════════
+        // HELPERS
+        // ══════════════════════════════════════════════════
+        private Vector3D<float> GetViewDirection()
         {
-            // -------- First Mouse Initialization --------
-            if (firstMouse)
-            {
-                lastMousePosition = currentPosition;
-                firstMouse = false;
-                Logger.Info("[CAMERA] Mouse input initialized");
-                return;
-            }
-
-            // -------- Calculate Delta --------
-            rawMouseDelta = currentPosition - lastMousePosition;
-            lastMousePosition = currentPosition;
-        }
-
-        // HELPER METHODS ---------------------------------------------------
-        private static Vector3D<float> GetViewDirection(float yawDegrees, float pitchDegrees)
-        {
-            // -------- Degrees to Radians --------
-            float yaw = DegreesToRadians(yawDegrees);
-            float pitch = DegreesToRadians(pitchDegrees);
-
-            // -------- Spherical to Cartesian --------
-            float sinPitch = MathF.Sin(pitch);
-            float cosPitch = MathF.Cos(pitch);
-            float sinYaw = MathF.Sin(yaw);
-            float cosYaw = MathF.Cos(yaw);
+            float yawRad = yaw * (MathF.PI / 180);
+            float pitchRad = pitch * (MathF.PI / 180f);
 
             return Vector3D.Normalize(new Vector3D<float>(
-                x: cosYaw * cosPitch,
-                y: sinPitch,
-                z: sinYaw * cosPitch
-                )
-                );
+                MathF.Cos(yawRad) * MathF.Cos(pitchRad),
+                MathF.Sin(pitchRad),
+                MathF.Sin(yawRad) * MathF.Cos(pitchRad)
+                ));
         }
-        private static float DegreesToRadians(float degrees) => degrees * (MathF.PI / 180.0f);
+
+        internal static class MathHelper
+        {
+            public static float Lerp(float a, float b, float t) => a + (b - a) * t;
+        }
     }
 }
