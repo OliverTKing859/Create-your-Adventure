@@ -1317,3 +1317,131 @@ ChangeLogs
 
 - **Testing & Validation**
   - ✅ Cube 
+
+## 0.6.3.2 Alpha | Input System - Documentation & Code Comments - 01.03.2026
+
+- **Vollständige XML-Dokumentation für Input-System hinzugefügt**
+  - Alle Public-Methoden mit `<summary>` Tags dokumentiert
+  - Parameter-Dokumentation mit `<param>` für alle Methoden
+  - Return-Type-Dokumentation mit `<returns>` wo relevant
+  - Exception-Dokumentation mit `<exception>` für InvalidOperationException
+
+- **InputManager - XML-Dokumentation**
+  - Initialize(): Beschreibt Device-Erkennung und Event-Registrierung
+  - BeginFrame() / EndFrame(deltaTime): Lifecycle-Beschreibung
+  - SetCursorMode(CursorMode): Alle 5 Modi erklärt (Visible, Hidden, Locked, Confined, ConfinedHidden)
+  - Direct Query API dokumentiert
+    - IsKeyDown/Pressed/Released/LongPressed: Unterschiede erklärt
+    - GetMousePosition/Delta/ScrollDelta: Position vs. Delta erklärt
+    - GetGamepadAxis/LeftStick/RightStick: Deadzone-Parameter dokumentiert
+  - GetMovementVector() / GetLookVector(): Keyboard/Gamepad-Fallback erklärt
+  - RegisterAction() / IsActionTriggered(): Action-System dokumentiert
+  - Properties: HasKeyboard, HasMouse, HasGamepad, IsInitialized, CurrentCursorMode
+
+- **InputState - Interne API dokumentiert**
+  - BeginFrame(): Previous-State-Speicherung erklärt
+  - EndFrame(deltaTime): Hold-Time-Tracking erklärt
+  - Setter-Methoden dokumentiert
+    - SetKeyDown/Up: Keyboard-State-Verwaltung
+    - SetMouseButtonDown/Up: Mouse-Button-State
+    - SetMousePosition/Delta/ScrollDelta: Position- und Delta-Tracking
+    - SetGamepadButtonDown/Up: Gamepad-Button-State
+    - SetGamepadAxis: Achsen-Wert-Speicherung
+    - SetTriggerValue: Analoge Trigger-Werte
+  - Field-Dokumentation für State-Dictionaries
+
+- **InputBinding - Serialization-System dokumentiert**
+  - InputAction Klasse
+    - Name, Type Properties erklärt
+    - Triggered / AxisChanged Events dokumentiert
+    - AddKeyBinding/GamepadBinding/AxisBinding: Fluent API erklärt
+  - InputBinding Abstract Base
+    - IsActive(InputState, InputActionType): Aktivierungs-Logik
+    - GetAxisValue(InputState): Analog-Wert-Retrieval
+    - Serialize() / Deserialize(): Serialization-Format dokumentiert
+  - Concrete Implementations
+    - KeyBinding: Modifier-Support erklärt (Ctrl+Shift+A)
+    - MouseButtonBinding: 5-Button-Unterstützung
+    - GamepadButtonBinding: Xbox-Style-Mapping
+    - GamepadAxisBinding: Deadzone-Funktionalität
+
+- **InputAnalyzer - Query-Interface dokumentiert**
+  - GetMovementVector(): WASD + Gamepad-Fallback erklärt
+  - GetLookVector(): Mouse-Delta + RightStick-Fallback erklärt
+  - IsDebugCombo(modifier, key): Debug-Kombinations-Prüfung
+    - Beispiel: F3+G für Chunk-Borders
+  - Deadzone-Parameter dokumentiert (default 0.15f)
+
+- **InputRegistry - Action-System dokumentiert**
+  - RegisterAction(name, type): Action-Erstellung erklärt
+  - ProcessActions(): Automatische Action-Evaluierung
+  - Fluent API dokumentiert
+    - AddKeyBinding(key, modifiers): Tastatur-Bindings
+    - AddGamepadBinding(button): Gamepad-Bindings
+  - Beispiel-Usage in XML-Comments
+
+- **InputConverter - Enum-Konvertierung dokumentiert**
+  - KeyConverter Nested Class
+    - Convert(Silk.NET.Input.Key): 60+ Key-Mappings erklärt
+    - Nullable KeyCode? Return dokumentiert
+  - MouseConverter Nested Class
+    - Convert(Silk.NET.Input.MouseButton): 5 Button-Mappings
+  - GamepadConverter Nested Class
+    - Convert(ButtonName): 15 Button-Mappings (Xbox-Layout)
+  - Rationale für Silk.NET-Mapping in Comments
+
+- **Device-Klassen - Vollständige Dokumentation**
+  - IInputDevice Interface
+    - Name Property: Geräte-Identifikation
+    - IsConnected Property: Verfügbarkeits-Check
+    - Initialize(): Setup-Prozess
+    - RegisterEvents(InputState): Event-Handler-Registrierung
+    - UnregisterEvents(): Event-Cleanup
+    - Poll(InputState): Frame-basiertes Polling (nur Gamepad)
+  - KeyboardDevice
+    - Event-basierte Architektur erklärt
+    - OnKeyDown/OnKeyUp: Key-Konvertierung dokumentiert
+    - "Kein Polling nötig" in Summary erwähnt
+  - MouseDevice
+    - SetCursorMode(CursorMode): Cursor-Steuerung erklärt
+    - RawMouse Property: Direkter IMouse-Zugriff
+    - lastPosition Tracking: Delta-Berechnung erklärt
+    - OnMouseMove: Delta-Kalkulation dokumentiert
+  - GamepadDevice
+    - Hybrid-Architektur dokumentiert (Events + Polling)
+    - TriggerThreshold: Trigger-als-Button erklärt (0.5f default)
+    - Poll(): Thumbstick- und Trigger-Polling dokumentiert
+    - SetTriggerValue(): Analoge Wert-Speicherung
+
+- **Enum-Dokumentation - Alle Werte beschrieben**
+  - KeyCode (60+ Tasten)
+    - Letters: A-Z mit Beschreibung
+    - Numbers: 0-9 mit Beschreibung
+    - Modifiers: LeftShift, RightShift, LeftControl, etc.
+    - Navigation: Up, Down, Left, Right, Home, End, etc.
+    - Special: Space, Enter, Escape, Tab, Backspace, etc.
+    - Numpad: Numpad0-9, Add, Subtract, Multiply, Divide, etc.
+  - MouseButton: Left, Right, Middle, Button4, Button5
+  - GamepadButton: 15 Buttons mit Xbox-Layout-Referenz
+  - GamepadAxis: LeftStickX/Y, RightStickX/Y (Trigger sind Buttons!)
+  - CursorMode: 5 Modi mit Verhalten beschrieben
+  - InputActionType: 6 Typen mit Use-Cases
+
+- **Inline-Comments - Komplexe Logik erklärt**
+  - InputManager.CheckAction(): Action-Evaluierungs-Loop erklärt
+  - InputState.BeginFrame/EndFrame: Lifecycle-Flow dokumentiert
+  - GamepadDevice.Poll(): Trigger-Threshold-Logik erklärt
+  - MouseDevice.OnMouseMove(): Delta-Berechnung kommentiert
+  - InputConverter: Silk.NET-Enum-Mapping-Rationale
+
+- **Code-Qualität-Verbesserungen**
+  - Konsistente XML-Dokumentation über alle Klassen
+  - Beispiele in XML-Comments wo hilfreich
+  - Parameter-Beschreibungen für alle Public-Methoden
+  - IntelliSense-freundliche Dokumentation
+
+- **Status:** ✅ Input-System vollständig dokumentiert
+- **Nächste Schritte:** 
+  - World-System Refactoring
+  - Chunk-Manager Implementation
+  - Block-System Design
