@@ -32,7 +32,6 @@
     <Folder Include="assets\base\audio\sounds\" />
     <Folder Include="assets\base\shaders\vulkan\" />
     <Folder Include="assets\modded\" />
-    <Folder Include="Source\Engine\Camera\" />
     <Folder Include="Source\Rendering\Mesh\Vulkan\" />
     <Folder Include="Source\Rendering\Shader\Vulkan\" />
     <Folder Include="Source\Rendering\RendererPipeline\" />

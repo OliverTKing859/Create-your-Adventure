@@ -1652,3 +1652,271 @@ ChangeLogs
   - ChunkMesher für Mesh-Generierung
   - Integration in Program.cs OnUpdate/OnRender
   - Camera-System mit WorldRelevanceFilter verbinden 
+
+  ## 0.7.1.0 Alpha | Camera Manager System - Part 2 (Complete Implementation for Camera) - 03.03.2026 **IN ENTWICKLUNG**
+
+- **Vollständiges modulares Camera-Management-System implementiert**
+  - Ersetzt alte monolithische Camera-Klasse durch Subsystem-Architektur
+  - Floating Origin Pattern für unendliche Welten
+  - Frustum Culling für Chunk-Visibility
+  - 5 Motion Modes mit unterschiedlichen Presets
+
+- **CameraManager - Zentrale Verwaltung**
+  - **Subsysteme:**
+    - CameraTransform: Position, Rotation, Direction Vectors
+    - CameraProjection: FOV, Aspect Ratio, Near/Far Planes
+    - CameraMotionModel: Velocity, Acceleration, Look Smoothing
+    - CameraWorldBinding: Floating Origin, Chunk Tracking
+  - **Update-API:**
+    - Update(dt, movementInput, lookInput, verticalInput, isSprinting)
+    - movementInput: Vector3D<float> (X/Z für horizontal, Y für vertikal in Fly-Mode)
+    - lookInput: Vector2D<float> (Mouse Delta)
+    - verticalInput: float (Space/Ctrl für Up/Down)
+    - isSprinting: bool (Sprint-Modifier)
+  - **Movement Processing:**
+    - ComputeWorldMovementDirection(): Berücksichtigt Current Motion Mode
+      - Walk/Default: Nutzt ForwardFlat (keine Y-Komponente)
+      - Fly/Spectator: Nutzt Forward (volle 3D-Bewegung)
+    - ApplyMovementInput(): Exponential Decay für smooth Acceleration/Deceleration
+    - ApplyVerticalInput(): Separate vertikale Bewegung
+  - **Rotation Processing:**
+    - ApplyLookInput(): Exponential Smoothing für Maus-Bewegung
+    - Yaw += delta.X (unbegrenzt)
+    - Pitch -= delta.Y (clamped -89° bis +89°)
+    - Roll Return: Automatischer Return zu 0° wenn !AllowRoll
+  - **Matrix Caching:**
+    - GetViewMatrix(): Cached mit matricesDirty Flag
+    - GetProjectionMatrix(): Cached mit matricesDirty Flag
+    - UpdateAspectRatio(width, height): Invalidiert Cache
+  - **Motion Mode Switching:**
+    - SetMotionMode(mode): Lädt entsprechende Presets
+    - Walk, Fly, Glider, Cinematic, Spectator Modi
+  - **Direct Setters:**
+    - TeleportTo(worldX, worldY, worldZ): Reset Position + Velocity
+    - SetRotation(yaw, pitch, roll): Direkte Rotation-Änderung
+    - SetFovModifier(modifier): Dynamische FOV-Änderung (Sprint, Zoom)
+  - **Output:**
+    - GetVisibilityContext(): Erzeugt CameraVisibilityContext für Renderer
+
+- **CameraTransform - Position & Rotation**
+  - **Position:**
+    - LocalPosition: Vector3D<float> (relativ zu OriginChunk, in Blöcken)
+    - Nutzt Floating Origin Pattern für Precision
+  - **Rotation (Euler Angles in Degrees):**
+    - Yaw: -180° bis +180° (horizontal)
+    - Pitch: -90° bis +90° (vertikal, clamped)
+    - Roll: -180° bis +180° (tilt, nur für Glider/Cinematic)
+  - **Direction Vectors (Computed on Demand):**
+    - Forward: Volle 3D-Richtung (berücksichtigt Pitch + Yaw)
+    - Right: Cross(Forward, WorldUp) mit Roll-Rotation
+    - Up: Cross(Right, Forward)
+    - ForwardFlat: Forward projected auf XZ-Ebene (für Walk-Mode)
+  - **Roll Support:**
+    - RotateAroundAxis(vector, axis, angleRad): Rodrigues' Rotation Formula
+    - Für Glider-Banking und Cinematic-Shots
+  - **Factory:**
+    - Default: Position (0, 64, 0), Yaw -90°, Pitch/Roll 0°
+
+- **CameraProjection - Projection Matrix**
+  - **FOV System:**
+    - BaseFov: Standard Field of View (70° default)
+    - FovModifier: Dynamische Änderung (Sprint +10°, Zoom -20°, etc.)
+    - EffectiveFov: BaseFov + FovModifier
+    - EffectiveFovRadians: Für Matrix-Berechnung
+  - **Planes:**
+    - NearPlane: 0.05f (sehr nah für First-Person)
+    - FarPlane: 2000f (für große Render-Distanzen)
+  - **Aspect Ratio:**
+    - AspectRatio: width / height
+    - UpdateAspect(width, height): Bei Window-Resize
+  - **Matrix Generation:**
+    - GetProjectionMatrix(): Perspective Projection mit EffectiveFov
+  - **Presets:**
+    - Standard: 70° FOV, 16:9, Near 0.05f, Far 2000f
+    - Cinematic: 50° FOV (engerer Blickwinkel), 21:9, Far 5000f
+    - FirstPerson: 90° FOV (Quake-Style), 16:9, Near 0.01f
+
+- **CameraMotionModel - Movement & Look Parameters**
+  - **Movement Parameters:**
+    - MaxSpeed: Basis-Geschwindigkeit in m/s
+    - SprintMultiplier: Sprint-Faktor (2.5x default)
+    - VerticalSpeed: Up/Down-Geschwindigkeit
+  - **Acceleration & Damping:**
+    - AccelerationRate: Geschwindigkeit der Beschleunigung (10.0 default)
+    - DecelerationRate: Geschwindigkeit der Verzögerung (8.0 default)
+    - DragCoefficient: Luftwiderstand für Glider (0.0 default, 0.02 für Glider)
+  - **Rotation Parameters:**
+    - LookSensitivity: Maus-Empfindlichkeit (0.1 default)
+    - LookSmoothing: Exponential Smoothing Faktor (18.0 default)
+    - MaxPitch: Pitch-Begrenzung (89° default)
+    - AllowRoll: Roll-Rotation erlaubt? (false für Walk/Fly, true für Glider)
+    - RollReturnRate: Return-to-Zero Rate für Roll (5.0 default)
+  - **Runtime State:**
+    - Velocity: Vector3D<float> (aktuelle Geschwindigkeit)
+    - VerticalVelocity: float (separate Y-Achse)
+    - SmoothedLookDelta: Vector2D<float> (geglätteter Maus-Input)
+  - **Motion Processing:**
+    - ApplyMovementInput(inputDir, isSprinting, dt):
+      - Berechnet targetVelocity = inputDir × (MaxSpeed × Sprint)
+      - ExpDecay zu targetVelocity mit AccelerationRate oder DecelerationRate
+    - ApplyVerticalInput(verticalInput, dt):
+      - Berechnet targetVert = verticalInput × VerticalSpeed
+      - ExpDecay zu targetVert
+    - ApplyLookInput(rawDelta, dt):
+      - Smoothing: Lerp(SmoothedLookDelta, rawDelta, smoothFactor)
+      - smoothFactor = 1 - exp(-LookSmoothing × dt)
+      - Returns SmoothedLookDelta × LookSensitivity
+    - ComputePositionDelta(dt):
+      - Returns (Velocity.X × dt, Velocity.Y × dt + VerticalVelocity × dt, Velocity.Z × dt)
+  - **Presets:**
+    - Walk: 6 m/s, Sprint 2.5x, Accel 10, Decel 8, Look 0.1
+    - Fly: 12 m/s, Sprint 4x, Accel 12, Decel 6, Drag 0.1
+    - Glider: 25 m/s, Sprint 1.5x, Accel 3, Decel 1, Drag 0.02, AllowRoll true
+    - Cinematic: 2 m/s, Sprint 3x, Accel 4, Decel 3, Look 0.05, AllowRoll true
+
+- **CameraWorldBinding - Floating Origin Pattern**
+  - **World Anchor:**
+    - OriginChunk: ChunkCoord (aktueller Referenz-Chunk für LocalPosition)
+    - CurrentChunk: ChunkCoord (Chunk in dem Kamera aktuell ist)
+    - LocalOffset: Vector3D<float> (Position innerhalb CurrentChunk, 0-16)
+  - **Origin Shift Detection:**
+    - OriginShiftThreshold: 256 Blöcke (16 Chunks)
+    - Wenn Distance(Camera, Origin) > 256: Origin Shift zu CurrentChunk
+    - Recalculates LocalPosition relativ zu neuem OriginChunk
+    - Verhindert Float-Precision-Probleme bei großen Distanzen
+  - **Events:**
+    - OriginShifted(oldOrigin, newOrigin): Für Renderer-Updates
+    - ChunkChanged(newChunk): Wenn Kamera Chunk-Grenze überquert
+  - **Coordinate Conversion:**
+    - LocalToWorld(localPosition): OriginChunk × 16 + localPosition
+    - WorldToLocal(worldX, worldY, worldZ): world - OriginChunk × 16
+    - WorldToChunkLocal(x, y, z): Static Helper für (ChunkCoord, offset) Tuple
+    - GetChunkLocalPosition(chunk): Chunk-Position relativ zu OriginChunk
+  - **Helpers:**
+    - FloorDivide(a, b): Korrekte Division für negative Zahlen (C# / tut das nicht!)
+    - Mod(a, b): Korrekte Modulo für negative Zahlen (result < 0 ? result + b : result)
+  - **Update Flow:**
+    1. UpdateFromLocalPosition(localPosition)
+    2. Berechnet worldPos = LocalToWorld(localPosition)
+    3. Bestimmt newChunk aus worldPos
+    4. ChunkChanged Event wenn newChunk != CurrentChunk
+    5. Berechnet LocalOffset innerhalb Chunk (Mod 16)
+    6. CheckOriginShift(): Shift wenn distance > 256
+    7. Returns correctedPosition (wichtig: muss zu LocalPosition geschrieben werden!)
+
+- **CameraVisibilityContext - Output für Rendering**
+  - **Position Data:**
+    - CameraChunk: ChunkCoord (für Chunk-Priorität)
+    - LocalPosition: Vector3D<float> (für Shader-Uniforms)
+    - Forward: Vector3D<float> (für Directional Culling)
+  - **Matrices:**
+    - ViewMatrix: Matrix4X4<float>
+    - ProjectionMatrix: Matrix4X4<float>
+    - ViewProjectionMatrix: View × Projection (für Frustum)
+  - **Frustum:**
+    - Frustum: ViewFrustum (6 Planes für Culling)
+    - Automatisch extrahiert aus ViewProjectionMatrix
+  - **Distances:**
+    - RenderDistanceChunks: int (für Chunk-Loading)
+    - FarPlane: float (für Fog, LOD)
+  - **Constructor:**
+    - Nimmt alle Daten von CameraManager
+    - Berechnet ViewProjectionMatrix
+    - Extrahiert Frustum via ViewFrustum.ExtractFromMatrix()
+
+- **ViewFrustum - Frustum Culling**
+  - **Planes:**
+    - Left, Right, Bottom, Top, Near, Far (6 Plane3D Structs)
+  - **Extraction:**
+    - ExtractFromMatrix(viewProjection): Standard-Algorithmus
+      - Left: VP.M14 + VP.M11 (alle 4 Komponenten)
+      - Right: VP.M14 - VP.M11
+      - Bottom: VP.M14 + VP.M12
+      - Top: VP.M14 - VP.M12
+      - Near: VP.M14 + VP.M13
+      - Far: VP.M14 - VP.M13
+    - Jede Plane wird normalisiert (.Normalized())
+  - **Intersection Tests:**
+    - Intersects(Box3D aabb): AABB vs Frustum
+      - P-Vertex-Test für alle 6 Planes
+      - Returns true wenn AABB komplett oder teilweise sichtbar
+    - Intersects(center, radius): Sphere vs Frustum
+      - Distance-Check für alle 6 Planes
+      - Returns true wenn Sphere >= -radius für alle Planes
+  - **TestPlane Helper:**
+    - P-Vertex: Positive Vertex relativ zu Plane Normal
+    - pVertex.X = plane.Normal.X >= 0 ? aabb.Max.X : aabb.Min.X (analog Y, Z)
+    - Returns plane.DistanceTo(pVertex) >= 0
+
+- **Plane3D - Plane Representation**
+  - **Components:**
+    - Normal: Vector3D<float> (A, B, C Komponenten)
+    - Distance: float (D Komponente)
+  - **Constructors:**
+    - Plane3D(a, b, c, d): Direkte Komponenten
+    - Plane3D(normal, distance): Von Vector + Scalar
+  - **Normalization:**
+    - Normalized(): Returns neue Plane mit unit-length Normal
+    - Normal / length, Distance / length
+  - **Distance:**
+    - DistanceTo(point): Dot(Normal, point) + Distance
+    - Signed Distance (positiv = vor Plane, negativ = hinter Plane)
+
+- **MathHelper - Math Utilities**
+  - **Constants:**
+    - Deg2Rad: π / 180
+    - Rad2Deg: 180 / π
+  - **Functions:**
+    - Clamp(value, min, max): Math.Max(min, Math.Min(max, value))
+    - Lerp(a, b, t): Linear Interpolation a + (b - a) × t
+    - ExpDecay(current, target, decay, dt): Exponential Damping
+      - Returns Lerp(current, target, 1 - exp(-decay × dt))
+      - Smooth, frame-independent Acceleration/Deceleration
+      - Overloads: float und Vector3D<float>
+
+- **WorldRelevanceFilter - Integration mit CameraVisibilityContext**
+  - **Update-Methode geändert:**
+    - VORHER: UpdateFromCamera(cameraPosition, viewProjection)
+    - NACHHER: UpdateFromCamera(CameraVisibilityContext)
+    - Cached: visibility, cameraChunk, frustum
+    - Override RenderDistance wenn visibilityContext.RenderDistanceChunks > 0
+  - **ShouldRender() nutzt jetzt cached Frustum:**
+    - Distanz-Check wie vorher
+    - frustum.Intersects(aabb) statt manueller Frustum-Test
+  - **UpdateChunkPriority() hinzugefügt:**
+    - UpdateChunkPriority(ChunkJob, isPlayerInside)
+    - Setzt chunk.IsInFrustum via frustum.Intersects(aabb)
+    - Delegiert zu chunk.UpdatePriority(cameraChunk, isPlayerInside)
+  - **GetChunkAABB() geändert:**
+    - Berechnet localPos relativ zu visibility.CameraChunk
+    - Bessere Float-Precision für weit entfernte Chunks
+
+- **Architektur & Design Patterns**
+  - Component-based Architecture: CameraManager als Koordinator
+  - Floating Origin Pattern: Verhindert Float-Precision-Probleme
+  - Exponential Decay: Smooth, frame-independent Damping
+  - Factory + Preset Pattern: Vordefinierte Motion Modes
+  - Cached Matrix Generation: Dirty Flag Pattern
+  - Event-driven Origin Shifts: Observer Pattern
+  - Frustum Culling: Standard-Algorithmus für Visibility
+
+- **Performance-Optimierungen**
+  - Matrix Caching: Nur neu berechnen wenn matricesDirty
+  - Lazy Direction Vectors: Forward/Right/Up nur on-demand
+  - Exponential Decay: 1 Exp-Call statt Loop
+  - P-Vertex Test: Effizientes AABB-Frustum-Culling
+  - Camera-relative AABB: Bessere Float-Precision
+
+- **Vollständige XML-Dokumentation**
+  - ⚠️ XML-Dokumentation fehlt noch komplett
+  - TODO: Summaries für alle Klassen
+  - TODO: Methoden-Dokumentation
+  - TODO: Parameter-Beschreibungen
+
+- **Status:** ✅ Camera-Manager vollständig funktional
+- **Nächste Schritte:**
+  - XML-Dokumentation hinzufügen
+  - Integration in GameLoop OnUpdate/OnRender
+  - Input-System mit CameraManager verbinden
+  - Chunk-System mit WorldRelevanceFilter verbinden
+  - Testing mit verschiedenen Motion Modes

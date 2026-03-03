@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using Create_your_Adventure.Source.Engine.Camera;
+using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,33 +9,34 @@ namespace Create_your_Adventure.Source.Engine.World
     public sealed class WorldRelevanceFilter
     {
         // ══════════════════════════════════════════════════
-        // PUBLIC API
+        // DISTANCES (in Chunks)
         // ══════════════════════════════════════════════════
-        public int renderDistance { get; set; } = 16;       // ═══ What will be render
+        public int RenderDistance { get; set; } = 16;       // ═══ What will be render
         public int SimulationDistance { get; set; } = 24;   // ═══ What will be simulation
         public int LoadDistance { get; set; } = 32;         // ═══ What will be loaded
         public int UnloadDistance { get; set; } = 40;       // ═══ What will be unloaded
 
         // ══════════════════════════════════════════════════
-        // ═══ Frustum
-        private Frustum frustum;
+        // CACHED VISIBILITY DATA
+        // ══════════════════════════════════════════════════
+        private CameraVisibilityContext visibility;
         private ChunkCoord cameraChunk;
+        private ViewFrustum frustum;
 
         // ══════════════════════════════════════════════════
-        // UPDATE (One time pro frame)
+        // UPDATE (from CameraManager output)
         // ══════════════════════════════════════════════════
-        public void UpdateFromCamera(
-            Vector3D<float> cameraPosition,
-            Matrix4X4<float> viewProjection)
+        public void UpdateFromCamera(CameraVisibilityContext visibilityContext)
         {
-            cameraChunk = new ChunkCoord(
-                (long)MathF.Floor(cameraPosition.X / 16f),
-                (long)MathF.Floor(cameraPosition.Y / 16f),
-                (long)MathF.Floor(cameraPosition.Z / 16f)
-            );
+            visibility = visibilityContext;
+            cameraChunk = visibilityContext.CameraChunk;
+            frustum = visibility.Frustum;
 
-            // ═══ Extract Frustum
-            frustum = Frustum.ExtractFromMatrix(viewProjection);
+            // ═══ Override render distance from camera if provided
+            if (visibilityContext.RenderDistanceChunks > 0)
+            {
+                RenderDistance = visibility.RenderDistanceChunks;
+            }
         }
 
         // ══════════════════════════════════════════════════
@@ -42,11 +44,11 @@ namespace Create_your_Adventure.Source.Engine.World
         // ══════════════════════════════════════════════════
         public bool ShouldRender(ChunkJob chunk)
         {
-            if (!IsWithinDistance(chunk.Coord, renderDistance))
+            if (!IsWithinDistance(chunk.Coord, RenderDistance))
                 return false;
 
             // ═══ Frustum Culling
-            var aabb = GetChunkAABB(ChunkCoord);
+            var aabb = GetChunkAABB(chunk.Coord);
             return frustum.Intersects(aabb);
         }
 
@@ -78,50 +80,41 @@ namespace Create_your_Adventure.Source.Engine.World
 
             return !IsWithinDistance(chunk.Coord, UnloadDistance);
         }
+        // ══════════════════════════════════════════════════
+        // PRIORITY CALCULATION
+        // ══════════════════════════════════════════════════
+        public void UpdateChunkPriority(ChunkJob chunk, bool isPlayerInside)
+        {
+            // ═══ Update frustum visibility
+            var aabb = GetChunkAABB(chunk.Coord);
+            chunk.IsInFrustum = frustum.Intersects(aabb);
+
+            // ═══ Delegate to ChunkJob's priority logic
+            chunk.UpdatePrivority(cameraChunk, isPlayerInside);
+        }
 
         // ══════════════════════════════════════════════════
         // HELPERS
         // ══════════════════════════════════════════════════
-        private bool IsWithinDistance(ChunkCoord coord, int distance)
+        private bool IsWithinDistance(ChunkCoord coord, int distanceChunks)
         {
             long distSq = coord.DistanceSquaredTo(cameraChunk);
-            return distSq <= (long)distance * distance;
+            return distSq <= (long)distanceChunks * distanceChunks;
         }
 
-        private static Box3D<float> GetChunkAABB(ChunkCoord coord)
+        private Box3D<float> GetChunkAABB(ChunkCoord coord)
         {
+            // ═══ Position relative to camera origin for float precision
+            var localPos = new Vector3D<float>(
+                (coord.X - visibility.CameraChunk.X) * 16f,
+                (coord.X - visibility.CameraChunk.Y) * 16f,
+                (coord.X - visibility.CameraChunk.Z) * 16f
+            );
+
             return new Box3D<float>(
                 new Vector3D<float>(coord.X * 16f, coord.Y * 16f, coord.Z * 16f),
                 new Vector3D<float>((coord.X + 1) * 16f, (coord.Y + 1) * 16f, (coord.Z + 1) * 16f)
             );
-        }
-    }
-
-    public readonly struct Frustum
-    {
-        // ═══ 6 Planes Near, Far, Left, Right, Top, Bottom
-        private readonly Plane3D<float>[] planes;
-
-        private Frustum(Plane3D<float>[] planes) => planes = planes;
-
-        public static Frustum ExtractFromMatrix(Matrix4X4<float> vp)
-        {
-            // ═══ Frustum-Plane Extraction out View Projection Matrix
-            // ═══ (Standard-Algorithmus)
-            var planes = new Plane3D<float>[6];
-            // ═══ Implementation
-            return new Frustum(planes);
-        }
-
-        public bool Intersects(Box3D<float> aabb)
-        {
-            foreach (var plane in planes)
-            {
-                // ═══ P-Vertex Test
-                // ═══ Implementation
-            }
-
-            return true;
         }
     }
 }
