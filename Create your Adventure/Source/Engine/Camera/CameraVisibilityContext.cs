@@ -54,7 +54,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
             Forward = forward;
             ViewMatrix = viewMatrix;
             ProjectionMatrix = projectionMatrix;
-            ViewProjectionMatrix = viewMatrix * projectionMatrix;
+            ViewProjectionMatrix = projectionMatrix * viewMatrix;
             RenderDistanceChunks = renderDistanceChunks;
             FarPlane = farPlane;
 
@@ -92,12 +92,12 @@ namespace Create_your_Adventure.Source.Engine.Camera
                 vp.M44 + vp.M41
             ).Normalized();
 
-            // ═══ Left Plane
+            // ═══ Right Plane
             var right = new Plane3D(
-                vp.M14 + vp.M11,
-                vp.M24 + vp.M21,
-                vp.M34 + vp.M31,
-                vp.M44 + vp.M41
+                vp.M14 - vp.M11,
+                vp.M24 - vp.M21,
+                vp.M34 - vp.M31,
+                vp.M44 - vp.M41
             ).Normalized();
 
             // ═══ Bottom Plane
@@ -110,10 +110,10 @@ namespace Create_your_Adventure.Source.Engine.Camera
 
             // ═══ Top Plane
             var top = new Plane3D(
-                vp.M14 + vp.M11,
-                vp.M24 + vp.M21,
-                vp.M34 + vp.M31,
-                vp.M44 + vp.M41
+                vp.M14 - vp.M12,
+                vp.M24 - vp.M22,
+                vp.M34 - vp.M32,
+                vp.M44 - vp.M42
             ).Normalized();
 
             // ═══ Near Plane
@@ -126,10 +126,10 @@ namespace Create_your_Adventure.Source.Engine.Camera
 
             // ═══ Far Plane
             var far = new Plane3D(
-                vp.M14 + vp.M13,
-                vp.M24 + vp.M23,
-                vp.M34 + vp.M33,
-                vp.M44 + vp.M43
+                vp.M14 - vp.M13,
+                vp.M24 - vp.M23,
+                vp.M34 - vp.M33,
+                vp.M44 - vp.M43
             ).Normalized();
 
             return new ViewFrustum(left, right, bottom, top, near, far);

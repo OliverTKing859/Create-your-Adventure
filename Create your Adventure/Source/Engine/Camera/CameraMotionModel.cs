@@ -72,7 +72,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
         {
             return new Vector3D<float>(
                 Velocity.X * dt,
-                Velocity.Y * dt + VerticalVelocity + dt,
+                Velocity.Y * dt + VerticalVelocity * dt,
                 Velocity.Z * dt
             );
         }

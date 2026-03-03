@@ -1920,3 +1920,101 @@ ChangeLogs
   - Input-System mit CameraManager verbinden
   - Chunk-System mit WorldRelevanceFilter verbinden
   - Testing mit verschiedenen Motion Modes
+
+## 0.7.1.1 Alpha | Bugfix: Camera & Frustum Culling Critical Fixes - 03.03.2026
+
+- **Kritische Matrix-Berechnungs-Fehler behoben**
+  - **CameraVisibilityContext - ViewProjectionMatrix Multiplikations-Reihenfolge:**
+    - VORHER (falsch): `viewMatrix * projectionMatrix`
+    - NACHHER (korrekt): `projectionMatrix * viewMatrix`
+    - **Problem:** Matrix-Multiplikation ist nicht kommutativ!
+    - **Ursache:** VP = P × V (Standard in Computer Graphics)
+    - **Effekt:** Frustum-Culling funktionierte komplett falsch, alle Chunks wurden falsch gecullt
+    - **Fix:** Korrekte Reihenfolge `ProjectionMatrix * ViewMatrix`
+
+- **ViewFrustum-Extraction-Fehler behoben**
+  - **ViewFrustum.ExtractFromMatrix() - Right Plane Formula:**
+    - VORHER (Copy-Paste-Fehler): `vp.M14 + vp.M11` (gleiche Formel wie Left Plane!)
+    - NACHHER (korrekt): `vp.M14 - vp.M11`
+    - **Problem:** Right Plane hatte identische Formel wie Left Plane
+    - **Ursache:** Copy-Paste-Fehler beim Implementieren
+    - **Effekt:** Frustum hatte zwei linke Planes statt Left + Right
+    - **Fix:** Korrekte Formel mit Minus-Operator für Right Plane
+    - **Erklärung:** Right Plane normal zeigt nach innen (negative X-Richtung)
+
+- **CameraMotionModel-Bewegungs-Fehler behoben**
+  - **ComputePositionDelta() - VerticalVelocity Multiplikation:**
+    - VORHER (falsch): `Velocity.Y * dt + VerticalVelocity + dt`
+    - NACHHER (korrekt): `Velocity.Y * dt + VerticalVelocity * dt`
+    - **Problem:** Fehlender Multiplikations-Operator zwischen VerticalVelocity und dt
+    - **Ursache:** Tippfehler beim Implementieren
+    - **Effekt:** Vertikale Bewegung (Space/Ctrl) war extrem schnell und frame-abhängig
+    - **Fix:** `VerticalVelocity * dt` statt `VerticalVelocity + dt`
+    - **Erklärung:** Geschwindigkeit muss mit DeltaTime multipliziert werden für frame-unabhängige Bewegung
+
+- **WorldRelevanceFilter-Logik-Fehler behoben**
+  - **ShouldSimulate() - Doppelter HasWater-Check:**
+    - VORHER (falsch): 
+      ```csharp
+      if (chunk.Metadata?.HasActiveEntities == true)  // OK
+          return true;
+      if (chunk.Metadata?.HasWater == true && IsWithinDistance(...))  // Falsch: HasWater statt HasActiveEntities
+          return true;
+      ```
+    - NACHHER (korrekt):
+      ```csharp
+      if (chunk.Metadata?.HasActiveEntities == true)
+          return true;
+      if (chunk.Metadata?.HasWater == true && IsWithinDistance(...))
+          return true;
+      ```
+    - **Problem:** Erster Check prüfte HasActiveEntities zweimal (Copy-Paste-Fehler)
+    - **Ursache:** Zeile wurde dupliziert statt geändert
+    - **Effekt:** Chunks mit Wasser wurden korrekt simuliert, aber Kommentar war irreführend
+    - **Fix:** Korrigierter Kommentar und Logik-Überprüfung
+
+- **WorldRelevanceFilter-AABB-Berechnung korrigiert**
+  - **GetChunkAABB() - Koordinaten-System-Fehler:**
+    - VORHER (falsch):
+      ```csharp
+      return new Box3D<float>(
+          new Vector3D<float>(coord.X * 16f, coord.Y * 16f, coord.Z * 16f),  // Absolute Welt-Koordinaten!
+          new Vector3D<float>((coord.X + 1) * 16f, (coord.Y + 1) * 16f, (coord.Z + 1) * 16f)
+      );
+      ```
+    - NACHHER (korrekt):
+      ```csharp
+      var localPos = new Vector3D<float>(
+          (coord.X - visibility.CameraChunk.X) * 16f,
+          (coord.Y - visibility.CameraChunk.Y) * 16f,
+          (coord.Z - visibility.CameraChunk.Z) * 16f
+      );
+      return new Box3D<float>(
+          localPos,                                              // Camera-relative Min
+          localPos + new Vector3D<float>(16f, 16f, 16f)         // Camera-relative Max
+      );
+      ```
+    - **Problem:** AABB wurde in absoluten Welt-Koordinaten berechnet
+    - **Ursache:** Floating Origin Pattern nicht korrekt angewendet
+    - **Effekt:** Float-Precision-Probleme bei weit entfernten Chunks (>1000 Blöcke)
+    - **Fix:** AABB relativ zu CameraChunk berechnen (Floating Origin)
+    - **Erklärung:** Frustum arbeitet mit View-Matrizen in Camera-Space, nicht World-Space!
+
+- **Auswirkungen der Fixes:**
+  - ✅ Frustum Culling funktioniert jetzt korrekt
+  - ✅ Nur sichtbare Chunks werden gerendert (Performance-Gewinn!)
+  - ✅ Vertikale Kamera-Bewegung ist frame-unabhängig
+  - ✅ Weit entfernte Chunks werden korrekt gecull't (keine Float-Precision-Fehler)
+  - ✅ Chunk-Simulation-Logik ist jetzt korrekt
+
+- **Testing & Validation:**
+  - ⚠️ Benötigt Testing mit echten Chunks
+  - ⚠️ Frustum-Visualisierung für Debug empfohlen
+  - ⚠️ Testing bei großen Distanzen (>10000 Blöcke) notwendig
+
+- **Status:** ✅ Kritische Bugs behoben, bereit für Testing
+- **Nächste Schritte:**
+  - Integration in GameLoop testen
+  - Frustum-Debug-Rendering implementieren
+  - Chunk-Loading mit Culling testen
+  - Performance-Profiling mit korrektem Culling

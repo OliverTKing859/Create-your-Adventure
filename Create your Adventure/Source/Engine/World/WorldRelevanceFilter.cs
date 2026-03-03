@@ -55,8 +55,7 @@ namespace Create_your_Adventure.Source.Engine.World
         public bool ShouldSimulate(ChunkJob chunk)
         {
             // ═══ Chunks with active Entitys always simulated
-            if (chunk.Metadata?.HasWater == true &&
-                IsWithinDistance(chunk.Coord, SimulationDistance))
+            if (chunk.Metadata?.HasActiveEntities == true)
                 return true;
 
             // ═══ Chunks with Water in Simulationsarea
@@ -107,8 +106,8 @@ namespace Create_your_Adventure.Source.Engine.World
             // ═══ Position relative to camera origin for float precision
             var localPos = new Vector3D<float>(
                 (coord.X - visibility.CameraChunk.X) * 16f,
-                (coord.X - visibility.CameraChunk.Y) * 16f,
-                (coord.X - visibility.CameraChunk.Z) * 16f
+                (coord.Y - visibility.CameraChunk.Y) * 16f,
+                (coord.Z - visibility.CameraChunk.Z) * 16f
             );
 
             return new Box3D<float>(
