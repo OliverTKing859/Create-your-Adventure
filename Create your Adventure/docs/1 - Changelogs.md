@@ -1445,3 +1445,210 @@ ChangeLogs
   - World-System Refactoring
   - Chunk-Manager Implementation
   - Block-System Design
+
+## 0.7.0.0 Alpha | Game Loop Architecture - Camera & Chunk System Part 1 (Skeleton) - 02.03.2026 🔄 **IN ENTWICKLUNG**
+
+- **Status:** 🔄 In Entwicklung - Architektur-Skelett implementiert, keine Funktionalität vorhanden
+- **Implementiert grundlegende Game-Loop-Architektur mit Chunk-Verwaltung**
+
+- **GameLoop - Zentrale Spiel-Loop mit 5-Phasen-Modell**
+  - Phase 1: Early Update
+    - TimeManager.BeginFrame(rawDeltaTime): Frame-Zeit initialisieren
+    - InputManager.BeginFrame(): Input-State für neuen Frame vorbereiten
+  - Phase 2: Fixed Simulation Ticks (60 TPS)
+    - time.ConsumeFixedTicks(): Akkumulator-basierte Fixed Timesteps
+    - FixedTick(): Deterministische Simulation (Physics, Player, Chunk-Simulation)
+    - "Spiral of Death" Prevention: Max 5 Ticks pro Frame
+  - Phase 3: World Scheduler (Budget-basiert)
+    - scheduler.ProcessFrame(): 8ms Budget für Chunk-Tasks
+    - Task-Priorisierung: Loading, Meshing, BlockUpdates, Lightning, Entities
+  - Phase 4: Variable Update (Interpolation)
+    - Camera.Update(dt, alpha): Kamera mit Interpolation
+    - Alpha = simulationAccumulator / FixedDeltaTime
+  - Phase 5: Late Update
+    - InputManager.EndFrame(dt): Input-State finalisieren
+  - OnRender(rawDeltaTime): Rendering mit Interpolation
+    - GetInterpolationAlpha() für smooth Rendering zwischen Fixed Ticks
+    - Visible-Chunks-Only Rendering (via WorldRelevanceFilter)
+
+- **TimeManager - Zentrales Zeit-Management (Singleton)**
+  - Fixed Delta Time: 1/60s (60 Ticks Per Second)
+    - Deterministische Simulation für Physics, Player, Chunk-Logic
+    - ConsumeFixedTicks(): Akkumulator-basierte Tick-Generierung
+  - Frame Delta Time: Variable Render-Framerate
+    - SimulationTimeScale: Zeitlupe/Zeitraffer (Slow-Motion/Fast-Forward)
+    - FrameCount: Gesamtanzahl Frames seit Start
+  - World Time: In-Game Zeit für Tag/Nacht-Zyklus
+    - WorldTimeScale: Unabhängige Zeitgeschwindigkeit (1 real sec = X world sec)
+    - IsWorldPaused: Pausiert World-Zeit (nicht Chunk-Loading!)
+  - Unscaled Total Time: Background-Zeit für Chunk-Loading
+    - Läuft auch während Pause weiter (wichtig für Async-Tasks)
+  - Interpolation Alpha: Smooth Rendering zwischen Fixed Ticks
+    - GetInterpolationAlpha(): simulationAccumulator / FixedDeltaTime
+    - Für Camera-Position, Entity-Rendering
+  - Spiral of Death Prevention
+    - Max 5 Fixed Ticks pro Frame
+    - Verhindert Endlos-Loop bei Lag-Spikes
+
+- **ChunkCoord - 64-Bit Chunk-Koordinaten für Infinite World**
+  - Struct mit long X, Y, Z (±9,2 Trillionen Chunks pro Achse)
+  - DistanceSquaredTo(other): Effiziente Distanz-Berechnung ohne sqrt
+  - IEquatable<ChunkCoord>: Proper Equality-Checks
+  - GetHashCode(): Hash für Dictionary/HashSet-Usage
+
+- **ChunkState Enum - 7 Chunk-Lifecycle-Zustände**
+  - Requested: Chunk wurde angefordert (in Queue)
+  - Loading: WorldGen oder Disk-Load läuft
+  - Meshing: Mesh-Generierung aktiv
+  - Active: Voll geladen, wird gerendert/simuliert
+  - Sleeping: Lazy-Mode (nur kritische Updates)
+  - Serializing: Wird auf Disk gespeichert
+  - Unloaded: Entladen, nicht im RAM
+
+- **ChunkPriority Enum - 5 Priorisierungs-Level**
+  - Critical (0): Player steht im Chunk (60 TPS)
+  - High (1): Sichtbar & nah <2 Chunks (30 TPS)
+  - Medium (2): Sichtbar aber fern <4 Chunks (10 TPS)
+  - Low (3): Simulationsbereich <8 Chunks (2 TPS)
+  - Background (4): Lazy/Sleeping >8 Chunks (1 TPS)
+
+- **ChunkJob - Chunk-Task-Metadata für Scheduler**
+  - ChunkCoord Coord: Chunk-Position
+  - ChunkState State: Aktueller Lifecycle-Zustand
+  - ChunkPriority Priority: Dynamische Priorisierung
+  - TickRate: 1-60 TPS basierend auf Priority
+    - Critical: 60 TPS, High: 30 TPS, Medium: 10 TPS, Low: 2 TPS, Background: 1 TPS
+  - LastTickFrame: Letzter Tick-Zeitpunkt (für variable Tick-Rates)
+  - IsInFrustum: Frustum-Culling-Flag
+  - HasPendingChanges: Dirty-Flag für Mesh-Rebuild
+  - ChunkMetadata: Lazy-Simulation-Daten (optional)
+    - HasWater: Chunk enthält Wasser (braucht Simulation)
+    - HasActiveEntities: Entities im Chunk (höhere Priorität)
+    - BiomeId: Biom-Typ für Lazy-Updates
+    - AverageTemperature: Für Wetter/Schnee-Simulation
+    - LastModifiedTick: Für Dirty-Checking
+  - UpdatePriority(cameraChunk, isPlayerInside): Dynamische Priorisierung
+    - Distanz-basiert mit Squared-Distance (Performance)
+    - Frustum-Check für Sichtbarkeit
+    - Automatische TickRate-Anpassung
+
+- **WorldRelevanceFilter - Distanz & Frustum Culling**
+  - Distanz-Konfiguration (in Chunks)
+    - RenderDistance: 16 (was gerendert wird)
+    - SimulationDistance: 24 (was simuliert wird)
+    - LoadDistance: 32 (was geladen wird)
+    - UnloadDistance: 40 (was entladen wird)
+  - UpdateFromCamera(cameraPosition, viewProjection)
+    - Berechnet cameraChunk aus Kamera-Position
+    - Extrahiert Frustum aus View-Projection-Matrix
+  - ShouldRender(ChunkJob): Rendering-Relevanz
+    - Distanz-Check: Innerhalb RenderDistance?
+    - Frustum-Culling: AABB im Sichtfeld?
+  - ShouldSimulate(ChunkJob): Simulations-Relevanz
+    - Special-Handling für Wasser-Chunks (immer simulieren)
+    - Special-Handling für Entity-Chunks (höhere Priorität)
+    - Distanz-Check: Innerhalb SimulationDistance?
+  - ShouldLoad(ChunkCoord): Lade-Relevanz
+    - Distanz-Check: Innerhalb LoadDistance?
+  - ShouldUnload(ChunkJob): Entlade-Relevanz
+    - Never unload wenn HasActiveEntities
+    - Distanz-Check: Außerhalb UnloadDistance?
+  - IsWithinDistance(coord, distance): Squared-Distance-Check (Performance)
+  - GetChunkAABB(coord): Axis-Aligned Bounding Box für Frustum-Test
+
+- **Frustum Struct - View-Frustum für Visibility-Culling**
+  - 6 Planes: Near, Far, Left, Right, Top, Bottom
+  - ExtractFromMatrix(viewProjection): Standard-Algorithmus
+    - Extrahiert Frustum-Planes aus View-Projection-Matrix
+    - Für Frustum-Culling-Tests
+  - Intersects(Box3D aabb): AABB-Intersection-Test
+    - P-Vertex-Test für alle 6 Planes
+    - Returns true wenn AABB im Frustum sichtbar
+
+- **WorldScheduler - Budget-basierter Task-Scheduler (Singleton)**
+  - TotalBudgetMs: 8ms pro Frame (~60 FPS Target)
+    - Verteilbar auf 5 Task-Typen
+  - Budget-Verteilung (Gewichte, Summe = 1.0)
+    - ChunkLoading: 30% (2.4ms)
+    - ChunkMeshing: 35% (2.8ms)
+    - BlockUpdates: 20% (1.6ms)
+    - Lightning: 10% (0.8ms)
+    - EntitySimulation: 5% (0.4ms)
+  - Priority Queues für Tasks
+    - loadQueue: PriorityQueue<ChunkJob, ChunkPriority>
+    - meshQueue: PriorityQueue<ChunkJob, ChunkPriority>
+    - simulationQueue: PriorityQueue<ChunkJob, ChunkPriority>
+  - ProcessFrame(): Haupt-Scheduler-Loop
+    - Iteriert durch alle Task-Typen
+    - Weist Task-Budget zu (TotalBudgetMs × Weight)
+    - ProcessTask() mit Deadline-basierter Ausführung
+    - Early Exit bei Budget-Erschöpfung (<0.5ms verbleibend)
+  - ProcessTask(task, budgetMs): Task-Ausführung mit Zeitlimit
+    - Deadline = currentTime + budgetMs
+    - Dequeue von Priority Queue bis Deadline erreicht
+    - ChunkLoading: ProcessChunkLoad() (WorldGen oder Disk)
+    - ChunkMeshing: ProcessChunkMesh() (Mesh-Generierung)
+    - BlockUpdates: ProcessBlockUpdatesWithBudget() (Block-Ticks)
+    - Lightning: ProcessLightningWithBudget() (Light-Propagation)
+    - EntitySimulation: ProcessEntitiesWithBudget() (Entity-Ticks)
+  - Telemetry & Profiling
+    - LastFrameBudgetUsedMs: Tatsächlich genutzte Zeit
+    - LastTaskTimings: Dictionary<SchedulerTask, double> (pro Task)
+    - Stopwatch für präzise Zeit-Messung
+  - Public API
+    - RequestChunkLoad(ChunkJob): Chunk in Load-Queue
+    - RequestChunkMesh(ChunkJob): Chunk in Mesh-Queue
+    - RequestSimulation(ChunkJob): Chunk in Simulation-Queue
+
+- **SchedulerTask Enum - 5 Task-Typen**
+  - ChunkLoading: WorldGen oder Disk-Load
+  - ChunkMeshing: Mesh-Generierung
+  - BlockUpdates: Block-Tick-Simulation (Wasser, Lava, Pflanzen)
+  - Lightning: Light-Propagation und Updates
+  - EntitySimulation: Entity-Ticks (AI, Physics)
+
+- **Architektur & Design Patterns**
+  - Singleton Pattern: TimeManager, WorldScheduler
+  - Fixed Timestep Pattern: Deterministische Simulation
+  - Accumulator Pattern: ConsumeFixedTicks() für variable Framerate
+  - Priority Queue Pattern: Task-Scheduling nach Priorität
+  - Budget-based Scheduling: Frame-Time-Budget für Tasks
+  - Frustum Culling: Visibility-Optimierung
+  - Distance-based LOD: Chunk-TickRate basierend auf Distanz
+  - Lazy Evaluation: ChunkMetadata für Sleeping-Chunks
+
+- **Performance-Konzepte**
+  - Squared Distance: Vermeidet sqrt für Distanz-Checks
+  - Frustum Culling: Rendert nur sichtbare Chunks
+  - Priority-based Scheduling: Wichtige Tasks zuerst
+  - Budget-based Processing: Max 8ms pro Frame für Chunk-Tasks
+  - Variable TickRate: Critical 60 TPS, Background 1 TPS
+  - Spiral of Death Prevention: Max 5 Fixed Ticks pro Frame
+  - Interpolation: Smooth Rendering trotz Fixed Ticks
+
+- **Vollständige XML-Dokumentation**
+  - ⚠️ XML-Dokumentation fehlt noch komplett
+  - TODO: Summaries für alle Klassen
+  - TODO: Methoden-Dokumentation
+  - TODO: Enum-Werte beschreiben
+
+- **Status:** 🔄 Skelett-Code - NICHT FUNKTIONAL
+  - ✅ Architektur definiert
+  - ✅ Interfaces und Enums vorhanden
+  - ❌ ProcessChunkLoad() nicht implementiert
+  - ❌ ProcessChunkMesh() nicht implementiert
+  - ❌ Frustum.ExtractFromMatrix() Skelett
+  - ❌ Frustum.Intersects() Skelett
+  - ❌ GameLoop.FixedTick() Kommentare statt Code
+  - ❌ WorldRelevanceFilter.UpdateFromCamera() unvollständig
+  - ❌ Keine Integration in Program.cs
+  - ❌ Keine Tests vorhanden
+
+- **Nächste Schritte (Part 2):**
+  - Frustum-Extraction-Algorithmus implementieren
+  - AABB-Intersection-Test implementieren
+  - ChunkManager für Chunk-Verwaltung
+  - WorldGenerator für Terrain-Generation
+  - ChunkMesher für Mesh-Generierung
+  - Integration in Program.cs OnUpdate/OnRender
+  - Camera-System mit WorldRelevanceFilter verbinden 
