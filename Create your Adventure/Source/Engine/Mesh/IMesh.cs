@@ -26,7 +26,7 @@ namespace Create_your_Adventure.Source.Engine.Mesh
         /// Gets the index buffer containing vertex indices for efficient vertex reuse.
         /// May be null for non-indexed meshes.
         /// </summary>
-        IIndexBuffer IndexBuffer { get; }
+        IIndexBuffer? IndexBuffer { get; }
 
         /// <summary>
         /// Gets the total number of vertices in this mesh.

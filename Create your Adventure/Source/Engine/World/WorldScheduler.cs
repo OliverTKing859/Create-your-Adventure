@@ -30,7 +30,7 @@ namespace Create_your_Adventure.Source.Engine.World
         // ══════════════════════════════════════════════════
         private readonly PriorityQueue<ChunkJob, ChunkPriority> loadQueue = new();
         private readonly PriorityQueue<ChunkJob, ChunkPriority> meshQueue = new();
-        private readonly PriorityQueue<ChunkJob, ChunkPriority> simulation = new();
+        private readonly PriorityQueue<ChunkJob, ChunkPriority> simulationQueue = new();
 
         // ═══ Telemetry
         public double LastFrameBudgetUsedMs { get; private set; }

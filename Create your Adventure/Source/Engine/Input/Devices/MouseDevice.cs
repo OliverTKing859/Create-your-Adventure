@@ -138,11 +138,21 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
         /// </summary>
         private void OnMouseMove(IMouse m, Vector2 position)
         {
-            var delta = position - lastPosition;
-            lastPosition = position;
+            if (m.Cursor.CursorMode == Silk.NET.Input.CursorMode.Disabled)
+            {
+                // ═══ Locked mode: position is raw delta from GLFW directly
+                state?.SetMouseDelta(position);
+                state?.SetMousePosition(position);
+            }
+            else
+            {
+                // ═══ Normal mode: calculate delta from last known position
+                var delta = position - lastPosition;
+                lastPosition = position;
 
-            state?.SetMousePosition(position);
-            state?.SetMouseDelta(delta);
+                state?.SetMousePosition(position);
+                state?.SetMouseDelta(delta);
+            }
         }
 
         /// <summary>

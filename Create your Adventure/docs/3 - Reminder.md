@@ -24,6 +24,5 @@
 	- Particles
 	- Spezial?
 
-- TimeManager hat noch keine Thread Safe funktion als andere
 - Ist die Camera und Input Manager und alles mögliche, mit dem GameLoop verbunden? Anstatt sie ihr eigenes Ding machen?
 

@@ -1,4 +1,7 @@
-﻿using Silk.NET.Maths;
+﻿using Create_your_Adventure.Source.Debug;
+using Create_your_Adventure.Source.Engine.Input;
+using Create_your_Adventure.Source.Engine.World;
+using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,6 +10,27 @@ namespace Create_your_Adventure.Source.Engine.Camera
 {
     public class CameraManager
     {
+        // ══════════════════════════════════════════════════
+        // SINGLETON
+        // ══════════════════════════════════════════════════
+        private static CameraManager? instance;
+        private static readonly Lock instanceLock = new();
+
+        public static CameraManager Instance
+        {
+            get
+            {
+                if (instance is null)
+                {
+                    lock (instanceLock)
+                    {
+                        instance ??= new CameraManager();
+                    }
+                }
+
+                return instance;
+            }
+        }
         // ══════════════════════════════════════════════════
         // SUBSYSTEMS
         // ══════════════════════════════════════════════════
@@ -22,12 +46,19 @@ namespace Create_your_Adventure.Source.Engine.Camera
         public int RenderDistanceChunks { get; set; } = 16;
 
         // ══════════════════════════════════════════════════
+        // STATE
+        // ══════════════════════════════════════════════════
+        private bool isInitialized;
+        public bool IsInitialized => isInitialized;
+
+        // ══════════════════════════════════════════════════
         // CACHED OUTPUT
         // ══════════════════════════════════════════════════
         private Matrix4X4<float> cachedViewMatrix;
         private Matrix4X4<float> cachedProjectionMatrix;
-        private CameraVisibilityContext cachedVisibity;
+        private CameraVisibilityContext? cachedVisibility;
         private bool matricesDirty = true;
+        private bool visibilityDirty = true;
 
         // ══════════════════════════════════════════════════
         // CONSTRUCTOR
@@ -46,13 +77,22 @@ namespace Create_your_Adventure.Source.Engine.Camera
         // ══════════════════════════════════════════════════
         public void Initialize(long worldX, long worldY, long worldZ)
         {
+            if (isInitialized)
+            {
+                Logger.Warn("[CAMERA] CameraManager already initialized");
+                return;
+            }
+
             WorldBinding.Initialize(worldX, worldY, worldZ);
             Transform.LocalPosition = new Vector3D<float>(
                 worldX % CameraWorldBinding.ChunkSize,
                 worldY % CameraWorldBinding.ChunkSize,
                 worldZ % CameraWorldBinding.ChunkSize
             );
-            matricesDirty = true;
+            InvalidateCache();
+
+            isInitialized = true;
+            Logger.Info($"[CAMERA] CameraManager initialized at ({worldX}, {worldY}, {worldZ})");
         }
 
         // ══════════════════════════════════════════════════
@@ -62,8 +102,8 @@ namespace Create_your_Adventure.Source.Engine.Camera
             float dt,
             Vector3D<float> movementInput,
             Vector2D<float> lookInput,
-            float verticalInput,
-            bool isSprinting
+            float verticalInput = 0f,
+            bool isSprinting = false
             )
         {
             // ═══ Process motion
@@ -83,12 +123,24 @@ namespace Create_your_Adventure.Source.Engine.Camera
             Transform.LocalPosition += positionDelta;
 
             // ═══ Update world binding + handle potential origin shift
-            // ═══ IMPORTANT: WorldBinding may return CORRECTED position!
             Transform.LocalPosition = WorldBinding.UpdateFromLocalPosition(Transform.LocalPosition);
-            // ▲▲▲ This line MUST write the result back to Transform.LocalPosition!
 
             // ═══ Mark matrices as dirty
-            matricesDirty = true;
+            InvalidateCache();
+        }
+
+        public void UpdateFromInput(float dt)
+        {
+            var move = InputManager.Instance.GetMovementVector();
+            var look = InputManager.Instance.GetLookVector();
+            bool isSprinting = InputManager.Instance.IsActionTriggered("Sprint");
+
+            // ═══ Convert System.Numerics.Vector2 to Silk.NET types
+            var movementInput = new Vector3D<float>(move.X, 0f, move.Y);
+            var lookInput = new Vector2D<float>(look.X, look.Y);
+
+            // ═══ Delegate to existing Update method
+            Update(dt, movementInput, lookInput, verticalInput: 0f, isSprinting);
         }
 
         private Vector3D<float> ComputeWorldMovementDirection(Vector3D<float> input)
@@ -96,7 +148,6 @@ namespace Create_your_Adventure.Source.Engine.Camera
             if (input.LengthSquared < 0.0001f)
                 return Vector3D<float>.Zero;
 
-            // ═══ In fly mode, use full 3D movement
             if (CurrentMode == CameraMotionMode.Fly || CurrentMode == CameraMotionMode.Spectator)
             {
                 return Transform.Forward * input.Z +
@@ -104,7 +155,6 @@ namespace Create_your_Adventure.Source.Engine.Camera
                        Transform.Up * input.Y;
             }
 
-            // ═══ In walk mode, use flat forward
             return Transform.ForwardFlat * input.Z + Transform.Right * input.X;
         }
 
@@ -114,7 +164,6 @@ namespace Create_your_Adventure.Source.Engine.Camera
             Transform.Pitch -= delta.Y;
             Transform.Pitch = MathHelper.Clamp(Transform.Pitch, -Motion.MaxPitch, Motion.MaxPitch);
 
-            // ═══ Handle roll return (for non-roll modes)
             if (!Motion.AllowRoll && MathF.Abs(Transform.Roll) > 0.01f)
             {
                 Transform.Roll = MathHelper.ExpDecay(Transform.Roll, 0f, Motion.RollReturnRate, 0.016f);
@@ -138,6 +187,8 @@ namespace Create_your_Adventure.Source.Engine.Camera
                 CameraMotionMode.Spectator => CameraMotionModel.Presets.Fly,
                 _ => CameraMotionModel.Default
             };
+
+            Logger.Info($"[CAMERA] Motion mode changed to {mode}");
         }
 
         // ══════════════════════════════════════════════════
@@ -158,7 +209,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
         public void UpdateAspectRatio(int width, int height)
         {
             Projection.UpdateAspect(width, height);
-            matricesDirty = true;
+            InvalidateCache();
         }
 
         private void UpdateMatrices()
@@ -173,13 +224,18 @@ namespace Create_your_Adventure.Source.Engine.Camera
         }
 
         // ══════════════════════════════════════════════════
-        // VISIBILITY OUTPUT
-        // ══════════════════════════════════════════════════
-        public CameraVisibilityContext GetVisibilityContext()
+        // CACHE MANAGEMENT
+        // ══════════════════════════════════════════════════ 
+        private void InvalidateCache()
+        {
+            matricesDirty = true;
+            visibilityDirty = true;
+        }
+        public void UpdateVisibilityCache()
         {
             if (matricesDirty) UpdateMatrices();
 
-            return new CameraVisibilityContext(
+            cachedVisibility = new CameraVisibilityContext(
                 cameraChunk: WorldBinding.CurrentChunk,
                 localPosition: Transform.LocalPosition,
                 forward: Transform.Forward,
@@ -187,7 +243,33 @@ namespace Create_your_Adventure.Source.Engine.Camera
                 projectionMatrix: cachedProjectionMatrix,
                 renderDistanceChunks: RenderDistanceChunks,
                 farPlane: Projection.FarPlane
-            ); 
+            );
+
+            visibilityDirty = false;
+        }
+
+        // ══════════════════════════════════════════════════
+        // VISIBILITY OUTPUT
+        // ══════════════════════════════════════════════════ 
+        public CameraVisibilityContext GetVisibilityContext()
+        {
+            if (visibilityDirty || cachedVisibility is null)
+            {
+                UpdateVisibilityCache();
+            }
+
+            return cachedVisibility!.Value;
+        }
+
+        public bool IsChunkVisible(ChunkCoord chunkCoord, float chunkWorldSize)
+        {
+            var visibility = GetVisibilityContext();
+
+            long distSq = chunkCoord.DistanceSquaredTo(visibility.CameraChunk);
+            if (distSq > (long)RenderDistanceChunks * RenderDistanceChunks)
+                return false;
+
+            return true;
         }
 
         // ══════════════════════════════════════════════════
@@ -199,7 +281,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
             Transform.LocalPosition = WorldBinding.WorldToLocal(worldX, worldY, worldZ);
             Motion.Velocity = Vector3D<float>.Zero;
             Motion.VerticalVelocity = 0f;
-            matricesDirty = true;
+            InvalidateCache();
         }
 
         public void SetRotation(float yaw, float pitch, float roll = 0f)
@@ -207,13 +289,13 @@ namespace Create_your_Adventure.Source.Engine.Camera
             Transform.Yaw = yaw;
             Transform.Pitch = MathHelper.Clamp(pitch, -Motion.MaxPitch, Motion.MaxPitch);
             Transform.Roll = roll;
-            matricesDirty = true;
+            InvalidateCache();
         }
 
         public void SetFovModifier(float modifier)
         {
             Projection.FovModifier = modifier;
-            matricesDirty = true;
+            InvalidateCache();
         }
     }
     public enum CameraMotionMode : byte

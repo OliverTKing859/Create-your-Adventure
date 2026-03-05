@@ -6,13 +6,36 @@ namespace Create_your_Adventure.Source.Engine.Time
 {
     public sealed class TimeManager
     {
+        // ══════════════════════════════════════════════════
+        // SINGLETON
+        // ══════════════════════════════════════════════════
         private static TimeManager? instance;
-        public static TimeManager Instance => instance ??= new TimeManager();
+        private static readonly Lock instanceLock = new();
+
+        public static TimeManager Instance
+        {
+            get
+            {
+                if (instance is null)
+                {
+                    lock (instanceLock)
+                    {
+                        instance ??= new TimeManager();
+                    }
+                }
+
+                return instance;
+            }
+        }
 
         // ══════════════════════════════════════════════════
         // FRAME TIME (Rendering, UI, Interpolation)
         // ══════════════════════════════════════════════════
         public double FixedDeltaTime { get; } = 1.0 / 60.0; // ═══ 60 TPS
+        public double FrameDeltaTime { get; private set; }
+        public double UnscaledFrameDeltaTime { get; private set; }
+        public ulong FrameCount { get; private set; }
+
         public double SimulationTimeScale { get; set; } = 1.0;
         public ulong TickCount { get; private set; }
 
@@ -29,6 +52,14 @@ namespace Create_your_Adventure.Source.Engine.Time
         // BACKGROUND TIME (Chunk Loading, unabhängig von Pause)
         // ══════════════════════════════════════════════════
         public double UnscaledTotalTime { get; private set; }
+
+        // ══════════════════════════════════════════════════
+        // CONSTRUCTOR
+        // ══════════════════════════════════════════════════
+        private TimeManager()
+        {
+
+        }
 
         // ══════════════════════════════════════════════════
         // UPDATES METHODS

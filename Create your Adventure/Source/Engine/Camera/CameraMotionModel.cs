@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Create_your_Adventure.Source.Engine.Camera
 {
-    public struct CameraMotionModel
+    public class CameraMotionModel
     {
         // ══════════════════════════════════════════════════
         // MOVEMENT PARAMETERS
@@ -68,7 +68,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
             return SmoothedLookDelta * LookSensitivity;
         }
 
-        public readonly Vector3D<float> ComputePositionDelta(float dt)
+        public Vector3D<float> ComputePositionDelta(float dt)
         {
             return new Vector3D<float>(
                 Velocity.X * dt,

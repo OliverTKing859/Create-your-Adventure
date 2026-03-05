@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Create_your_Adventure.Source.Engine.World
 {
-    public readonly class ChunkCoord : IEquatable<ChunkCoord>
+    public readonly struct ChunkCoord : IEquatable<ChunkCoord>
     {
         public readonly long X;
         public readonly long Y;

@@ -2018,3 +2018,73 @@ ChangeLogs
   - Frustum-Debug-Rendering implementieren
   - Chunk-Loading mit Culling testen
   - Performance-Profiling mit korrektem Culling
+
+## 0.7.2.0 Alpha | GameLoop Integration & Camera System Refinement - 05.03.2026 🔄 **IN ENTWICKLUNG**
+
+- **Status:** 🔄 Nahezu funktional - Letzte Integration ausstehend
+- **GameLoop-Architektur mit CameraManager vollständig implementiert**
+  - 5-Phasen Game Loop mit Fixed Timestep (60 TPS)
+    - Phase 1: BeginFrame (TimeManager, InputManager)
+    - Phase 2: Fixed Simulation Ticks (deterministische Physics)
+    - Phase 3: World Scheduler (Budget-basiert, 8ms)
+    - Phase 4: Variable Update (Camera mit Interpolation)
+    - Phase 5: Late Update (Input finalization)
+  - OnRender mit Interpolation Alpha für smooth Rendering
+  - Spiral of Death Prevention (Max 5 Ticks pro Frame)
+
+- **Camera-System vollständig integriert**
+  - CameraManager als zentrale Verwaltung
+    - Update(dt, movementInput, lookInput, verticalInput, isSprinting)
+    - GetVisibilityContext() für Renderer-Output
+  - 5 Motion Modes mit Presets
+    - Walk, Fly, Glider, Cinematic, Spectator
+  - Floating Origin Pattern für unendliche Welten
+  - Frustum Culling via CameraVisibilityContext
+  - Exponential Decay für smooth Movement & Look
+
+- **WorldRelevanceFilter-Integration**
+  - UpdateFromCamera(CameraVisibilityContext)
+  - Cached Frustum für effizientes Culling
+  - UpdateChunkPriority() für dynamische Chunk-Priorisierung
+  - Camera-relative AABB-Berechnung (Float-Precision-Fix)
+
+- **TimeManager - Zentrales Zeit-Management**
+  - Fixed Delta Time: 1/60s (60 TPS)
+  - Frame Delta Time: Variable Render-Framerate
+  - Simulation Time Scale: Zeitlupe/Zeitraffer
+  - World Time: Tag/Nacht-Zyklus (unabhängig skalierbar)
+  - Unscaled Total Time: Für Background-Tasks (läuft auch während Pause)
+  - Interpolation Alpha: GetInterpolationAlpha() für smooth Rendering
+
+- **Input-Integration in GameLoop**
+  - BeginFrame/EndFrame Lifecycle korrekt implementiert
+  - Camera nutzt InputManager.Instance für Direct Queries
+  - WASD + Space/Ctrl + Sprint funktional
+  - Mouse Look mit Exponential Smoothing
+
+- **Bugfixes aus 0.7.1.1 validiert**
+  - ViewProjectionMatrix Multiplikations-Reihenfolge korrekt (P × V)
+  - ViewFrustum Right Plane Formel korrigiert
+  - VerticalVelocity Multiplikation behoben
+  - Camera-relative AABB für Floating Origin
+
+- **Architektur-Verbesserungen**
+  - Component-based Camera Design
+  - Event-driven Origin Shifts
+  - Cached Matrix Generation mit Dirty Flag
+  - Frame-independent Exponential Decay
+
+- **Status:** 🔄 ~95% funktional - Folgende Tasks ausstehend:
+  - ❌ Program.cs OnUpdate/OnRender Integration
+  - ❌ Chunk-System Reaktivierung mit Culling
+  - ❌ WorldScheduler ProcessChunkLoad/Mesh Implementierung
+  - ❌ End-to-End Testing mit echten Chunks
+  - ❌ Performance-Profiling (Ziel: 60 FPS @ 16 Chunks RenderDistance)
+
+- **Nächste Schritte:**
+  - Program.cs: GameLoop.Update() und .Render() Calls
+  - Chunk-Mesh-Rendering mit Culling
+  - WorldScheduler Budget-basiertes Loading
+  - Testing mit Motion Modes
+  - Performance-Benchmarking
+
