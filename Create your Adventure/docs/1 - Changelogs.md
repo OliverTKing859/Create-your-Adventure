@@ -2088,3 +2088,53 @@ ChangeLogs
   - Testing mit Motion Modes
   - Performance-Benchmarking
 
+## 0.7.2.1 Alpha | Bugfix: Camera Rotation Axis - The Dirtiest Bug Ever Fixed - 08.03.2026
+
+- **KRITISCHE KAMERA-ROTATIONS-BUGS BEHOBEN**
+  - **Problem 1: Yaw war invertiert**
+    - Maus nach rechts → Kamera drehte nach LINKS
+    - **Ursache:** `Transform.Yaw += delta.X` mit falscher Vorzeichen-Konvention
+    - **Fix:** `Transform.Yaw -= delta.X` (invertiert)
+  
+  - **Problem 2: Seitwärts-Rotation beim Hoch/Runter-Schauen**
+    - Bei Pitch ≠ 0 verursachte Yaw-Änderung Seitwärts-Drehung statt horizontale Rotation
+    - **Ursache:** Quaternion-basierte Rotation kombinierte lokale Achsen
+    - **Fix:** Trigonometrische Berechnung - Yaw rotiert IMMER um Welt-Y-Achse
+
+- **CameraTransform komplett überarbeitet**
+  - **Quaternionen entfernt** → Trigonometrische Berechnung (Industriestandard für FPS-Kameras)
+  - **Forward-Vektor:**
+    ```
+    X = cos(pitch) * sin(yaw)
+    Y = sin(pitch)  
+    Z = -cos(pitch) * cos(yaw)  // Negativ weil OpenGL -Z = forward
+    ```
+  - **Right-Vektor:** Hängt NUR von Yaw ab (immer horizontal!)
+    ```
+    X = cos(yaw)
+    Y = 0  // IMMER 0 für horizontale Bewegung
+    Z = sin(yaw)
+    ```
+  - **Up-Vektor:** Cross(Right, Forward)
+
+- **Warum Trigonometrie statt Quaternionen?**
+  - FPS-Kameras brauchen spezielle Rotation:
+    - Yaw: IMMER um Welt-Y-Achse (egal wohin man schaut)
+    - Pitch: Um lokale X-Achse (nach oben/unten kippen)
+  - Quaternionen kombinieren lokale Rotationen → falsches Verhalten
+  - Trigonometrie garantiert unabhängige Yaw/Pitch-Achsen
+
+- **Ausführliche Code-Kommentare hinzugefügt**
+  - Erklärung der sphärischen zu kartesischen Koordinaten-Umrechnung
+  - Begründung für jede Formel-Komponente
+  - OpenGL-Koordinatensystem-Konvention dokumentiert
+
+- **Status:** ✅ Kamera funktioniert jetzt wie erwartet
+  - ✅ Maus rechts = Blick nach rechts
+  - ✅ Maus hoch = Blick nach oben
+  - ✅ Horizontale Drehung bleibt horizontal (auch bei Pitch ≠ 0)
+  - ✅ WASD-Bewegung relativ zur Blickrichtung
+
+- **Nächste Schritte:**
+  - Integration in Program.cs testen
+  - Chunk-Rendering mit korrekter Kamera validieren

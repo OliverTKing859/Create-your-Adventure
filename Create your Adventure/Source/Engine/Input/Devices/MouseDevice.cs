@@ -21,6 +21,8 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
         private InputState? state;
         // ═══ Last known mouse position for calculating delta movement
         private Vector2 lastPosition;
+        // ═══ Flag to skip first delta after mode change (prevents jump)
+        private bool skipNextDelta;
 
         /// <summary>
         /// Gets the name of the mouse device.
@@ -134,25 +136,16 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
 
         /// <summary>
         /// Internal handler for mouse movement events.
-        /// Calculates delta movement and updates position in input state.
+        /// Calculates delta movement correctly for both normal and locked cursor modes.
+        /// In CursorMode.Disabled, GLFW provides cumulative raw position, not frame delta!
         /// </summary>
         private void OnMouseMove(IMouse m, Vector2 position)
         {
-            if (m.Cursor.CursorMode == Silk.NET.Input.CursorMode.Disabled)
-            {
-                // ═══ Locked mode: position is raw delta from GLFW directly
-                state?.SetMouseDelta(position);
-                state?.SetMousePosition(position);
-            }
-            else
-            {
-                // ═══ Normal mode: calculate delta from last known position
-                var delta = position - lastPosition;
-                lastPosition = position;
+            var delta = position - lastPosition;
+            lastPosition = position;
 
-                state?.SetMousePosition(position);
-                state?.SetMouseDelta(delta);
-            }
+            state?.SetMousePosition(position);
+            state?.SetMouseDelta(delta);
         }
 
         /// <summary>
@@ -175,6 +168,9 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
         {
             if (mouse is null) return;
 
+            // ═══ Skip next delta to prevent jump when switching modes
+            skipNextDelta = true;
+
             mouse.Cursor.CursorMode = mode switch
             {
                 CursorMode.Visible => Silk.NET.Input.CursorMode.Normal,
@@ -184,6 +180,12 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
                 CursorMode.ConfinedHidden => Silk.NET.Input.CursorMode.Hidden,
                 _ => Silk.NET.Input.CursorMode.Normal
             };
+
+            // ═══ Update lastPosition to current position after mode change
+            if (mouse.Cursor.CursorMode == Silk.NET.Input.CursorMode.Disabled)
+            {
+                lastPosition = mouse.Position;
+            }
         }
 
         // ══════════════════════════════════════════════════

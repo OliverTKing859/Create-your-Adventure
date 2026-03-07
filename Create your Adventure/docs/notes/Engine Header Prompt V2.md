@@ -63,3 +63,4 @@ TimeManager:      Single time authority (FixedDt 1/60s, DeltaTime, Interpolation
 - No overengineering
 - No Vulkan yet (but abstraction layer is Vulkan-ready)
 - No UI framework beyond ImGui debug overlay
+

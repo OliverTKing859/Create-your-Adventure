@@ -127,6 +127,14 @@ namespace Create_your_Adventure.Source.Engine.Input
                 .AddKeyBinding(KeyCode.LeftShift)
                 .AddGamepadBinding(GamepadButton.Y);
 
+            Register("MoveUp", InputActionType.Held)
+                .AddKeyBinding(KeyCode.Space)
+                .AddGamepadBinding(GamepadButton.RightBumper);
+
+            Register("MoveDown", InputActionType.Held)
+                .AddKeyBinding(KeyCode.LeftControl)
+                .AddGamepadBinding(GamepadButton.LeftBumper);
+
             Logger.Info($"[INPUT] {ActionCount} engine actions registered");
         }
 

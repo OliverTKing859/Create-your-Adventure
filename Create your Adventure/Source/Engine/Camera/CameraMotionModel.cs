@@ -62,10 +62,10 @@ namespace Create_your_Adventure.Source.Engine.Camera
 
         public Vector2D<float> ApplyLookInput(Vector2D<float> rawDelta, float dt)
         {
-            float smoothFactor = 1f - MathF.Exp(-LookSmoothing * dt);
-            SmoothedLookDelta = Vector2D.Lerp(SmoothedLookDelta, rawDelta, smoothFactor);
+            float t = MathF.Min(1f, LookSmoothing * dt);
+            SmoothedLookDelta = Vector2D.Lerp(SmoothedLookDelta, rawDelta, t);
+            return rawDelta * LookSensitivity;
 
-            return SmoothedLookDelta * LookSensitivity;
         }
 
         public Vector3D<float> ComputePositionDelta(float dt)
@@ -148,6 +148,24 @@ namespace Create_your_Adventure.Source.Engine.Camera
                 MaxPitch = 89f,
                 AllowRoll = true,
                 RollReturnRate = 1f
+            };
+
+            public static readonly CameraMotionModel Debug = new()
+            {
+                MaxSpeed = 10f,
+                SprintMultiplier = 4f,
+                VerticalSpeed = 10f,
+                AccelerationRate = 12f,
+                DecelerationRate = 6f,
+                DragCoefficient = 0.1f,
+                LookSensitivity = 0.1f,
+                LookSmoothing = 15,
+                MaxPitch = 89f,
+                AllowRoll = false,
+                RollReturnRate = 0f,
+                Velocity = Vector3D<float>.Zero,
+                VerticalVelocity = 0f,
+                SmoothedLookDelta = Vector2D<float>.Zero
             };
         }
     }

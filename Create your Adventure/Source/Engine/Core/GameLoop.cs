@@ -86,8 +86,8 @@ namespace Create_your_Adventure.Source.Engine.Core
             // TimeManager requires no explicit initialization
 
             // ═══ 07 ═══ Camera Manager
-            CameraManager.Instance.Initialize(worldX: 0, worldY: 0, worldZ: 3);
-            CameraManager.Instance.SetMotionMode(CameraMotionMode.Spectator);
+            CameraManager.Instance.Initialize(worldX: 0, worldY: 0, worldZ: 0);
+            CameraManager.Instance.SetMotionMode(CameraMotionMode.Debug);
 
             var size = windowManager.Size;
             CameraManager.Instance.UpdateAspectRatio(size.X, size.Y);

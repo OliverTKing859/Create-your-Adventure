@@ -256,6 +256,8 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// </summary>
         public Vector2 GetMovementVector() => analyzer!.GetMovementVector();
 
+        public float GetVerticalMovement() => analyzer!.GetVerticalMovement();
+
         /// <summary>
         /// Gets a look/rotation vector based on mouse delta or right stick.
         /// Helper method for quick camera rotation implementation.

@@ -49,10 +49,6 @@ namespace Create_your_Adventure.Source.Engine.Input
 
             PreviousGamepadButtons.Clear();
             foreach (var btn in CurrentGamepadButtons) PreviousGamepadButtons.Add(btn);
-
-            // ═══ Reset delta values (accumulated during frame)
-            MouseDelta = Vector2.Zero;
-            ScrollDelta = 0f;
         }
 
         /// <summary>
@@ -74,6 +70,10 @@ namespace Create_your_Adventure.Source.Engine.Input
             var releasedKeys = KeyHoldTimes.Keys.Where(k => !CurrentKeys.Contains(k)).ToList();
             foreach (var key in releasedKeys)
                 KeyHoldTimes.Remove(key);
+
+            // ═══ Reset delta values (accumulated during frame)
+            MouseDelta = Vector2.Zero;
+            ScrollDelta = 0f;
         }
 
         // ══════════════════════════════════════════════════

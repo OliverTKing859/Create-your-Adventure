@@ -214,6 +214,18 @@ namespace Create_your_Adventure.Source.Engine.Input
         }
 
         /// <summary>
+        /// Determines the vertical movement direction based on the current keyboard input.
+        /// </summary>
+        /// <returns>A value indicating the vertical movement direction: 1 if the Space key is pressed, -1 if the Left Control
+        /// key is pressed, or 0 if neither key is pressed.</returns>
+        public float GetVerticalMovement()
+        {
+            if (IsKeyDown(KeyCode.Space)) return 1f;
+            if (IsKeyDown(KeyCode.LeftControl)) return -1f;
+            return 0f;
+        }
+
+        /// <summary>
         /// Gets a look/rotation vector based on mouse delta or right gamepad stick.
         /// Prioritizes mouse input over gamepad for camera control.
         /// </summary>
@@ -221,7 +233,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         public Vector2 GetLookVector()
         {
             var delta = GetMouseDelta();
-            if (delta != Vector2.Zero) return delta;
+            if (delta != Vector2.Zero) return new Vector2(-delta.X, delta.Y);
 
             // ═══ Fallback to gamepad right stick if no mouse movement
             return GetRightStick();

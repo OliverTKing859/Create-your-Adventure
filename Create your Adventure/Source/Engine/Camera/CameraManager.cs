@@ -131,16 +131,20 @@ namespace Create_your_Adventure.Source.Engine.Camera
 
         public void UpdateFromInput(float dt)
         {
-            var move = InputManager.Instance.GetMovementVector();
-            var look = InputManager.Instance.GetLookVector();
-            bool isSprinting = InputManager.Instance.IsActionTriggered("Sprint");
+            var input = InputManager.Instance;
 
-            // ═══ Convert System.Numerics.Vector2 to Silk.NET types
-            var movementInput = new Vector3D<float>(move.X, 0f, move.Y);
-            var lookInput = new Vector2D<float>(look.X, look.Y);
+            var move = input.GetMovementVector();
+            var look = input.GetLookVector();
+            var verticalMove = input.GetVerticalMovement();
+            bool sprint = input.IsActionTriggered("Sprint");
 
-            // ═══ Delegate to existing Update method
-            Update(dt, movementInput, lookInput, verticalInput: 0f, isSprinting);
+            Update(
+                dt,
+                movementInput: new Vector3D<float>(move.X, 0f, move.Y),
+                lookInput: new Vector2D<float>(look.X, look.Y),
+                verticalInput: verticalMove,
+                isSprinting: sprint
+            );
         }
 
         private Vector3D<float> ComputeWorldMovementDirection(Vector3D<float> input)
@@ -160,14 +164,20 @@ namespace Create_your_Adventure.Source.Engine.Camera
 
         private void ApplyRotation(Vector2D<float> delta)
         {
-            Transform.Yaw += delta.X;
+            Logger.Info($"[CAMERA] delta=({delta.X:F3}, {delta.Y:F3}) yaw={Transform.Yaw:F1} pitch={Transform.Pitch:F1}, roll={Transform.Roll:F1}");
+
+            Transform.Yaw -= delta.X;
+
             Transform.Pitch -= delta.Y;
+
             Transform.Pitch = MathHelper.Clamp(Transform.Pitch, -Motion.MaxPitch, Motion.MaxPitch);
 
             if (!Motion.AllowRoll && MathF.Abs(Transform.Roll) > 0.01f)
             {
                 Transform.Roll = MathHelper.ExpDecay(Transform.Roll, 0f, Motion.RollReturnRate, 0.016f);
             }
+
+            Transform.UpdateRotation();
         }
 
         // ══════════════════════════════════════════════════
@@ -185,6 +195,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
                 CameraMotionMode.Glider => CameraMotionModel.Presets.Glider,
                 CameraMotionMode.Cinematic => CameraMotionModel.Presets.Cinematic,
                 CameraMotionMode.Spectator => CameraMotionModel.Presets.Fly,
+                CameraMotionMode.Debug => CameraMotionModel.Presets.Debug,
                 _ => CameraMotionModel.Default
             };
 
@@ -304,6 +315,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
         Fly,        // ═══ Free 3D movement
         Glider,     // ═══ Momentum-based, roll enabled
         Cinematic,  // ═══ Slow, smooth for screenshots
-        Spectator   // ═══ Like fly but can pass through blocks
+        Spectator,  // ═══ Like fly but can pass through blocks
+        Debug       // ═══ Debug Cam
     }
 }
