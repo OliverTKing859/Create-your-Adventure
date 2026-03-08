@@ -233,7 +233,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         public Vector2 GetLookVector()
         {
             var delta = GetMouseDelta();
-            if (delta != Vector2.Zero) return new Vector2(-delta.X, delta.Y);
+            if (delta != Vector2.Zero) return new Vector2(delta.X, delta.Y);
 
             // ═══ Fallback to gamepad right stick if no mouse movement
             return GetRightStick();

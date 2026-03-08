@@ -166,7 +166,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
         {
             Logger.Info($"[CAMERA] delta=({delta.X:F3}, {delta.Y:F3}) yaw={Transform.Yaw:F1} pitch={Transform.Pitch:F1}, roll={Transform.Roll:F1}");
 
-            Transform.Yaw -= delta.X;
+            Transform.Yaw += delta.X;
 
             Transform.Pitch -= delta.Y;
 

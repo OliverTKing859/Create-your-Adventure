@@ -2138,3 +2138,15 @@ ChangeLogs
 - **Nächste Schritte:**
   - Integration in Program.cs testen
   - Chunk-Rendering mit korrekter Kamera validieren
+
+## 0.7.2.2 Alpha | Mini-Fix: Yaw Positive Direction Clarification - 08.03.2026
+
+- **Yaw-Achsen-Dokumentation verbessert**
+  - Clarified Yaw comment in CameraTransform
+  - 0° = schaut in -Z (forward/OpenGL standard)
+  - 90° = schaut in +X (right)
+  - -90° = schaut in -X (left)
+  - **Wichtig:** Positive Yaw = Maus nach rechts = Blick nach rechts ✓
+  - Verhindert Verwirrung bei Code-Review und Maintenance
+
+- **Status:** ✅ Mini-Fix - nur Dokumentation
