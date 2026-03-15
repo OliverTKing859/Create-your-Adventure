@@ -1,7 +1,7 @@
 # 1.2.3.4 "Titel/Testnamen"
 ## Vorlage
 
-0.0.0.1 Alpha
+0.0.0.1 Alpha 
 
 0.1.1.1 Beta
 
@@ -36,7 +36,7 @@
 - **Kein Content Update** oder **Änderungen**, die was mit dem Content zu tun haben
 
 ---
-## Testnamen
+## Development phase
 ### alpha
 
 - **Früheste Entwicklungsphase**

@@ -31,8 +31,6 @@ namespace Create_your_Adventure.Source.Engine.Camera
         private Vector3D<float> cachedRight;
         private Vector3D<float> cachedUp;
 
-        private bool directionsDirty;
-
         // ══════════════════════════════════════════════════
         // DIRECTION VECTORS (Quaternion-based)
         // ══════════════════════════════════════════════════
@@ -56,25 +54,24 @@ namespace Create_your_Adventure.Source.Engine.Camera
             // Convert Euler angles to radians
             float yawRad = Yaw * MathHelper.Deg2Rad;
             float pitchRad = Pitch * MathHelper.Deg2Rad;
+            float rollRad = Roll * MathHelper.Deg2Rad;
+
+            var qYaw = Quaternion<float>.CreateFromAxisAngle(Vector3D<float>.UnitY, -yawRad);
+            var qPitch = Quaternion<float>.CreateFromAxisAngle(Vector3D<float>.UnitX, pitchRad);
+            var qRoll = Quaternion<float>.CreateFromAxisAngle(Vector3D<float>.UnitZ, rollRad);
+
+            rotation = Quaternion<float>.Normalize(qYaw * qPitch * qRoll);
 
             float cosPitch = MathF.Cos(pitchRad);
             float sinPitch = MathF.Sin(pitchRad);
             float cosYaw = MathF.Cos(yawRad);
             float sinYaw = MathF.Sin(yawRad);
 
-            cachedForward = Vector3D.Normalize(new Vector3D<float>(
-                cosPitch * sinYaw,      // X: Links/Rechts basierend auf Yaw
-                sinPitch,               // Y: Hoch/Runter basierend auf Pitch
-                -cosPitch * cosYaw      // Z: Negativ weil OpenGL -Z = forward
-            ));
+            cachedForward = Vector3D.Normalize(TransformVector(new Vector3D<float>(0f, 0f, -1f), rotation));
 
-            cachedRight = Vector3D.Normalize(new Vector3D<float>(
-                cosYaw,     // X
-                0f,         // Y: Immer 0 für horizontale Bewegung
-                sinYaw      // Z
-            ));
+            cachedRight = Vector3D.Normalize(TransformVector(new Vector3D<float>(1f, 0f, 0f), rotation));
 
-            cachedUp = Vector3D.Normalize(Vector3D.Cross(cachedRight, cachedForward));
+            cachedUp = Vector3D.Normalize(TransformVector(new Vector3D<float>(0f, 1f, 0f), rotation));
         }
 
 
@@ -101,11 +98,12 @@ namespace Create_your_Adventure.Source.Engine.Camera
         // HELPERS
         // ══════════════════════════════════════════════════
 
-        private static Vector3D<float> TransformVector(Vector3D<float> vector, Quaternion<float> rotation)
+        private static Vector3D<float> TransformVector(Vector3D<float> vector, Quaternion<float> q)
         {
-            var qv = new Vector3D<float>(rotation.X, rotation.Y, rotation.Z);
+            var qv = new Vector3D<float>(q.X, q.Y, q.Z);
+
             var t = 2f * Vector3D.Cross(qv, vector);
-            return vector + rotation.W * t + Vector3D.Cross(qv, t);
+            return vector + q.W * t + Vector3D.Cross(qv, t);
         }
     }
 
