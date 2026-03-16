@@ -1,7 +1,4 @@
-KingsEngine — Copilot Prompt Header
-
-Füge diesen Block am Anfang jedes Copilot-Chats ein, wenn du neue Features entwickelst.
-
+Prompt Header
 
 🔧 TECH STACK
 Language  : C# (.NET 10), unsafe allowed
@@ -119,3 +116,4 @@ When generating code:
 • Ensure code compiles in .NET 10.
 
 KingsEngine · C# .NET 10 · Silk.NET · OpenGL 4.6 · Vulkan abstraction layer
+

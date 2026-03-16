@@ -28,7 +28,7 @@ N	Bereich				Vorschlag
 
 🔴 Sofort
 
-- [ ] ApplyLookInput Bug fixen – Smoothing hat keinen Effekt auf Rückgabewert
+- [X] ApplyLookInput Bug fixen – Smoothing hat keinen Effekt auf Rückgabewert
 - [ ] Toten Code in UpdateRotation() entfernen (cosPitch etc.)
 - [ ] FieldOfView in CameraProjection entfernen oder klar abgrenzen
 - [ ] DragCoefficient implementieren oder als // NYI kommentieren
@@ -75,9 +75,9 @@ N	Priorität			Problem										Fix
 
 🔴 Sofort
 
-- [ ] Logger.Info in ApplyRotation entfernen / hinter Debug-Flag
-- [ ] SetRotation – Transform.UpdateRotation() ergänzen
-- [ ] Hardcodiertes 0.016f durch echtes dt ersetzen
+- [X] Logger.Info in ApplyRotation entfernen / hinter Debug-Flag
+- [X] SetRotation – Transform.UpdateRotation() ergänzen
+- [X] Hardcodiertes 0.016f durch echtes dt ersetzen
 - [ ] Singleton-Konstruktor auf private setzen
 
 🟡 Bald
@@ -140,12 +140,12 @@ Die kritischen Probleme sind keine strukturellen Fehler sondern Implementierungs
 
 🔴 Sofort – Blocking Bugs
 
-- [ ] VP-Matrix Reihenfolge prüfen (proj * view vs view * proj)
-- [ ] newChunk-Berechnung: (float) Cast entfernen, Math.Floor (double) nutzen
-- [ ] Logger.Info in ApplyRotation entfernen
-- [ ] SetRotation – Transform.UpdateRotation() ergänzen
-- [ ] ApplyLookInput – Smoothing-Bug fixen (Rückgabe auf SmoothedLookDelta umstellen)
-- [ ] Hardcodiertes 0.016f durch echtes dt ersetzen
+- [X] VP-Matrix Reihenfolge prüfen (proj * view vs view * proj)
+- [X] newChunk-Berechnung: (float) Cast entfernen, Math.Floor (double) nutzen
+- [X] Logger.Info in ApplyRotation entfernen
+- [X] SetRotation – Transform.UpdateRotation() ergänzen
+- [X] ApplyLookInput – Smoothing-Bug fixen (Rückgabe auf SmoothedLookDelta umstellen)
+- [X] Hardcodiertes 0.016f durch echtes dt ersetzen
 
 🟡 Bald – Stabilität & Korrektheit
 

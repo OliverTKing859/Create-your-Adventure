@@ -749,3 +749,11 @@ Dokumentationsstruktur komplett überarbeitet und neu organisiert.
 - Altes unstrukturiertes Changelog-Format
 
 ---
+
+## 0.7.3.1 Alpha | Kamera XML-Summaries - 16.03.2026
+
+### Hinzugefügt:
+
++ XML-Summary-Kommentare für das Kamera-System zur Verbesserung der Intellisense- und Dokumentationsqualität (z. B. CameraManager, CameraTransform, MotionModel, WorldBinding, VisibilityContext, ViewFrustum)
+
+---

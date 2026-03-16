@@ -34,12 +34,12 @@
 - [ ] `isDisposed`-Check in `CreateMesh()`, `GetMesh()` etc.
 
 ### Camera
-- [ ] **VP-Matrix Reihenfolge prüfen** — `proj * view` vs. `view * proj` (Fundament für Chunks)
-- [ ] **`newChunk`-Berechnung**: `(float)` Cast entfernen, `Math.Floor(double)` nutzen
-- [ ] `Logger.Info` in `ApplyRotation()` entfernen / hinter `#if DEBUG`
-- [ ] `SetRotation()` — `Transform.UpdateRotation()` am Ende ergänzen
-- [ ] **`ApplyLookInput` Smoothing-Bug** — Rückgabe auf `SmoothedLookDelta` umstellen
-- [ ] Hardcodiertes `0.016f` durch echtes `dt` ersetzen
+- [X] **VP-Matrix Reihenfolge prüfen** — `proj * view` vs. `view * proj` (Fundament für Chunks)
+- [X] **`newChunk`-Berechnung**: `(float)` Cast entfernen, `Math.Floor(double)` nutzen
+- [X] `Logger.Info` in `ApplyRotation()` entfernen / hinter `#if DEBUG`
+- [X] `SetRotation()` — `Transform.UpdateRotation()` am Ende ergänzen
+- [X] **`ApplyLookInput` Smoothing-Bug** — Rückgabe auf `SmoothedLookDelta` umstellen
+- [X] Hardcodiertes `0.016f` durch echtes `dt` ersetzen
 - [ ] Singleton-Konstruktor auf `private` setzen
 
 ### Input
