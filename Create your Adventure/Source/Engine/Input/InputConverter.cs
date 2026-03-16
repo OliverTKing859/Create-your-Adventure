@@ -109,7 +109,7 @@ namespace Create_your_Adventure.Source.Engine.Input
                 Key.Keypad8 => KeyCode.Numpad8,
                 Key.Keypad9 => KeyCode.Numpad9,
                 Key.KeypadAdd => KeyCode.NumpadAdd,
-                Key.KeypadSubtract => KeyCode.NumpadSubstract,
+                Key.KeypadSubtract => KeyCode.NumpadSubtract,
                 Key.KeypadMultiply => KeyCode.NumpadMultiply,
                 Key.KeypadDivide => KeyCode.NumpadDivide,
                 Key.KeypadEnter => KeyCode.NumpadEnter,

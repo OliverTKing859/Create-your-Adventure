@@ -44,7 +44,7 @@
 
 ### Input
 - [ ] **`skipNextDelta` in `OnMouseMove` auswerten** (Delta-Spike nach Cursor-Moduswechsel)
-- [ ] **Tippfehler `NumpadSubstract` → `NumpadSubtract`**
+- [X] **Tippfehler `NumpadSubstract` → `NumpadSubtract`**
 - [ ] `DoublePress` implementieren oder mit `NotSupportedException` kennzeichnen
 - [ ] `LongPressThreshold` aus `KeyBinding` + `InputAnalyzer` in `InputConstants` zusammenführen
 - [ ] LINQ-Allokation in `EndFrame()` durch reusable `List<KeyCode>` ersetzen

@@ -5,16 +5,14 @@ using System.Text;
 
 namespace Create_your_Adventure.Source.Engine.Input
 {
+    // ══════════════════════════════════════════════════
+    // INPUT CONSTANTS
+    // ══════════════════════════════════════════════════
     /// <summary>
-    /// Provides high-level input query methods for gameplay and camera control.
-    /// Analyzes the raw input state to detect patterns like presses, releases, holds, and combinations.
-    /// Includes helper methods for common game mechanics (movement, looking, combos).
+    /// 
     /// </summary>
-    public sealed class InputAnalyzer
+    internal static class InputConstants
     {
-        // ═══ Reference to the input state being analyzed
-        private readonly InputState state;
-
         /// <summary>
         /// The duration threshold (in seconds) for detecting long presses.
         /// Default: 0.5 seconds
@@ -26,6 +24,17 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// Values below this threshold are treated as zero to prevent drift.
         /// </summary>
         public const float DefaultDeadzone = 0.15f;
+    }
+
+    /// <summary>
+    /// Provides high-level input query methods for gameplay and camera control.
+    /// Analyzes the raw input state to detect patterns like presses, releases, holds, and combinations.
+    /// Includes helper methods for common game mechanics (movement, looking, combos).
+    /// </summary>
+    public sealed class InputAnalyzer
+    {
+        // ═══ Reference to the input state being analyzed
+        private readonly InputState state;
 
         /// <summary>
         /// Initializes a new instance of the InputAnalyzer class.
@@ -69,7 +78,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// <param name="key">The key to check.</param>
         /// <returns>True if the key has been held for at least LongPressThreshold seconds.</returns>
         public bool IsKeyLongPressed(KeyCode key)
-            => state.KeyHoldTimes.TryGetValue(key, out var time) && time >= LongPressThreshold;
+            => state.KeyHoldTimes.TryGetValue(key, out var time) && time >= InputConstants.LongPressThreshold;
 
         /// <summary>
         /// Gets the duration (in seconds) that a key has been held down.
@@ -160,7 +169,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// <param name="axis">The axis to query (left/right stick X/Y).</param>
         /// <param name="deadzone">The deadzone threshold (0.0 to 1.0). Default is 0.15.</param>
         /// <returns>The axis value (-1.0 to 1.0), or 0 if below deadzone.</returns>
-        public float GetAxis(GamepadAxis axis, float deadzone = DefaultDeadzone)
+        public float GetAxis(GamepadAxis axis, float deadzone = InputConstants.DefaultDeadzone)
         {
             if (!state.GamepadAxes.TryGetValue(axis, out var value)) return 0f;
             return MathF.Abs(value) < deadzone ? 0f : value;
@@ -171,7 +180,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// </summary>
         /// <param name="deadzone">The deadzone threshold. Default is 0.15.</param>
         /// <returns>A vector where X is horizontal (-1 left, 1 right) and Y is vertical (-1 down, 1 up).</returns>
-        public Vector2 GetLeftStick(float deadzone = DefaultDeadzone) => new(
+        public Vector2 GetLeftStick(float deadzone = InputConstants.DefaultDeadzone) => new(
             GetAxis(GamepadAxis.LeftStickX, deadzone),
             GetAxis(GamepadAxis.LeftStickY, deadzone)
         );
@@ -181,7 +190,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// </summary>
         /// <param name="deadzone">The deadzone threshold. Default is 0.15.</param>
         /// <returns>A vector where X is horizontal (-1 left, 1 right) and Y is vertical (-1 down, 1 up).</returns>
-        public Vector2 GetRightStick(float deadzone = DefaultDeadzone) => new(
+        public Vector2 GetRightStick(float deadzone = InputConstants.DefaultDeadzone) => new(
             GetAxis(GamepadAxis.RightStickX, deadzone),
             GetAxis(GamepadAxis.RightStickY, deadzone)
         );

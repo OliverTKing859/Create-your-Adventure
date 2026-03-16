@@ -39,7 +39,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         // ═══ Numpad keys (0-9 and operators)
         Numpad0, Numpad1, Numpad2, Numpad3, Numpad4,
         Numpad5, Numpad6, Numpad7, Numpad8, Numpad9,
-        NumpadAdd, NumpadSubstract, NumpadMultiply, NumpadDivide,
+        NumpadAdd, NumpadSubtract, NumpadMultiply, NumpadDivide,
         NumpadEnter, NumpadDecimal,
 
         // ═══ Symbol/punctuation keys

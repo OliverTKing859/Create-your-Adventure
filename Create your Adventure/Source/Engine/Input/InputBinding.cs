@@ -238,7 +238,8 @@ namespace Create_your_Adventure.Source.Engine.Input
                 InputActionType.Pressed => state.CurrentKeys.Contains(Key) && !state.PreviousKeys.Contains(Key),
                 InputActionType.Held => state.CurrentKeys.Contains(Key),
                 InputActionType.Released => !state.CurrentKeys.Contains(Key) && state.PreviousKeys.Contains(Key),
-                InputActionType.LongPress => state.KeyHoldTimes.TryGetValue(Key, out var t) && t >= 0.5f,
+                InputActionType.LongPress => state.KeyHoldTimes.TryGetValue(Key, out var t) && t >= InputConstants.LongPressThreshold,
+                InputActionType.DoublePress => false, // TODO: ═══ implement DoublePress timer
                 _ => false
             };
         }
@@ -288,6 +289,7 @@ namespace Create_your_Adventure.Source.Engine.Input
                 InputActionType.Pressed => state.CurrentMouseButtons.Contains(Button) && !state.PreviousMouseButtons.Contains(Button),
                 InputActionType.Held => state.CurrentMouseButtons.Contains(Button),
                 InputActionType.Released => !state.CurrentMouseButtons.Contains(Button) && state.PreviousMouseButtons.Contains(Button),
+                InputActionType.DoublePress => false, // TODO: implement DoublePress timer
                 _ => false
             };
         }
@@ -330,6 +332,7 @@ namespace Create_your_Adventure.Source.Engine.Input
                 InputActionType.Pressed => state.CurrentGamepadButtons.Contains(Button) && !state.PreviousGamepadButtons.Contains(Button),
                 InputActionType.Held => state.CurrentGamepadButtons.Contains(Button),
                 InputActionType.Released => !state.CurrentGamepadButtons.Contains(Button) && state.PreviousGamepadButtons.Contains(Button),
+                InputActionType.DoublePress => false, // TODO: implement DoublePress timer
                 _ => false
             };
         }
@@ -359,7 +362,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// Values below this are treated as zero to prevent stick drift.
         /// Default: 0.15 (15%)
         /// </summary>
-        public float Deadzone { get; init; } = 0.15f;
+        public float Deadzone { get; init; } = InputConstants.DefaultDeadzone;
 
         /// <summary>
         /// Initializes a new instance of the GamepadAxisBinding class.

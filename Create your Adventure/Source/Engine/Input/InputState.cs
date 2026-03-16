@@ -17,6 +17,7 @@ namespace Create_your_Adventure.Source.Engine.Input
         internal readonly HashSet<KeyCode> CurrentKeys = [];
         internal readonly HashSet<KeyCode> PreviousKeys = [];
         internal readonly Dictionary<KeyCode, float> KeyHoldTimes = [];
+        private readonly List<KeyCode> keysToRemove = new();
 
         // ═══ Mouse state tracking
         internal readonly HashSet<MouseButton> CurrentMouseButtons = [];
@@ -42,13 +43,13 @@ namespace Create_your_Adventure.Source.Engine.Input
         {
             // ═══ Save previous frame state for edge detection
             PreviousKeys.Clear();
-            foreach (var key in CurrentKeys) PreviousKeys.Add(key);
+            PreviousKeys.UnionWith(CurrentKeys);
 
             PreviousMouseButtons.Clear();
-            foreach (var btn in CurrentMouseButtons) PreviousMouseButtons.Add(btn);
+            PreviousMouseButtons.UnionWith(CurrentMouseButtons);
 
             PreviousGamepadButtons.Clear();
-            foreach (var btn in CurrentGamepadButtons) PreviousGamepadButtons.Add(btn);
+            PreviousGamepadButtons.UnionWith(CurrentGamepadButtons);
         }
 
         /// <summary>
@@ -66,9 +67,14 @@ namespace Create_your_Adventure.Source.Engine.Input
                 KeyHoldTimes[key] += deltaTime;
             }
 
-            // ═══ Remove hold time tracking for released keys
-            var releasedKeys = KeyHoldTimes.Keys.Where(k => !CurrentKeys.Contains(k)).ToList();
-            foreach (var key in releasedKeys)
+            // ═══ Remove hold time tracking for released keys (avoid LINQ allocation)
+            keysToRemove.Clear();
+            foreach (var k in KeyHoldTimes.Keys)
+            {
+                if (!CurrentKeys.Contains(k))
+                    keysToRemove.Add(k);
+            }
+            foreach (var key in keysToRemove)
                 KeyHoldTimes.Remove(key);
 
             // ═══ Reset delta values (accumulated during frame)

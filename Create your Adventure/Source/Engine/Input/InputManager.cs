@@ -192,6 +192,9 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// <param name="mode">The desired cursor mode.</param>
         public void SetCursorMode(CursorMode mode)
         {
+            // ═══ If mode unchanged, do nothing (avoid spurious logs)
+            if (currentCursorMode == mode) return;
+
             currentCursorMode = mode;
             mouse?.SetCursorMode(mode);
             Logger.Info($"[INPUT] Cursor mode: {mode}");
@@ -224,45 +227,45 @@ namespace Create_your_Adventure.Source.Engine.Input
 
         // ═══ Keyboard
         /// <summary>Checks if a key is currently held down.</summary>
-        public bool IsKeyDown(KeyCode key) => analyzer!.IsKeyDown(key);
+        public bool IsKeyDown(KeyCode key) { EnsureInitialized(); return analyzer!.IsKeyDown(key); }
 
         /// <summary>Checks if a key was just pressed this frame.</summary>
-        public bool IsKeyPressed(KeyCode key) => analyzer!.IsKeyPressed(key);
+        public bool IsKeyPressed(KeyCode key) { EnsureInitialized(); return analyzer!.IsKeyPressed(key); }
 
         /// <summary>Checks if a debug key combination is active (modifier + key).</summary>
-        public bool IsDebugCombo(KeyCode mod, KeyCode key) => analyzer!.IsDebugCombo(mod, key);
+        public bool IsDebugCombo(KeyCode mod, KeyCode key) { EnsureInitialized(); return analyzer!.IsDebugCombo(mod, key); }
 
         // ═══ Mouse
         /// <summary>Gets the mouse movement delta since last frame.</summary>
-        public Vector2 GetMouseDelta() => analyzer!.GetMouseDelta();
+        public Vector2 GetMouseDelta() { EnsureInitialized(); return analyzer!.GetMouseDelta(); }
 
         /// <summary>Gets the current mouse cursor position.</summary>
-        public Vector2 GetMousePosition() => analyzer!.GetMousePosition();
+        public Vector2 GetMousePosition() { EnsureInitialized(); return analyzer!.GetMousePosition(); }
 
         // ═══ Gamepad
         /// <summary>Checks if a gamepad button is currently held down.</summary>
-        public bool IsGamepadButtonDown(GamepadButton btn) => analyzer!.IsGamepadButtonDown(btn);
+        public bool IsGamepadButtonDown(GamepadButton btn) { EnsureInitialized(); return analyzer!.IsGamepadButtonDown(btn); }
 
         /// <summary>Gets the left analog stick position with deadzone applied.</summary>
-        public Vector2 GetLeftStick() => analyzer!.GetLeftStick();
+        public Vector2 GetLeftStick() { EnsureInitialized(); return analyzer!.GetLeftStick(); }
 
         /// <summary>Gets the right analog stick position with deadzone applied.</summary>
-        public Vector2 GetRightStick() => analyzer!.GetRightStick();
+        public Vector2 GetRightStick() { EnsureInitialized(); return analyzer!.GetRightStick(); }
 
         // Camera Helpers
         /// <summary>
         /// Gets a normalized movement vector based on WASD or left stick.
         /// Helper method for quick camera/character movement implementation.
         /// </summary>
-        public Vector2 GetMovementVector() => analyzer!.GetMovementVector();
+        public Vector2 GetMovementVector() { EnsureInitialized(); return analyzer!.GetMovementVector(); }
 
-        public float GetVerticalMovement() => analyzer!.GetVerticalMovement();
+        public float GetVerticalMovement() { EnsureInitialized(); return analyzer!.GetVerticalMovement(); }
 
         /// <summary>
         /// Gets a look/rotation vector based on mouse delta or right stick.
         /// Helper method for quick camera rotation implementation.
         /// </summary>
-        public Vector2 GetLookVector() => analyzer!.GetLookVector();
+        public Vector2 GetLookVector() { EnsureInitialized(); return analyzer!.GetLookVector(); }
 
         // ══════════════════════════════════════════════════
         // ACTION QUERIES (for Gameplay)
@@ -274,6 +277,15 @@ namespace Create_your_Adventure.Source.Engine.Input
         /// <param name="name">The name of the action to check.</param>
         /// <returns>True if any binding for this action is active.</returns>
         public bool IsActionTriggered(string name) => registry.IsTriggered(name, state);
+
+        // ══════════════════════════════════════════════════
+        // Helper
+        // ══════════════════════════════════════════════════
+        private void EnsureInitialized()
+        {
+            if (!isInitialized)
+                throw new InvalidOperationException("[INPUT] InputManager not initialized.");
+        }
 
         // ══════════════════════════════════════════════════
         // DISPOSE

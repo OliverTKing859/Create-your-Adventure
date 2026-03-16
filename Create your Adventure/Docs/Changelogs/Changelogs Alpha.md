@@ -757,3 +757,17 @@ Dokumentationsstruktur komplett überarbeitet und neu organisiert.
 + XML-Summary-Kommentare für das Kamera-System zur Verbesserung der Intellisense- und Dokumentationsqualität (z. B. CameraManager, CameraTransform, MotionModel, WorldBinding, VisibilityContext, ViewFrustum)
 
 ---
+
+## 0.7.3.2 Alpha | Input System Bugfixes - 16.03.2026
+
+### Gefixt:
+
+* MouseDevice.OnMouseMove überspringte vorher gesetztes skipNextDelta nicht — jetzt wird bei gesetztem Flag lastPosition aktualisiert, skipNextDelta zurückgesetzt, Position gesetzt und ohne Delta zurückgegeben (MouseDevice.cs).
+* InputBinding-Unterklassen behandelten InputActionType.DoublePress nicht — hinzugefügt: DoublePress-Fall, der aktuell false zurückgibt und mit // TODO: implement DoublePress timer kommentiert ist, damit es still fehlschlägt statt durchzufallen (InputBinding.cs).
+* InputState.EndFrame() verursachte jede Frame eine LINQ-Allokation beim Entfernen freigewordener Keys — ersetzt durch wiederverwendbare Liste _keysToRemove zur Allocation-Reduktion (InputState.cs).
+* InputState.BeginFrame() kopierte Sets manuell per foreach — ersetzt durch PreviousKeys.UnionWith(CurrentKeys) (und analog für Maus/Gamepad) zur Vereinfachung und geringeren Overhead (InputState.cs).
+* Shortcut-Methoden im InputManager nutzten analyzer! ohne Guard — EnsureInitialized() eingeführt und in allen Shortcut-Methoden aufgerufen, sodass Zugriff vor Initialisierung eine aussagekräftige Ausnahme wirft (InputManager.cs).
+* InputManager.SetCursorMode() loggte immer, auch wenn der Modus unverändert war — früher Rückkehr wenn currentCursorMode == mode hinzugefügt, um unnötige Logs und Aufrufe zu vermeiden (InputManager.cs).
+* Doppelte Hardcodierung für LongPress/Deadzone entfernt — InputConstants eingeführt mit LongPressThreshold = 0.5f und DefaultDeadzone = 0.15f; Verwendungen in InputAnalyzer, KeyBinding und GamepadAxisBinding ersetzt (InputConstants.cs, InputAnalyzer.cs, InputBinding.cs).
+
+---

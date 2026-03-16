@@ -141,6 +141,16 @@ namespace Create_your_Adventure.Source.Engine.Input.Devices
         /// </summary>
         private void OnMouseMove(IMouse m, Vector2 position)
         {
+            // ═══ If we need to skip the next delta (e.g. after changing cursor mode),
+            // ═══ update lastPosition and current position but do not emit a delta.
+            if (skipNextDelta)
+            {
+                lastPosition = position;
+                skipNextDelta = false;
+                state?.SetMousePosition(position);
+                return;
+            }
+
             var delta = position - lastPosition;
             lastPosition = position;
 
