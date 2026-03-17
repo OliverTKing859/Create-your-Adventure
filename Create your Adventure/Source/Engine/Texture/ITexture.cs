@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Create_your_Adventure.Source.Engine.Texture
+﻿namespace Create_your_Adventure.Source.Engine.Texture
 {
     /// <summary>
     /// Defines the contract for a texture that can be loaded, bound, and used in rendering operations.

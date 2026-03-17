@@ -22,10 +22,10 @@
 - [X] `instance = null` in `Dispose()` setzen
 
 ### Texture
-- [ ] **State-Bug in `BindTexture()` fixen** — `boundAtlas`/`boundTexture` sind vertauscht
-- [ ] **Atlas Row-Wrap-Bug** — `currentY *= textureSize` → `currentY += textureSize`
-- [ ] `ThrowIfDisposed()` in alle Public-Methoden
-- [ ] `Directory.Exists`-Guard in `BuildAtlasFromFolder()`
+- [X] **State-Bug in `BindTexture()` fixen** — `boundAtlas`/`boundTexture` sind vertauscht
+- [X] **Atlas Row-Wrap-Bug** — `currentY *= textureSize` → `currentY += textureSize`
+- [X] `ThrowIfDisposed()` in alle Public-Methoden
+- [X] `Directory.Exists`-Guard in `BuildAtlasFromFolder()`
 
 ### Mesh
 - [ ] `SetData()` in `OpenGLVertexBuffer`: Guard gegen doppelten Aufruf (GPU-Leak)
@@ -83,9 +83,9 @@
 - [X] `File.Exists()`-Guard in `LoadFromFiles()`
 
 ### Texture
-- [ ] Bind-Guard um `(name, unit)`-Tupel erweitern
+- [X] Bind-Guard um `(name, unit)`-Tupel erweitern
 - [ ] `BuildBlockAtlas()` auf `AssetLoader` umstellen
-- [ ] `singleton` nach `Dispose()` auf `null` zurücksetzen
+- [X] `singleton` nach `Dispose()` auf `null` zurücksetzen
 
 ### Mesh
 - [ ] `Draw()` vs. manuelles `Bind()`: Inkonsistenz klären und dokumentieren

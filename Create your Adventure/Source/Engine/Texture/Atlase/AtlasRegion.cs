@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Create_your_Adventure.Source.Engine.Texture.Atlase
+﻿namespace Create_your_Adventure.Source.Engine.Texture.Atlase
 {
     /// <summary>
     /// Represents a named region within a texture atlas.

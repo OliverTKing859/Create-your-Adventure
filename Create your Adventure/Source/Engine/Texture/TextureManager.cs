@@ -38,9 +38,9 @@ namespace Create_your_Adventure.Source.Engine.Texture
             }
         }
 
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         // FIELDS (API-agnostic!)
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
 
         // ═══ Factory function to create textures for the active graphics API
         private Func<string, ITexture>? textureFactory;
@@ -53,26 +53,47 @@ namespace Create_your_Adventure.Source.Engine.Texture
         private readonly Dictionary<string, ITextureAtlas> atlasCache = [];
 
         // ═══ Name of the currently bound texture (for state tracking and optimization)
-        private string? boundTexture;
+        private (string name, uint unit)? boundTexture;
         // ═══ Name of the currently bound atlas (for state tracking and optimization)
-        private string? boundAtlas;
+        private (string name, uint unit)? boundAtlas;
         // ═══ Flag to track whether this instance has been disposed
         private bool isDisposed;
 
         /// <summary>
         /// Gets a value indicating whether the TextureManager has been initialized with a graphics API backend.
         /// </summary>
-        public bool IsInitialized => textureFactory is not null;
+        public bool IsInitialized
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return textureFactory is not null;
+            }
+        }
 
         /// <summary>
         /// Gets the total number of individual textures currently cached in memory.
         /// </summary>
-        public int CachedTextureCount => textureCache.Count;
+        public int CachedTextureCount
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return textureCache.Count;
+            }
+        }
 
         /// <summary>
         /// Gets the total number of texture atlases currently cached in memory.
         /// </summary>
-        public int CachedAtlasCount => atlasCache.Count;
+        public int CachedAtlasCount
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return atlasCache.Count;
+            }
+        }
 
         /// <summary>
         /// Private constructor to enforce singleton pattern.
@@ -82,9 +103,9 @@ namespace Create_your_Adventure.Source.Engine.Texture
             // ═══ Intentionally empty - initialization happens in Initialize()
         }
 
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         // INITIALIZATION
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         /// <summary>
         /// Initializes the TextureManager with the appropriate graphics API backend.
         /// Automatically detects available graphics contexts (currently OpenGL, future: Vulkan, DirectX).
@@ -93,6 +114,8 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <exception cref="InvalidOperationException">Thrown when no supported graphics API context is found.</exception>
         public void Initialize()
         {
+            ThrowIfDisposed();
+
             if (IsInitialized) return;
 
             var gl = WindowManager.Instance.GlContext;
@@ -104,15 +127,16 @@ namespace Create_your_Adventure.Source.Engine.Texture
                 atlasFactory = name => new OpenGLTextureAtlas(gl, name);
                 Logger.Info("[TEXTURE] TextureManager initialized (OpenGL backend)");
             }
-            else // Future extension point: else if (vulkanContext is not null) { ... }
+
+            else // ═══ Future extension point: else if (vulkanContext is not null) { ... }
             {
                 throw new InvalidOperationException("No supported Graphics API context found");
             }
         }
 
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         // SINGEL TEXTURES (für UI, Skybox, etc.)
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         /// <summary>
         /// Loads a texture from a file path.
         /// If a texture with the same name already exists in cache, returns the cached version.
@@ -124,6 +148,7 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <returns>The loaded texture.</returns>
         public ITexture LoadTexture(string name, string path, TextureSettings? settings = null)
         {
+            ThrowIfDisposed();
             EnsureInitialized();
 
             // ═══ Return cached texture if already loaded
@@ -152,13 +177,15 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <returns>The loaded texture.</returns>
         public ITexture LoadTextureFromAssets(string name, string assetPath, TextureSettings? settings = null)
         {
+            ThrowIfDisposed();
+
             var fullPath = AssetLoader.GetTexturePath(assetPath);
             return LoadTexture(name, fullPath, settings);
         }
 
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         // TEXTURE ATLAS (for Blocks, Items, etc.)
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         /// <summary>
         /// Creates an empty texture atlas that can be populated with textures.
         /// Textures must be added using AddTexture() before calling Build().
@@ -167,6 +194,7 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <returns>The created texture atlas.</returns>
         public ITextureAtlas CreateAtlas(string name)
         {
+            ThrowIfDisposed();
             EnsureInitialized();
 
             if (atlasCache.TryGetValue(name, out var cached))
@@ -183,7 +211,7 @@ namespace Create_your_Adventure.Source.Engine.Texture
             return atlas;
         }
 
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         /// <summary>
         /// Creates and builds a texture atlas from all PNG files in a folder.
         /// Automatically scans the folder recursively, adds all textures, and builds the atlas.
@@ -195,13 +223,20 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <returns>The built texture atlas.</returns>
         public ITextureAtlas BuildAtlasFromFolder(string name, string folderPath, TextureSettings? settings = null)
         {
+            ThrowIfDisposed();
             EnsureInitialized();
+
+            if (!Directory.Exists(folderPath))
+                throw new DirectoryNotFoundException(folderPath);
 
             var atlas = CreateAtlas(name);
             settings ??= TextureSettings.Atlas;
 
             // ═══ Scan folder for all PNG files recursively
-            var textureFiles = Directory.EnumerateFiles(folderPath, "*.png", SearchOption.AllDirectories);
+            var textureFiles = Directory.GetFiles(folderPath, "*.png", SearchOption.AllDirectories);
+
+            if (textureFiles.Length == 0)
+                Logger.Warn($"[TEXTURE] No PNG files found in folder: {folderPath}");
 
             foreach (var file in textureFiles)
             {
@@ -220,9 +255,9 @@ namespace Create_your_Adventure.Source.Engine.Texture
             return atlas;
         }
 
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         // ACCESS & BINDING
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         /// <summary>
         /// Builds the block texture atlas from the default blocks folder.
         /// Convenience method for loading all block textures into a single atlas.
@@ -230,6 +265,8 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <returns>The built block atlas.</returns>
         public ITextureAtlas BuildBlockAtlas()
         {
+            ThrowIfDisposed();
+
             var blocksPath = Path.Combine("assets", "base", "textures", "blocks");
             return BuildAtlasFromFolder("blocks", blocksPath, TextureSettings.Atlas);
         }
@@ -240,7 +277,11 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <param name="name">The name of the texture to retrieve.</param>
         /// <returns>The texture if found, null otherwise.</returns>
         public ITexture? GetTexture(string name)
-            => textureCache.TryGetValue(name, out var tex) ? tex : null;
+        {
+            ThrowIfDisposed();
+
+            return textureCache.TryGetValue(name, out var tex) ? tex : null;
+        }
 
         /// <summary>
         /// Retrieves a texture atlas from the cache by name.
@@ -248,7 +289,11 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <param name="name">The name of the atlas to retrieve.</param>
         /// <returns>The atlas if found, null otherwise.</returns>
         public ITextureAtlas? GetAtlas(string name)
-            => atlasCache.TryGetValue(name, out var atlas) ? atlas : null;
+        {
+            ThrowIfDisposed();
+
+            return atlasCache.TryGetValue(name, out var atlas) ? atlas : null;
+        }
 
         /// <summary>
         /// Binds a texture to the specified texture unit for rendering.
@@ -258,14 +303,16 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <param name="unit">The texture unit to bind to (0-31 on most hardware). Default is 0.</param>
         public void BindTexture(string name, uint unit = 0)
         {
+            ThrowIfDisposed();
+
             // ═══ Skip if already bound (optimization)
-            if (boundTexture == name) return;
+            if (boundTexture.HasValue && boundTexture.Value.name == name && boundTexture.Value.unit == unit) return;
 
             if (textureCache.TryGetValue(name, out var texture))
             {
                 texture.Bind(unit);
-                boundAtlas = name;
-                boundTexture = null; // ═══ Clear atlas binding
+                boundTexture = (name, unit);
+                boundAtlas = null; // ═══ Clear atlas binding
             }
         }
 
@@ -277,13 +324,15 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <param name="unit">The texture unit to bind to (0-31 on most hardware).
         public void BindAtlas(string name, uint unit = 0)
         {
+            ThrowIfDisposed();
+
             // ═══ Skip if already bound (optimization)
-            if (boundAtlas == name) return;
+            if (boundAtlas.HasValue && boundAtlas.Value.name == name && boundAtlas.Value.unit == unit) return;
 
             if (atlasCache.TryGetValue(name, out var atlas))
             {
                 atlas.Bind(unit);
-                boundAtlas = name;
+                boundAtlas = (name, unit);
                 boundTexture = null; // ═══ Clear texture binding
             }
         }
@@ -297,6 +346,8 @@ namespace Create_your_Adventure.Source.Engine.Texture
         /// <exception cref="InvalidOperationException">Thrown when the block atlas has not been loaded.</exception>
         public AtlasRegion GetBlockUV(string blockName)
         {
+            ThrowIfDisposed();
+
             var atlas = GetAtlas("blocks");
             if (atlas is null)
                 throw new InvalidOperationException("Block atlas not loaded");
@@ -304,9 +355,9 @@ namespace Create_your_Adventure.Source.Engine.Texture
             return atlas.GetRegion(blockName);
         }
 
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         // ENSURE INITIALIZED
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         /// <summary>
         /// Internal validation method to ensure the TextureManager is initialized before use.
         /// </summary>
@@ -317,9 +368,9 @@ namespace Create_your_Adventure.Source.Engine.Texture
                 throw new InvalidOperationException("TextureManager must be initialized first");
         }
 
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         // DISPOSE
-        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════
         /// <summary>
         /// Disposes of all cached textures and atlases, releasing GPU resources.
         /// Clears both caches and resets binding state.
@@ -341,13 +392,22 @@ namespace Create_your_Adventure.Source.Engine.Texture
 
             isDisposed = true;
 
+            Logger.Info("[TEXTURE] TextureManager disposed");
+
             // ═══ Ensure singleton reference cleared in a thread-safe manner
             lock (instanceLock)
             {
                 instance = null;
             }
 
-            Logger.Info("[TEXTURE] TextureManager disposed");
+        }
+
+        // ══════════════════════════════════════════════════
+        // HELPER METHODS
+        // ══════════════════════════════════════════════════
+        private void ThrowIfDisposed()
+        {
+            ObjectDisposedException.ThrowIf(isDisposed, this);
         }
     }
 }

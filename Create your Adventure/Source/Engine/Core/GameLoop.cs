@@ -43,9 +43,9 @@ namespace Create_your_Adventure.Source.Engine.Core
         {
             Logger.Info("[GAMELOOP] Loading resources...");
 
-            // ═══════════════════════════════════════════════════════════
+            // ══════════════════════════════════════════════════
             // MANAGER INITIALIZATION (Order is important!)
-            // ═══════════════════════════════════════════════════════════
+            // ══════════════════════════════════════════════════
 
             // ═══ 01 ═══ Renderer Manager
             RendererManager.Instance.Initialize();
@@ -170,9 +170,9 @@ namespace Create_your_Adventure.Source.Engine.Core
         {
             Logger.Info("[GAMELOOP] Shutting down...");
 
-            // ═══════════════════════════════════════════════════════════
+            // ══════════════════════════════════════════════════
             // DISPOSE (Reverse order - LIFO)
-            // ═══════════════════════════════════════════════════════════
+            // ══════════════════════════════════════════════════
 
             // ═══ 07 ═══ Camera Manager (no dispose needed, stateless singleton)
             // ═══ 06 ═══ Time Manager (no dispose needed)

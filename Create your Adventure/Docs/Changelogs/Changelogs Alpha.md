@@ -822,3 +822,25 @@ Dokumentationsstruktur komplett überarbeitet und neu organisiert.
 * `ShaderManager.LoadFromFiles()`: Prüft jetzt `File.Exists()` für `vertexPath` und `fragmentPath` und wirft bei fehlender Datei eine klare `FileNotFoundException` mit der betroffenen Pfadangabe.
 
 ---
+
+## 0.7.3.6 Alpha | TextureManager: Binding & Safety Fixes - 17.03.2026
+
+Kleinere Stabilitäts- und Korrekturarbeiten am `TextureManager` bzgl. Bind-State, Dispose-Guards und Atlas-Building.
+
+### Hinzugefügt:
+
++ `ThrowIfDisposed()`-Hilfsmethode (verwendet `ObjectDisposedException.ThrowIf(isDisposed, this)`) und Guard-Aufrufe am Beginn aller öffentlichen Methoden
++ Ordnerprüfung in `BuildAtlasFromFolder()` (`Directory.Exists()` → wirf `DirectoryNotFoundException`) und Warnlog, wenn keine `.png` Dateien gefunden werden
+
+### Verändert:
+
+~ Bind-State-Felder von einfachen `string`-Flags auf `(string name, uint unit)?` umgestellt — Bindings sind jetzt einheitenbewusst  
+~ ~~`BuildBlockAtlas()` verwendet nun `AssetLoader.GetTexturePath(...)` statt eines hartkodierten Pfads~~ (FEHLER, muss später behoben werden)
+~ `BuildAtlasFromFolder()` verwendet `Directory.GetFiles(...)` zur Anzahl-Prüfung vor dem Loop
+
+### Behoben:
+
+* `BindTexture()` setzte fälschlich `boundAtlas` und löschte `boundTexture` — jetzt wird `boundTexture` korrekt gesetzt (inkl. Unit)  
+* Kompilationsfehler durch `.Length` auf `IEnumerable<string>` behoben (ersetzen durch `GetFiles`-Variante)
+
+---
