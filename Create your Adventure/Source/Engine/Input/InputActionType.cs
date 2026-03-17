@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Create_your_Adventure.Source.Engine.Input
+﻿namespace Create_your_Adventure.Source.Engine.Input
 {
     /// <summary>
     /// Defines the types of input actions that can be detected and triggered.

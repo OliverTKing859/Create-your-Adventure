@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Create_your_Adventure.Source.Engine.Input.Devices
+﻿namespace Create_your_Adventure.Source.Engine.Input.Devices
 {
     /// <summary>
     /// Defines the contract for input devices (keyboard, mouse, gamepad).

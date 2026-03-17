@@ -1,10 +1,5 @@
 ﻿using Create_your_Adventure.Source.Engine.World;
 using Silk.NET.Maths;
-using Silk.NET.Vulkan;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
 
 namespace Create_your_Adventure.Source.Engine.Camera
 {

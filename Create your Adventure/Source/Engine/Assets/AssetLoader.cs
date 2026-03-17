@@ -1,7 +1,5 @@
 ﻿using Create_your_Adventure.Source.Debug;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Collections.Concurrent;
 
 namespace Create_your_Adventure.Source.Engine.Assets
 {
@@ -19,15 +17,20 @@ namespace Create_your_Adventure.Source.Engine.Assets
     /// </remarks>
     public static class AssetLoader
     {
-        // -------- Folder path --------
+        // ══════════════════════════════════════════════════
+        // Folder path
+        // ══════════════════════════════════════════════════
         private const string AssetsRoot = "assets";
         private const string BaseFolder = "base";
 
-        // --- Cache for quick Lookups
-        private static readonly Dictionary<string, string> PathCache = [];
+        // ══════════════════════════════════════════════════
+        // Cache for quick Lookups
+        // ══════════════════════════════════════════════════
+        private static readonly ConcurrentDictionary<string, string> PathCache = new();
 
-        // PUBLIC ASSET RETRIEVAL METHODS ----------------------------------------------------------------
-
+        // ══════════════════════════════════════════════════
+        // Public asset retrieval methods
+        // ══════════════════════════════════════════════════
         /// <summary>
         /// Retrieves the file path of an audio asset.
         /// </summary>
@@ -80,57 +83,65 @@ namespace Create_your_Adventure.Source.Engine.Assets
             Logger.Info("[ASSETLOADER] Cache cleared");
         }
 
-        // FIND ASSETS ----------------------------------------------------------------
+        // ══════════════════════════════════════════════════
+        // Find assets
+        // ══════════════════════════════════════════════════
         private static string FindAsset(string subfolder ,string filename)
         {
-            // -------- Cache --------
-            // --- Check
+            // ═══ Cache check
             string cacheKey = $"{subfolder}/{filename}";
             if (PathCache.TryGetValue(cacheKey, out string? cachedPath))
             {
                 return cachedPath;
             }
 
-            // -------- First in the base --------
-            string searchRoot = Path.Combine(AssetsRoot, BaseFolder, subfolder);
+            string? result = null;
 
-            string? result = SearchInFolder(searchRoot, filename);
+            // ═══ First search in modded (mods override base)
+            string searchRoot = Path.Combine(AssetsRoot, "modded", subfolder);
+            result = SearchInFolder(searchRoot, filename);
 
-            // --- If not found, also search in modded
-            if (result is null)
+            if (result is not null)
             {
-                searchRoot = Path.Combine(AssetsRoot, "modded", subfolder);
+                Logger.Info($"[ASSETLOADER] Found modded asset: {subfolder}/{filename}");
+            }
+
+            else
+            {
+                // ═══ Fallback to base
+                searchRoot = Path.Combine(AssetsRoot, BaseFolder, subfolder);
                 result = SearchInFolder(searchRoot, filename);
 
                 if (result is not null)
                 {
-                    Logger.Info($"[ASSETLOADER] Found modded asset: {subfolder}/{filename}");
+                    Logger.Info($"[ASSETLOADER] Found base asset: {subfolder}/{filename}");
                 }
             }
 
-            // --- If is null
             if (result is null)
             {
                 Logger.Error($"[ASSETLOADER] Asset not found: {subfolder}/{filename}");
                 return string.Empty;
             }
 
-            // -------- Save on Cache --------
+            // ═══ Save on Cache
             PathCache[cacheKey] = result;
             Logger.Info($"[ASSETLOADER] Asset located: {result}");
 
             return result;
         }
 
-        // SEARCH IN FOLDER ----------------------------------------------------------------
+        // ══════════════════════════════════════════════════
+        // Search in folder
+        // ══════════════════════════════════════════════════
         private static string? SearchInFolder(string searchRoot, string filename)
         {
-            // --- If ist null
             if (!Directory.Exists(searchRoot))
             {
                 return null;
             }
-            // -------- Recursive search in all subfolders --------
+
+            // ═══ Recursive search in all subfolders
             return Directory.EnumerateFiles(searchRoot, filename, SearchOption.AllDirectories)
                             .FirstOrDefault();
         }

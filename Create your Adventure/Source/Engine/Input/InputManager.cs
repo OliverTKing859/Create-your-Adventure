@@ -1,12 +1,7 @@
 ﻿using Create_your_Adventure.Source.Debug;
 using Create_your_Adventure.Source.Engine.Input.Devices;
-using Create_your_Adventure.Source.Engine.Window;
-using Silk.NET.GLFW;
-using Silk.NET.Input;
-using System;
-using System.Collections.Generic;
+using Create_your_Adventure.Source.Engine.Window; 
 using System.Numerics;
-using System.Text;
 
 namespace Create_your_Adventure.Source.Engine.Input
 {

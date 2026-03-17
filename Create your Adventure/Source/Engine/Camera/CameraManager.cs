@@ -2,9 +2,6 @@
 using Create_your_Adventure.Source.Engine.Input;
 using Create_your_Adventure.Source.Engine.World;
 using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Create_your_Adventure.Source.Engine.Camera
 {

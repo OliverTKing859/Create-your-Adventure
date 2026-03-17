@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Create_your_Adventure.Source.Engine.Window
+﻿namespace Create_your_Adventure.Source.Engine.Window
 {
     /// <summary>
     /// Configuration settings for window creation and OpenGL context initialization.

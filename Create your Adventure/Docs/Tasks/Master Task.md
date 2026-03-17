@@ -122,9 +122,9 @@
 - [ ] `RequestChunkMesh()` auf `public`/`internal` setzen und Load→Mesh-Übergang anschließen
 
 ### Assets
-- [ ] Mod-Priorität umkehren — Modded zuerst suchen, Base als Fallback
-- [ ] `PathCache` auf `ConcurrentDictionary` umstellen
-- [ ] Ungenutzte `using`-Direktiven entfernen
+- [X] Mod-Priorität umkehren — Modded zuerst suchen, Base als Fallback
+- [X] `PathCache` auf `ConcurrentDictionary` umstellen
+- [X] Ungenutzte `using`-Direktiven entfernen
 
 ---
 

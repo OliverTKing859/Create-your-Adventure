@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Create_your_Adventure.Source.Engine.Input
+﻿namespace Create_your_Adventure.Source.Engine.Input
 {
     /// <summary>
     /// Defines gamepad button identifiers following Xbox controller layout.
