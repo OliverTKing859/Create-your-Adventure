@@ -18,8 +18,8 @@
 - [X] `OnWindowResize` auf `private` setzen
 
 ### Shader
-- [ ] Falsche Exception-Message beim Fragment-Shader-Fehler korrigieren
-- [ ] `instance = null` in `Dispose()` setzen
+- [X] Falsche Exception-Message beim Fragment-Shader-Fehler korrigieren
+- [X] `instance = null` in `Dispose()` setzen
 
 ### Texture
 - [ ] **State-Bug in `BindTexture()` fixen** — `boundAtlas`/`boundTexture` sind vertauscht
@@ -79,8 +79,8 @@
 - [ ] `EndFrame`/`SwapBuffers`-Verantwortung klar dokumentieren
 
 ### Shader
-- [ ] `shaderCache` → `ConcurrentDictionary` für Thread-Safety
-- [ ] `File.Exists()`-Guard in `LoadFromFiles()`
+- [X] `shaderCache` → `ConcurrentDictionary` für Thread-Safety
+- [X] `File.Exists()`-Guard in `LoadFromFiles()`
 
 ### Texture
 - [ ] Bind-Guard um `(name, unit)`-Tupel erweitern

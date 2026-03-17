@@ -808,3 +808,17 @@ Dokumentationsstruktur komplett überarbeitet und neu organisiert.
 ~ RendererManager: Singleton-Instanz wird in `Dispose()` thread-sicher zurückgesetzt (`lock (instanceLock) { instance = null; }`).
 
 ---
+
+## 0.7.3.5 Alpha | Shader-Fehlerbehebungen - 17.03.2026
+
+### Verändert:
+
+~ `ShaderManager`: `shaderCache` ersetzt durch `ConcurrentDictionary<string, IShaderProgram>`; alle relevanten Verwendungen (`TryGetValue`, Indexer-Zuweisung) angepasst.
+
+### Gefixt:
+
+* `OpenGLShaderProgram.Compile()`: Fehlermeldung bei Fragment-Shader-Kompilierung korrigiert — nun lautet die Exception-Nachricht "Fragment shader compilation failed".
+* `ShaderManager.Dispose()`: Statische `instance` nach Dispose auf `null` gesetzt, so dass eine Reinitialisierung möglich ist.
+* `ShaderManager.LoadFromFiles()`: Prüft jetzt `File.Exists()` für `vertexPath` und `fragmentPath` und wirft bei fehlender Datei eine klare `FileNotFoundException` mit der betroffenen Pfadangabe.
+
+---

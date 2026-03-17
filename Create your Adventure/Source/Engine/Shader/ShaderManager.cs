@@ -1,10 +1,7 @@
-﻿using Create_your_Adventure.Source.Rendering.Shader.OpenGL;
+﻿using Create_your_Adventure.Source.Debug;
 using Create_your_Adventure.Source.Engine.Window;
-using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Create_your_Adventure.Source.Debug;
+using Create_your_Adventure.Source.Rendering.Shader.OpenGL;
+using System.Collections.Concurrent;
 
 namespace Create_your_Adventure.Source.Engine.Shader
 {
@@ -41,7 +38,7 @@ namespace Create_your_Adventure.Source.Engine.Shader
         }
 
         // ═══ Cache dictionary storing all loaded shader programs by name
-        private readonly Dictionary<string, IShaderProgram> shaderCache = [];
+        private readonly ConcurrentDictionary<string, IShaderProgram> shaderCache = new();
         // ═══ Factory function to create shader programs for the active graphics API
         private Func<string, IShaderProgram>? shaderFactory;
         // ═══ Name of the currently active shader program (for state tracking)
@@ -92,6 +89,7 @@ namespace Create_your_Adventure.Source.Engine.Shader
                 shaderFactory = name => new OpenGLShaderProgram(gl, name);
                 Logger.Info("[SHADER] ShaderManager initialized (OpenGL backend)");
             }
+
             // ═══ Future extension point: else if (vulkanContext is not null) { ... }
             else
             {
@@ -151,6 +149,17 @@ namespace Create_your_Adventure.Source.Engine.Shader
             }
 
             Logger.Info($"[SHADER] Loading program '{name}' from files...");
+
+            if (!File.Exists(vertexPath))
+            {
+                throw new FileNotFoundException($"Vertex shader file not found: {vertexPath}", vertexPath);
+            }
+
+            if (!File.Exists(fragmentPath))
+            {
+                throw new FileNotFoundException($"Fragment shader file not found: {fragmentPath}", fragmentPath);
+            }
+
             string vertexSource = File.ReadAllText(vertexPath);
             string fragmentSource = File.ReadAllText(fragmentPath);
 

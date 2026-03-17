@@ -2,9 +2,6 @@
 using Create_your_Adventure.Source.Engine.Shader;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Create_your_Adventure.Source.Rendering.Shader.OpenGL
 {
@@ -100,7 +97,7 @@ namespace Create_your_Adventure.Source.Rendering.Shader.OpenGL
                 // ═══ Clean up vertex shader before throwing
                 gl.DeleteShader(vertexShader);
                 gl.DeleteShader(fragmentShader);
-                throw new InvalidOperationException($"Shader program linking failed for '{Name}'");
+                throw new InvalidOperationException($"Fragment shader compilation failed for '{Name}'");
             }
 
             // ══════════════════════════════════════════════════
