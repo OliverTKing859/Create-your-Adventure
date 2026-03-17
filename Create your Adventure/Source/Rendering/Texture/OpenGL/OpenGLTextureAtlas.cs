@@ -173,7 +173,7 @@ namespace Create_your_Adventure.Source.Rendering.Texture.OpenGL
                 if (currentX + w > Width)
                 {
                     currentX = 0;
-                    currentY *= textureSize;
+                    currentY += textureSize;
                 }
 
                 // ═══ Check if atlas is full

@@ -842,5 +842,6 @@ Kleinere Stabilitäts- und Korrekturarbeiten am `TextureManager` bzgl. Bind-Stat
 
 * `BindTexture()` setzte fälschlich `boundAtlas` und löschte `boundTexture` — jetzt wird `boundTexture` korrekt gesetzt (inkl. Unit)  
 * Kompilationsfehler durch `.Length` auf `IEnumerable<string>` behoben (ersetzen durch `GetFiles`-Variante)
+* Atlas Row-Wrap-Bug auf `currentY *= textureSize` → `currentY += textureSize`
 
 ---
