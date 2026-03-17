@@ -835,7 +835,7 @@ Kleinere Stabilitäts- und Korrekturarbeiten am `TextureManager` bzgl. Bind-Stat
 ### Verändert:
 
 ~ Bind-State-Felder von einfachen `string`-Flags auf `(string name, uint unit)?` umgestellt — Bindings sind jetzt einheitenbewusst  
-~ ~~`BuildBlockAtlas()` verwendet nun `AssetLoader.GetTexturePath(...)` statt eines hartkodierten Pfads~~ (FEHLER, muss später behoben werden)
+~ ~~`BuildBlockAtlas()` verwendet nun `AssetLoader.GetTexturePath(...)` statt eines hartkodierten Pfads~~
 ~ `BuildAtlasFromFolder()` verwendet `Directory.GetFiles(...)` zur Anzahl-Prüfung vor dem Loop
 
 ### Behoben:
@@ -843,5 +843,23 @@ Kleinere Stabilitäts- und Korrekturarbeiten am `TextureManager` bzgl. Bind-Stat
 * `BindTexture()` setzte fälschlich `boundAtlas` und löschte `boundTexture` — jetzt wird `boundTexture` korrekt gesetzt (inkl. Unit)  
 * Kompilationsfehler durch `.Length` auf `IEnumerable<string>` behoben (ersetzen durch `GetFiles`-Variante)
 * Atlas Row-Wrap-Bug auf `currentY *= textureSize` → `currentY += textureSize`
+
+---
+
+## 0.7.3.7 Alpha | AssetLoader: Texture folder helper - 17.03.2026
+
+Kleine Ergänzung zur Asset-Verwaltung und Anpassung am `TextureManager`.
+
+### Hinzugefügt:
+
++ `AssetLoader.GetTextureFolder(string relativePath)` — Helper zum Zurückgeben vorhandener Asset-Ordnerpfade (prüft `assets/modded/...` und `assets/base/...`)
+
+### Verändert:
+
+~ `TextureManager.BuildBlockAtlas()` verwendet jetzt `AssetLoader.GetTextureFolder("blocks")` statt eines hartkodierten Ordners oder `GetTexturePath(...)`
+
+### Behoben:
+
+* Verhindert `DirectoryNotFoundException` durch doppelte Pfadbildung beim Ermitteln von Texture-Ordnern
 
 ---

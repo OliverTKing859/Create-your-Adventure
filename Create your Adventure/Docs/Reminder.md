@@ -15,3 +15,5 @@
 	- InputActionType.DoublePress => false, // TODO: implement DoublePress timer
 
 - HotReload einprogrammieren
+
+- AssetLoader muss noch mal verbessert werden

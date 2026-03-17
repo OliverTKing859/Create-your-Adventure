@@ -71,6 +71,12 @@ namespace Create_your_Adventure.Source.Engine.Assets
             return FindAsset("textures", filename);
         }
 
+        // ═══ DEBUG FOR TEXTURE MANAGER
+        public static string GetTextureFolder(string relativePath)
+        {
+            return Path.Combine(AssetsRoot, BaseFolder, "textures", relativePath);
+        }
+
         /// <summary>
         /// Clears the path cache, forcing fresh lookups on next request.
         /// </summary>

@@ -267,7 +267,11 @@ namespace Create_your_Adventure.Source.Engine.Texture
         {
             ThrowIfDisposed();
 
-            var blocksPath = Path.Combine("assets", "base", "textures", "blocks");
+
+            var blocksPath = AssetLoader.GetTextureFolder(
+                Path.Combine("blocks")
+                );
+
             return BuildAtlasFromFolder("blocks", blocksPath, TextureSettings.Atlas);
         }
 
