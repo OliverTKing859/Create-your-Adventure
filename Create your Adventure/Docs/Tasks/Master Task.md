@@ -12,10 +12,10 @@
 - [X] `ObjectDisposedException`-Guard in `Run()`, `Close()`, `CenterWindow()`
 
 ### Renderer
-- [ ] `DebugOutput` hinter `#if DEBUG` Guard
-- [ ] `BeginFrame()`/`EndFrame()` mit `IsInitialized`-Check absichern
-- [ ] `Dispose()` setzt `instance = null`
-- [ ] `OnWindowResize` auf `private` setzen
+- [X] `DebugOutput` hinter `#if DEBUG` Guard
+- [X] `BeginFrame()`/`EndFrame()` mit `IsInitialized`-Check absichern
+- [X] `Dispose()` setzt `instance = null`
+- [X] `OnWindowResize` auf `private` setzen
 
 ### Shader
 - [ ] Falsche Exception-Message beim Fragment-Shader-Fehler korrigieren

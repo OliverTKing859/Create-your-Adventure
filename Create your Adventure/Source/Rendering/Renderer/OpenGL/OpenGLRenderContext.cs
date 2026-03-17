@@ -1,9 +1,6 @@
 ﻿using Create_your_Adventure.Source.Debug;
 using Create_your_Adventure.Source.Engine.Render;
 using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Create_your_Adventure.Source.Rendering.Renderer.OpenGL
 {
@@ -49,11 +46,12 @@ namespace Create_your_Adventure.Source.Rendering.Renderer.OpenGL
         {
             // Prevent re-initialization if already initialized
             if (isInitialized) return;
-
+#if DEBUG
             // ═══ Enable OpenGL debug output for error detection and performance warnings
             gl.Enable(EnableCap.DebugOutput);
             // ═══ Make debug output synchronous for easier debugging (callbacks happen immediately)
             gl.Enable(EnableCap.DebugOutputSynchronous);
+#endif
 
             // ═══ Set default clear color to dark gray (RGB: 0.05, 0.05, 0.05)
             SetClearColor(0.05f, 0.05f, 0.05f, 1.0f);

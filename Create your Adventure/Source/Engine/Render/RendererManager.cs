@@ -2,9 +2,6 @@
 using Create_your_Adventure.Source.Engine.Window;
 using Create_your_Adventure.Source.Rendering.Renderer.OpenGL;
 using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Create_your_Adventure.Source.Engine.Render
 {
@@ -112,6 +109,8 @@ namespace Create_your_Adventure.Source.Engine.Render
         /// </summary>
         public void BeginFrame()
         {
+            if (renderContext is null || !renderContext.IsInitialized)
+                throw new System.InvalidOperationException("RenderContext not initialized. Call Initialize() first.");
             renderContext?.BeginFrame();
         }
 
@@ -124,6 +123,8 @@ namespace Create_your_Adventure.Source.Engine.Render
         /// </summary>
         public void EndFrame()
         {
+            if (renderContext is null || !renderContext.IsInitialized)
+                throw new System.InvalidOperationException("RenderContext not initialized. Call Initialize() first.");
             renderContext?.EndFrame();
         }
 
@@ -134,7 +135,7 @@ namespace Create_your_Adventure.Source.Engine.Render
         /// Handles window resize events by updating the viewport dimensions.
         /// </summary>
         /// <param name="size">The new window size in pixels.</param>
-        public void OnWindowResize(Vector2D<int> size)
+        private void OnWindowResize(Vector2D<int> size)
         {
             renderContext?.SetViewport(0, 0, size.X, size.Y);
             Logger.Info($"[RENDER] Viewport resized to {size.X}x{size.Y}");
@@ -157,6 +158,13 @@ namespace Create_your_Adventure.Source.Engine.Render
 
             // ═══ Dispose the render context and release graphics resources
             isDisposed = true;
+
+            // ═══ Ensure singleton reference cleared in a thread-safe manner
+            lock (instanceLock)
+            {
+                instance = null;
+            }
+
             Logger.Info("[RENDER] RenderManager disposed");
         }
     }

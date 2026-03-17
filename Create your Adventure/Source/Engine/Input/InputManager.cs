@@ -292,12 +292,25 @@ namespace Create_your_Adventure.Source.Engine.Input
         {
             if (isDisposed) return;
 
+            // ═══ Dispose Keyboard
             keyboard?.Dispose();
+
+            // ═══ Dispose Keyboard
             mouse?.Dispose();
+
+            // ═══ Dispose Keyboard
             gamepad?.Dispose();
+
+            // ═══ Dispose Keyboard
             registry.Clear();
 
             isDisposed = true;
+
+            // ═══ Ensure singleton reference cleared in a thread-safe manner
+            lock (instanceLock)
+            {
+                instance = null;
+            }
 
             Logger.Info("[INPUT] InputManager disposed");
         }

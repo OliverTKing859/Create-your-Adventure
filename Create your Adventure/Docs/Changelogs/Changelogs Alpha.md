@@ -797,3 +797,14 @@ Dokumentationsstruktur komplett überarbeitet und neu organisiert.
 * Thread-Safety: Race-Condition / gleichzeitiger Zugriff auf `PathCache` behoben durch threadsicheren Cache.
 
 ---
+
+## 0.7.3.4 Alpha | Renderer Safety & Debug - 17.03.2026
+
+### Verändert:
+
+~ OpenGL: Aktivierung von Debug-Output (`gl.Enable(EnableCap.DebugOutput)` / `gl.Enable(EnableCap.DebugOutputSynchronous)`) nun nur in Debug-Builds (`#if DEBUG`).
+~ RendererManager: `BeginFrame()` und `EndFrame()` prüfen jetzt, ob ein `RenderContext` vorhanden und initialisiert ist; andernfalls wird eine `InvalidOperationException` geworfen.
+~ RendererManager: Sichtbarkeit von `OnWindowResize` auf `private` geändert.
+~ RendererManager: Singleton-Instanz wird in `Dispose()` thread-sicher zurückgesetzt (`lock (instanceLock) { instance = null; }`).
+
+---

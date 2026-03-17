@@ -267,6 +267,12 @@ namespace Create_your_Adventure.Source.Engine.Mesh
             meshCache.Clear();
             isDisposed = true;
 
+            // ═══ Ensure singleton reference cleared in a thread-safe manner
+            lock (instanceLock)
+            {
+                instance = null;
+            }
+
             Logger.Info("[MESH] MeshManager disposed");
         }
     }

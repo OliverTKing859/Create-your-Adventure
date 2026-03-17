@@ -338,7 +338,14 @@ namespace Create_your_Adventure.Source.Engine.Texture
 
             textureCache.Clear();
             atlasCache.Clear();
+
             isDisposed = true;
+
+            // ═══ Ensure singleton reference cleared in a thread-safe manner
+            lock (instanceLock)
+            {
+                instance = null;
+            }
 
             Logger.Info("[TEXTURE] TextureManager disposed");
         }

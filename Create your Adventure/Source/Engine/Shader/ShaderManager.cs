@@ -237,7 +237,14 @@ namespace Create_your_Adventure.Source.Engine.Shader
 
             shaderCache.Clear();
             activeProgram = null;
+
             isDisposed = true;
+
+            // ═══ Ensure singleton reference cleared in a thread-safe manner
+            lock (instanceLock)
+            {
+                instance = null;
+            }
 
             Logger.Info("[SHADER] ShaderManager disposed");
         }

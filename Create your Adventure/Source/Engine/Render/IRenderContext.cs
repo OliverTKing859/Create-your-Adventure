@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Create_your_Adventure.Source.Engine.Render
+﻿namespace Create_your_Adventure.Source.Engine.Render
 {
     /// <summary>
     /// Defines the contract for a rendering context that abstracts graphics API functionality.
