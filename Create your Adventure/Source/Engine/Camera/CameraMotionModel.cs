@@ -328,7 +328,7 @@ namespace Create_your_Adventure.Source.Engine.Camera
                 VerticalSpeed = 10f,
                 AccelerationRate = 12f,
                 DecelerationRate = 6f,
-                DragCoefficient = 0.1f,
+                DragCoefficient = 0f,
                 LookSensitivity = 0.1f,
                 LookSmoothing = 50,         // ═══ High smoothing for stable editor view
                 MaxPitch = 89f,

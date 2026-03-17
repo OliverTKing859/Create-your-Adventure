@@ -771,3 +771,15 @@ Dokumentationsstruktur komplett überarbeitet und neu organisiert.
 * Doppelte Hardcodierung für LongPress/Deadzone entfernt — InputConstants eingeführt mit LongPressThreshold = 0.5f und DefaultDeadzone = 0.15f; Verwendungen in InputAnalyzer, KeyBinding und GamepadAxisBinding ersetzt (InputConstants.cs, InputAnalyzer.cs, InputBinding.cs).
 
 ---
+
+## 0.7.3.2 Alpha | Window Manager & Window Settings Bugfixes - 17.03.2026
+
+### Gefixt:
+
+* `GlContext?.Dispose()` in `Dispose()` ergänzt (verhindert GPU-Leak).
+* `instance = null` nach `Dispose()` im Lock gesetzt (Singleton korrekt freigegeben).
+* ObjectDisposedException-Guard hinzugefügt in `Run()`, `Close()` und `CenterWindow()` (schützt vor Aufrufen nach Dispose).
+* Events in `Dispose()` auf `null` gesetzt (verhindert Delegate-/Memory-Leaks).
+* `DebugContext` mit `#if DEBUG` automatisiert (Debug-Kontext nur in Debug-Builds aktiviert).
+
+---

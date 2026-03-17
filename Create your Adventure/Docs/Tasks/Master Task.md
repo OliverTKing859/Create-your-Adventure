@@ -7,9 +7,9 @@
 ## 🔴 SOFORT — Blocking Bugs & Leaks
 
 ### Window
-- [ ] `GlContext?.Dispose()` in `Dispose()` ergänzen (GPU-Leak)
-- [ ] `instance = null` nach `Dispose()` im Lock setzen
-- [ ] `ObjectDisposedException`-Guard in `Run()`, `Close()`, `CenterWindow()`
+- [X] `GlContext?.Dispose()` in `Dispose()` ergänzen (GPU-Leak)
+- [X] `instance = null` nach `Dispose()` im Lock setzen
+- [X] `ObjectDisposedException`-Guard in `Run()`, `Close()`, `CenterWindow()`
 
 ### Renderer
 - [ ] `DebugOutput` hinter `#if DEBUG` Guard
@@ -43,11 +43,11 @@
 - [ ] Singleton-Konstruktor auf `private` setzen
 
 ### Input
-- [ ] **`skipNextDelta` in `OnMouseMove` auswerten** (Delta-Spike nach Cursor-Moduswechsel)
+- [X] **`skipNextDelta` in `OnMouseMove` auswerten** (Delta-Spike nach Cursor-Moduswechsel)
 - [X] **Tippfehler `NumpadSubstract` → `NumpadSubtract`**
-- [ ] `DoublePress` implementieren oder mit `NotSupportedException` kennzeichnen
-- [ ] `LongPressThreshold` aus `KeyBinding` + `InputAnalyzer` in `InputConstants` zusammenführen
-- [ ] LINQ-Allokation in `EndFrame()` durch reusable `List<KeyCode>` ersetzen
+- [X] `DoublePress` implementieren oder mit `NotSupportedException` kennzeichnen
+- [X] `LongPressThreshold` aus `KeyBinding` + `InputAnalyzer` in `InputConstants` zusammenführen
+- [X] LINQ-Allokation in `EndFrame()` durch reusable `List<KeyCode>` ersetzen
 
 ### GameLoop
 - [ ] Shader-Referenz in `OnLoad()` cachen — String-Lookup aus `OnRender()` entfernen
@@ -71,7 +71,7 @@
 
 ### Window
 - [ ] `WindowSettings.Validate()` implementieren und in `Initialize()` aufrufen
-- [ ] Events in `Dispose()` auf `null` setzen
+- [X] Events in `Dispose()` auf `null` setzen
 
 ### Renderer
 - [ ] Factory Pattern für `IRenderContext`-Erzeugung einbauen
@@ -131,7 +131,7 @@
 ## 🟢 SPÄTER — Features & Erweiterungen
 
 ### Window
-- [ ] `DebugContext` mit `#if DEBUG` automatisieren
+- [X] `DebugContext` mit `#if DEBUG` automatisieren
 - [ ] Fullscreen-Toggle zur Laufzeit vorbereiten
 
 ### Renderer

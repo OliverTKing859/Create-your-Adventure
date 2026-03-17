@@ -57,8 +57,13 @@ namespace Create_your_Adventure.Source.Engine.Window
         /// Gets or initializes whether to create an OpenGL debug context.
         /// Debug contexts provide additional error checking and validation, useful during development.
         /// Should be disabled in release builds for better performance.
-        /// Default: true
+        /// Default: true in DEBUG builds, false otherwise.
         /// </summary>
+#if DEBUG
         public bool DebugContext { get; init; } = true;
+#else
+        public bool DebugContext { get; init; } = false;
+#endif
+
     }
 }

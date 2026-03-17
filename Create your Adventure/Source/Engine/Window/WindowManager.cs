@@ -164,6 +164,8 @@ namespace Create_your_Adventure.Source.Engine.Window
         /// <exception cref="InvalidOperationException">Thrown when the window has not been initialized.</exception>
         public void Run()
         {
+            System.ObjectDisposedException.ThrowIf(isDisposed, this);
+
             if (window is null)
                 throw new InvalidOperationException("WindowManager must be initialized before calling Run()");
 
@@ -177,6 +179,8 @@ namespace Create_your_Adventure.Source.Engine.Window
         /// </summary>
         public void Close()
         {
+            System.ObjectDisposedException.ThrowIf(isDisposed, this);
+
             window?.Close();
         }
 
@@ -190,6 +194,8 @@ namespace Create_your_Adventure.Source.Engine.Window
         /// </summary>
         public void CenterWindow()
         {
+            System.ObjectDisposedException.ThrowIf(isDisposed, this);
+
             if (window?.Monitor is not { } monitor)
             {
                 Logger.Warn("[WINDOW] No monitor detected - cannot center window");
@@ -270,13 +276,30 @@ namespace Create_your_Adventure.Source.Engine.Window
         {
             if (isDisposed) return;
 
+            // ═══ Clear public events to avoid keeping external references
+            Loaded = null;
+            Updated = null;
+            Rendered = null;
+            OnClose = null;
+            OnResize = null;
+
             // ═══ Dispose input context first
             InputContext?.Dispose();
+
+            // ═══ Dispose GL context before disposing the window
+            GlContext?.Dispose();
 
             // ═══ Dispose the window
             window?.Dispose();
 
             isDisposed = true;
+
+            // ═══ Ensure singleton reference cleared in a thread-safe manner
+            lock (instanceLock)
+            {
+                instance = null;
+            }
+
             Logger.Info("[WINDOW] WindowManager disposed");
         }
     }
