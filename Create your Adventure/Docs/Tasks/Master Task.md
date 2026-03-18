@@ -50,20 +50,20 @@
 - [X] LINQ-Allokation in `EndFrame()` durch reusable `List<KeyCode>` ersetzen
 
 ### GameLoop
-- [ ] Shader-Referenz in `OnLoad()` cachen — String-Lookup aus `OnRender()` entfernen
-- [ ] Early-Return in `OnRender()` bei `null`-Shader oder `null`-Mesh
+- [X] Shader-Referenz in `OnLoad()` cachen — String-Lookup aus `OnRender()` entfernen
+- [X] Early-Return in `OnRender()` bei `null`-Shader oder `null`-Mesh
 
 ### KingsEngine
-- [ ] `try/finally` um `windowManager.Run()` — Dispose-Garantie bei Crashes
-- [ ] Top-Level `catch` mit `Logger.Error` für Fatal-Crashes
+- [X] `try/finally` um `windowManager.Run()` — Dispose-Garantie bei Crashes
+- [X] Top-Level `catch` mit `Logger.Error` für Fatal-Crashes
 
 ### Time
-- [ ] `SimulationTimeScale` und `WorldTimeScale` mit `Math.Clamp(0, 10)` absichern
-- [ ] `maxTicksPerFrame` als `private const int` herausziehen
+- [X] `SimulationTimeScale` und `WorldTimeScale` mit `Math.Clamp(0, 10)` absichern
+- [X] `maxTicksPerFrame` als `private const int` herausziehen
 
 ### World / Chunk
-- [ ] **Tippfehler `UpdatePrivority` → `UpdatePriority`**
-- [ ] `long` → `int` in `ChunkCoord.X/Y/Z`
+- [X] **Tippfehler `UpdatePrivority` → `UpdatePriority`**
+- [X] ~~`long` → `int` in `ChunkCoord.X/Y/Z`~~
 
 ---
 

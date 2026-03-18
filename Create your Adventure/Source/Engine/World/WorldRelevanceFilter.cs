@@ -89,7 +89,7 @@ namespace Create_your_Adventure.Source.Engine.World
             chunk.IsInFrustum = frustum.Intersects(aabb);
 
             // ═══ Delegate to ChunkJob's priority logic
-            chunk.UpdatePrivority(cameraChunk, isPlayerInside);
+            chunk.UpdatePriority(cameraChunk, isPlayerInside);
         }
 
         // ══════════════════════════════════════════════════

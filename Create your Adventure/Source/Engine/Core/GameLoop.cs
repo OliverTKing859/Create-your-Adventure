@@ -19,6 +19,7 @@ namespace Create_your_Adventure.Source.Engine.Core
         // ══════════════════════════════════════════════════
         private readonly WindowManager windowManager;
         private IMesh? testCube;
+        private IShaderProgram? activeShader;
 
         // ══════════════════════════════════════════════════
         // CONSTRUCTOR
@@ -56,14 +57,11 @@ namespace Create_your_Adventure.Source.Engine.Core
             var vertPath = AssetLoader.GetShaderPath("opengl/basic.vert");
             var fragPath = AssetLoader.GetShaderPath("opengl/basic.frag");
 
-            var shader = ShaderManager.Instance.LoadFromFiles(
+            activeShader = ShaderManager.Instance.LoadFromFiles(
                 "basic",
                 vertPath,
                 fragPath
             );
-
-            shader.Use();
-            shader.SetUniform("uTexture", 0);
 
             // ═══ 03 ═══ Texture Manager
             TextureManager.Instance.Initialize();
@@ -135,16 +133,14 @@ namespace Create_your_Adventure.Source.Engine.Core
         {
             RendererManager.Instance.BeginFrame();
 
-            // ═══ Rendering with Shader Manager
-            var shader = ShaderManager.Instance.UseProgram("basic");
+            if (testCube is null || activeShader is null) return;
+
+            activeShader.Use();
             var camera = CameraManager.Instance;
 
-            if (shader is not null)
-            {
-                shader.SetUniform("uView", camera.GetViewMatrix());
-                shader.SetUniform("uProjection", camera.GetProjectionMatrix());
-                shader.SetUniform("uModel", Matrix4X4<float>.Identity);
-            }
+            activeShader.SetUniform("uView", camera.GetViewMatrix());
+            activeShader.SetUniform("uProjection", camera.GetProjectionMatrix());
+            activeShader.SetUniform("uModel", Matrix4X4<float>.Identity);
 
             // ═══ Bind Atlas
             TextureManager.Instance.BindAtlas("blocks", 0);

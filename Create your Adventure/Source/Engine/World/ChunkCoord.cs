@@ -12,7 +12,9 @@ namespace Create_your_Adventure.Source.Engine.World
 
         public ChunkCoord(long x, long y, long z) => (X, Y, Z) = (x, y, z);
 
-        // ═══ Squared Distance für Performance (kein sqrt)
+        // ══════════════════════════════════════════════════
+        // Squared Distance für Performance (kein sqrt)
+        // ══════════════════════════════════════════════════
         public long DistanceSquaredTo(ChunkCoord other)
         {
             long dx = X - other.X;
@@ -51,19 +53,29 @@ namespace Create_your_Adventure.Source.Engine.World
         public ChunkState State { get; set; }
         public ChunkPriority Priority { get; private set; }
 
-        // ═══ Simulation
+        // ══════════════════════════════════════════════════
+        // Simulation
+        // ══════════════════════════════════════════════════
         public int TickRate { get; private set; } = 60; // ═══ Ticks per second
         public ulong LastTickFrame { get; set; }
 
-        // ═══ Visibility
+        // ══════════════════════════════════════════════════
+        // Visibility
+        // ══════════════════════════════════════════════════
         public bool IsInFrustum { get; set; }
         public bool HasPendingChanges { get; set; }
 
-        // ═══ Metadata for Lazy Simulation
+        // ══════════════════════════════════════════════════
+        // Metadata for Lazy Simulation
+        // ══════════════════════════════════════════════════
         public ChunkMetadata? Metadata { get; set; }
         public ChunkJob(ChunkCoord coord) => Coord = coord;
 
-        public void UpdatePrivority(ChunkCoord cameraChunk, bool isPlayerInside)
+        // ══════════════════════════════════════════════════
+        // Priority Update (dynamische, zum renderDistance skalierte Schwellen)
+        // renderDistance is expected in chunks (z.B. 16)
+        // ══════════════════════════════════════════════════
+        public void UpdatePriority(ChunkCoord cameraChunk, bool isPlayerInside)
         {
             if (isPlayerInside)
             {

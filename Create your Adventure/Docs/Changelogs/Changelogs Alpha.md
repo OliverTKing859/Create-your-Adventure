@@ -901,3 +901,21 @@ Kurz: Verbesserte Stabilität der Game-Loop durch TimeScale-Clamping, Entfernen 
 ~ Ersetzte hardcodierte `5` in `ConsumeFixedTicks()` durch `MaxTicksPerFrame` Konstante
 
 ---
+
+## 0.7.3.10 Alpha | Engine Startup & Shader-Caching Fixes - 18.03.2026
+
+### Hinzugefügt:
+
++ `GameLoop`: privates Feld `activeShader` vom Typ `IShaderProgram?` zur Zwischenspeicherung des geladenen Shader-Programms
+
+### Verändert:
+
+~ `GameLoop`: Shader-Referenz wird nun in `activeShader` gecached statt per String-Lookup bei jedem Render; `UseProgram("basic")`-Lookup entfernt und durch direkten `activeShader.Use()` ersetzt
+
+### Behoben:
+
+* `KingsEngine.Start()`: `windowManager.Run()` und `windowManager.Dispose()` in `try/catch/finally` gewrappt; bei Ausnahme wird `Logger.Error("[ENGINE] Fatal crash: ...")` geloggt und im `finally` `windowManager.Dispose()` + `Logger.Info("[ENGINE] Cleanup complete")` ausgeführt (stellt Dispose-Garantie sicher)
+* `GameLoop.OnRender()`: Early-Return (`if (testCube is null || activeShader is null) return;`) ergänzt, um Nullzugriffe zu verhindern
+* `GameLoop.OnLoad()`/`OnRender()`: `uTexture`-Uniform-Aufruf aus `OnLoad` entfernt und im `OnRender` zur Renderzeit gesetzt
+
+---
