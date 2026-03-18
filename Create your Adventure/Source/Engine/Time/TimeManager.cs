@@ -36,7 +36,13 @@ namespace Create_your_Adventure.Source.Engine.Time
         public double UnscaledFrameDeltaTime { get; private set; }
         public ulong FrameCount { get; private set; }
 
-        public double SimulationTimeScale { get; set; } = 1.0;
+        private double simulationTimeScale = 1.0;
+        public double SimulationTimeScale
+        {
+            get => simulationTimeScale;
+            set => simulationTimeScale = Math.Clamp(value, 0.0, 10.0);
+        }
+
         public ulong TickCount { get; private set; }
 
         private double simulationAccumulator;
@@ -45,13 +51,22 @@ namespace Create_your_Adventure.Source.Engine.Time
         // WORLD TIME (Tag/ Nacht, Wetter, Jahreszeiten)
         // ══════════════════════════════════════════════════
         public double WorldTime { get; private set; } // ═══ In-Game Seconds
-        public double WorldTimeScale { get; set; } = 1.0; // ═══ 1 real sec = X world sec
+
+        private double worldTimeScale = 1.0;
+        public double WorldTimeScale
+        {
+            get => worldTimeScale;
+            set => worldTimeScale = Math.Clamp(value, 0.0, 100.0);
+        }
+
         public bool IsWorldPaused { get; set; }
 
         // ══════════════════════════════════════════════════
         // BACKGROUND TIME (Chunk Loading, unabhängig von Pause)
         // ══════════════════════════════════════════════════
         public double UnscaledTotalTime { get; private set; }
+
+        private const int MaxTicksPerFrame = 5;
 
         // ══════════════════════════════════════════════════
         // CONSTRUCTOR
@@ -77,9 +92,8 @@ namespace Create_your_Adventure.Source.Engine.Time
         public int ConsumeFixedTicks()
         {
             int ticksThisFrame = 0;
-            const int maxTicksPerFrame = 5; // ═══ Spiral of Death Prevention
 
-            while (simulationAccumulator >= FixedDeltaTime && ticksThisFrame < maxTicksPerFrame)
+            while (simulationAccumulator >= FixedDeltaTime && ticksThisFrame < MaxTicksPerFrame)
             {
                 simulationAccumulator -= FixedDeltaTime;
                 TickCount++;
@@ -92,6 +106,20 @@ namespace Create_your_Adventure.Source.Engine.Time
             }
 
             return ticksThisFrame;
+        }
+
+        public void Reset()
+        {
+            FrameDeltaTime = 0.0;
+            UnscaledFrameDeltaTime = 0.0;
+            FrameCount = 0;
+            TickCount = 0;
+            simulationAccumulator = 0.0;
+            WorldTime = 0.0;
+            UnscaledTotalTime = 0.0;
+            SimulationTimeScale = 1.0;
+            WorldTimeScale = 1.0;
+            IsWorldPaused = false;
         }
 
         public double GetInterpolationAlpha()

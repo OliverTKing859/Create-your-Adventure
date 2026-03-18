@@ -885,3 +885,19 @@ Verbesserungen und Fehlerbehebungen im Mesh-Subsystem (Vertex-Buffer, MeshManage
 * `OpenGLVertexBuffer.UpdateData()` stürzte ab, wenn es vor `SetData()` aufgerufen wurde; es gibt jetzt eine Guard‑Prüfung und wirft eine `InvalidOperationException` wenn der Buffer nicht initialisiert ist.
 
 ---
+
+## 0.7.3.9 Alpha | TimeManager: Clamp für TimeScale, MaxTicksPerFrame & Reset - 18.03.2026
+
+Kurz: Verbesserte Stabilität der Game-Loop durch TimeScale-Clamping, Entfernen einer hardcodierten Grenz-Variable und Hinzufügen einer Reset-Utility.
+
+### Hinzugefügt:
+
++ Private Klassenkonstante `MaxTicksPerFrame = 5`
++ `public void Reset()` Methode, die `FrameDeltaTime`, `UnscaledFrameDeltaTime`, `FrameCount`, `TickCount`, `simulationAccumulator`, `WorldTime`, `UnscaledTotalTime` zurücksetzt; setzt `SimulationTimeScale` und `WorldTimeScale` auf `1.0` und `IsWorldPaused` auf `false`
+
+### Verändert:
+
+~ `SimulationTimeScale` und `WorldTimeScale`: Auto-Properties → Properties mit privatem Backing-Field und `Math.Clamp` im Setter (`SimulationTimeScale`: 0.0–10.0, `WorldTimeScale`: 0.0–100.0)  
+~ Ersetzte hardcodierte `5` in `ConsumeFixedTicks()` durch `MaxTicksPerFrame` Konstante
+
+---
