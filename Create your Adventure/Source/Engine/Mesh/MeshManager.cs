@@ -2,9 +2,6 @@
 using Create_your_Adventure.Source.Engine.Texture.Atlase;
 using Create_your_Adventure.Source.Engine.Window;
 using Create_your_Adventure.Source.Rendering.Mesh.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Create_your_Adventure.Source.Engine.Mesh
 {
@@ -45,6 +42,16 @@ namespace Create_your_Adventure.Source.Engine.Mesh
         private readonly Dictionary<string, IMesh> meshCache = [];
         // ═══ Disposal stat
         private bool isDisposed;
+
+        // ═══ Private vertex struct used for quad/cube creation (X,Y,Z,U,V)
+        private struct Vertex
+        {
+            public float X;
+            public float Y;
+            public float Z;
+            public float U;
+            public float V;
+        }
 
         /// <summary>
         /// Indicates whether the MeshManager has been initialized with a graphics backend.
@@ -134,12 +141,12 @@ namespace Create_your_Adventure.Source.Engine.Mesh
 
             float half = size / 2.0f;
 
-            float[] vertices =
+            Vertex[] vertices =
             [
-                -half, -half, 0.0f, 0.0f, 0.0f,
-                 half, -half, 0.0f, 1.0f, 0.0f,
-                 half,  half, 0.0f, 1.0f, 1.0f,
-                -half,  half, 0.0f, 0.0f, 1.0f
+                new Vertex { X = -half, Y = -half, Z = 0.0f, U = 0.0f, V = 0.0f },
+                new Vertex { X =  half, Y = -half, Z = 0.0f, U = 1.0f, V = 0.0f },
+                new Vertex { X =  half, Y =  half, Z = 0.0f, U = 1.0f, V = 1.0f },
+                new Vertex { X = -half, Y =  half, Z = 0.0f, U = 0.0f, V = 1.0f }
             ];
 
             uint[] indices = [0, 1, 2, 2, 3, 0];
@@ -160,6 +167,14 @@ namespace Create_your_Adventure.Source.Engine.Mesh
         public IMesh CreateCube(string name, float size, AtlasRegion region)
         {
             var mesh = CreateMesh(name);
+
+            // ═══ If the mesh is already initialized, do not recreate it
+            if (mesh.IsInitialized)
+            {
+                Logger.Warn($"[MESH] Cube '{name}' already initialized");
+                return mesh;
+            }
+
             float half = size / 2.0f;
 
             float u0 = region.U0;
@@ -167,37 +182,38 @@ namespace Create_your_Adventure.Source.Engine.Mesh
             float u1 = region.U1;
             float v1 = region.V1;
 
-            float[] vertices =
+            Vertex[] vertices =
             [
-                -half, -half,  half, u0, v0,
-                 half, -half,  half, u1, v0,
-                 half,  half,  half, u1, v1,
-                -half,  half,  half, u0, v1,
+                new Vertex { X = -half, Y = -half,  Z =  half, U = u0, V = v0 },
+                new Vertex { X =  half, Y = -half,  Z =  half, U = u1, V = v0 },
+                new Vertex { X =  half, Y =  half,  Z =  half, U = u1, V = v1 },
+                new Vertex { X = -half, Y =  half,  Z =  half, U = u0, V = v1 },
 
-                 half, -half, -half, u0, v0,
-                -half, -half, -half, u1, v0,
-                -half,  half, -half, u1, v1,
-                 half,  half, -half, u0, v1,
+                new Vertex { X =  half, Y = -half,  Z = -half, U = u0, V = v0 },
+                new Vertex { X = -half, Y = -half,  Z = -half, U = u1, V = v0 },
+                new Vertex { X = -half, Y =  half,  Z = -half, U = u1, V = v1 },
+                new Vertex { X =  half, Y =  half,  Z = -half, U = u0, V = v1 },
 
-                 half, -half,  half, u0, v0,
-                 half, -half, -half, u1, v0,
-                 half,  half, -half, u1, v1,
-                 half,  half,  half, u0, v1,
+                new Vertex { X =  half, Y = -half,  Z =  half, U = u0, V = v0 },
+                new Vertex { X =  half, Y = -half,  Z = -half, U = u1, V = v0 },
+                new Vertex { X =  half, Y =  half,  Z = -half, U = u1, V = v1 },
+                new Vertex { X =  half, Y =  half,  Z =  half, U = u0, V = v1 },
 
-                -half, -half, -half, u0, v0,
-                -half, -half,  half, u1, v0,
-                -half,  half,  half, u1, v1,
-                -half,  half, -half, u0, v1,
+                new Vertex { X = -half, Y = -half,  Z = -half, U = u0, V = v0 },
+                new Vertex { X = -half, Y = -half,  Z =  half, U = u1, V = v0 },
+                new Vertex { X = -half, Y =  half,  Z =  half, U = u1, V = v1 },
+                new Vertex { X = -half, Y =  half,  Z = -half, U = u0, V = v1 },
 
-                -half,  half,  half, u0, v0,
-                 half,  half,  half, u1, v0,
-                 half,  half, -half, u1, v1,
-                -half,  half, -half, u0, v1,
+                new Vertex { X = -half, Y =  half,  Z =  half, U = u0, V = v0 },
+                new Vertex { X =  half, Y =  half,  Z =  half, U = u1, V = v0 },
+                new Vertex { X =  half, Y =  half,  Z = -half, U = u1, V = v1 },
+                new Vertex { X = -half, Y =  half,  Z = -half, U = u0, V = v1 },
 
-                -half, -half, -half, u0, v0,
-                 half, -half, -half, u1, v0,
-                 half, -half,  half, u1, v1,
-                -half, -half,  half, u0, v1
+                new Vertex { X = -half, Y = -half,  Z = -half, U = u0, V = v0 },
+                new Vertex { X =  half, Y = -half,  Z = -half, U = u1, V = v0 },
+                new Vertex { X =  half, Y = -half,  Z =  half, U = u1, V = v1 },
+                new Vertex { X = -half, Y = -half,  Z =  half, U = u0, V = v1 }
+
             ];
 
             uint[] indices =
@@ -240,6 +256,25 @@ namespace Create_your_Adventure.Source.Engine.Mesh
         public bool HasMesh(string name) => meshCache.ContainsKey(name);
 
         /// <summary>
+        /// Removes the mesh with the specified name from the cache and disposes its resources.
+        /// </summary>
+        /// <remarks>If the mesh is not found in the cache, a warning is logged and no action is
+        /// taken.</remarks>
+        /// <param name="name">The name of the mesh to remove. Cannot be null or empty.</param>
+        public void RemoveMesh(string name)
+        {
+            if(meshCache.TryGetValue(name, out var mesh))
+            {
+                mesh.Dispose();
+                meshCache.Remove(name);
+                Logger.Info($"[MESH] Mesh '{name}' removed and disposed");
+                return;
+            }
+
+            Logger.Warn($"[MESH] RemoveMesh: Mesh '{name}' not found");
+        }
+
+        /// <summary>
         /// Ensures that the MeshManager has been initialized before performing operations.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if MeshManager is not initialized.</exception>
@@ -270,6 +305,7 @@ namespace Create_your_Adventure.Source.Engine.Mesh
             // ═══ Ensure singleton reference cleared in a thread-safe manner
             lock (instanceLock)
             {
+                meshFactory = null;
                 instance = null;
             }
 

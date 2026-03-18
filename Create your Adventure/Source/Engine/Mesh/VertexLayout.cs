@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Create_your_Adventure.Source.Engine.Mesh
+﻿namespace Create_your_Adventure.Source.Engine.Mesh
 {
     /// <summary>
     /// Describes a single attribute within a vertex structure (position, texture coordinates, normals, etc.).

@@ -28,10 +28,10 @@
 - [X] `Directory.Exists`-Guard in `BuildAtlasFromFolder()`
 
 ### Mesh
-- [ ] `SetData()` in `OpenGLVertexBuffer`: Guard gegen doppelten Aufruf (GPU-Leak)
-- [ ] `UpdateData()`: Null-Handle-Guard
-- [ ] `Dispose()` in `MeshManager`: `instance = null` + `meshFactory = null`
-- [ ] `isDisposed`-Check in `CreateMesh()`, `GetMesh()` etc.
+- [X] `SetData()` in `OpenGLVertexBuffer`: Guard gegen doppelten Aufruf (GPU-Leak)
+- [X] `UpdateData()`: Null-Handle-Guard
+- [X] `Dispose()` in `MeshManager`: `instance = null` + `meshFactory = null`
+- [X] `isDisposed`-Check in `CreateMesh()`, `GetMesh()` etc.
 
 ### Camera
 - [X] **VP-Matrix Reihenfolge prüfen** — `proj * view` vs. `view * proj` (Fundament für Chunks)
@@ -84,13 +84,13 @@
 
 ### Texture
 - [X] Bind-Guard um `(name, unit)`-Tupel erweitern
-- [ ] `BuildBlockAtlas()` auf `AssetLoader` umstellen
+- [X] `BuildBlockAtlas()` auf `AssetLoader` umstellen
 - [X] `singleton` nach `Dispose()` auf `null` zurücksetzen
 
 ### Mesh
 - [ ] `Draw()` vs. manuelles `Bind()`: Inkonsistenz klären und dokumentieren
 - [ ] Logger-Calls in `SetupVertexAttributes()` auf Debug-Level
-- [ ] `CreateQuad()`/`CreateCube()`: Guard für bereits initialisierte Meshes
+- [X] `CreateQuad()`/`CreateCube()`: Guard für bereits initialisierte Meshes
 
 ### Camera
 - [ ] `LengthSquared` statt `Length` für Threshold-Check (Origin-Shift)
@@ -148,8 +148,8 @@
 - [ ] Async-Loading für Texturen (Hintergrund-Thread für Decode)
 
 ### Mesh
-- [ ] `RemoveMesh(string name)` implementieren
-- [ ] Vertex-Structs statt roher `float[]` einführen
+- [X] `RemoveMesh(string name)` implementieren
+- [X] Vertex-Structs statt roher `float[]` einführen
 - [ ] Face-spezifische UV-Unterstützung im Cube vorbereiten
 - [ ] `BufferUsageARB` als Parameter in `SetData()` exponieren
 

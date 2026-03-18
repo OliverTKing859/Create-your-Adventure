@@ -863,3 +863,25 @@ Kleine Ergänzung zur Asset-Verwaltung und Anpassung am `TextureManager`.
 * Verhindert `DirectoryNotFoundException` durch doppelte Pfadbildung beim Ermitteln von Texture-Ordnern
 
 ---
+
+## 0.7.3.8 Alpha | Mesh: Fixes und Verbesserungen - 18.03.2026
+
+Verbesserungen und Fehlerbehebungen im Mesh-Subsystem (Vertex-Buffer, MeshManager, Primitive-Erzeugung).
+
+### Hinzugefügt:
+
++ `MeshManager.RemoveMesh(string name)` — Methode zum sicheren Entfernen und Dispose eines Meshes aus dem Cache.
++ Privater `struct Vertex { float X, Y, Z, U, V; }` zur typsicheren Darstellung von Vertex-Daten für Quad/Cube-Erzeugung.
+
+### Geändert:
+
+~ `MeshManager.Dispose()` setzt nach Aufräumen nun `meshFactory = null` und `instance = null`, damit der Singleton sauber zurückgesetzt wird.
+~ `CreateQuad()` / `CreateCube()` prüfen nach `CreateMesh()` jetzt `mesh.IsInitialized` und kehren bei bereits initialisiertem Mesh frühzeitig mit einer Warnung zurück.
+~ `CreateQuad()` / `CreateCube()` verwenden nun das private `Vertex`-Struct statt roher `float[]` für bessere Typensicherheit.
+
+### Behoben:
+
+* `OpenGLVertexBuffer.SetData()` leakte GPU-Speicher bei erneutem Aufruf; alte Buffer werden jetzt vor dem Erzeugen eines neuen Buffers gelöscht.
+* `OpenGLVertexBuffer.UpdateData()` stürzte ab, wenn es vor `SetData()` aufgerufen wurde; es gibt jetzt eine Guard‑Prüfung und wirft eine `InvalidOperationException` wenn der Buffer nicht initialisiert ist.
+
+---

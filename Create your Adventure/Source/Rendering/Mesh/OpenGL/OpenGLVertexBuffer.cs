@@ -1,10 +1,6 @@
 ﻿using Create_your_Adventure.Source.Debug;
 using Create_your_Adventure.Source.Engine.Mesh;
 using Silk.NET.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Reflection.Metadata;
-using System.Text;
 
 namespace Create_your_Adventure.Source.Rendering.Mesh.OpenGL
 {
@@ -69,6 +65,13 @@ namespace Create_your_Adventure.Source.Rendering.Mesh.OpenGL
             VertexCount = vertices.Length;
             SizeInBytes = vertices.Length * sizeof(T);
 
+            // ═══ If a buffer already exists, delete it to avoid GPU memory leak
+            if (Handle != 0)
+            {
+                gl.DeleteBuffer(Handle);
+                Handle = 0;
+            }
+
             // ═══ Create and bind the OpenGL buffer object
             Handle = gl.GenBuffer();
             gl.BindBuffer(BufferTargetARB.ArrayBuffer, Handle);
@@ -100,6 +103,9 @@ namespace Create_your_Adventure.Source.Rendering.Mesh.OpenGL
         /// <param name="offsetInBytes">The byte offset in the buffer where the update should start. Default is 0.</param>
         public unsafe void UpdateData<T>(T[] vertices, int offsetInBytes = 0) where T : unmanaged
         {
+            // ═══ Guard: ensure buffer has been created
+            if (Handle == 0) throw new InvalidOperationException("Buffer not initialized.");
+
             // ═══ Bind the existing buffer
             gl.BindBuffer(BufferTargetARB.ArrayBuffer, Handle);
 
